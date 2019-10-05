@@ -1,0 +1,139 @@
+## Problem: Fehlermeldung im Log, dass smtp service nicht initialisiert werden kann. user passwort ungültig
+## auch wenn notify in configuration.yaml ausgelagert wird
+
+notify:
+  - name: gmail_smtp
+    platform: smtp
+    server: smtp.gmail.com
+    port: 587
+    timeout: 15
+    sender: max.reigl@gmail.com
+    encryption: starttls
+    username: max.reigl@gmail.com
+    password: 'max*gMail1'
+    recipient:
+      - max.reigl@gmail.com
+      #- ehrlich.ingrid@gmail.com
+    sender_name: My Home Assistant
+  - name: gmx_smtp
+    platform: smtp
+    server: mail.gmx.net
+    port: 587
+    timeout: 15
+    sender: max.reigl@gmx.de
+    encryption: starttls
+    username: max.reigl@gmx.de
+    password: max*Taxfree7
+    recipient:
+      - max.reigl@gmail.com
+      #- ehrlich.ingrid@gmail.com
+    sender_name: My Home Assistant
+  
+sensor:
+  - platform: yr # uses YR.no as a source for current meteorological data. The weather forecast is delivered by the Norwegian Meteorological Institute and the NRK.
+  
+  - platform: dwd_weather_warnings
+    region_name: Stadt Stuttgart
+
+  - platform: template
+    sensors:
+      dwd_warn_count:
+        value_template: '{{ states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_count }}'
+
+
+automation:
+  - alias: send_dwd_warning
+    initial_state: True
+    trigger:
+      - platform: state
+        entity_id: sensor.dwd_warn_count
+      - platform: state
+        entity_id: sensor.dwdweatherwarnings_current_warning_level
+    condition:
+      condition: template
+      value_template: '{{ (trigger.to_state.state != trigger.from_state.state) and trigger.to_state.state | int > 0 }}'
+    action:
+      - condition: state
+        entity_id: script.send_dwd_warn_mail
+        state: 'off'
+      - service: homeassistant.turn_on
+        entity_id: script.send_dwd_warn_mail
+
+
+script:
+  send_dwd_warn_mail:
+    sequence:
+      - delay:
+          seconds: 10
+      - service: notify.ios_iphone
+        data: 
+          title: "DWD Wetterwarnung!"
+          message: "Aktuelle Warnung kommt per Mail."
+      - service: shell_command.get_warn_image
+      - delay:
+          minutes: 1
+      - service: notify.gmx_smtp
+        data_template:
+          title: 'DWD Wetterwarnung!'
+          message: ' '
+          data:
+            images:
+              - warnungen_gemeinde_map_baw.png
+            html: >
+              <!DOCTYPE html><html><head><style>a, h3, h4 {font-family: arial;}</style></head><body>
+              <h3>{{ states.sensor.dwdweatherwarnings_current_warning_level.attributes.region_name }}</h3>
+              {% if states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_1_headline is defined %}
+                <h3>{{ states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_1_headline }}</h3>
+                Warnstufe: {{ states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_1_level }}
+                <br>
+                Von: {{ as_timestamp(states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_1_start) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <br>
+                Bis: {{ as_timestamp(states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_1_end) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <br>
+                {{ states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_1_description }}
+                <br>
+                <br>
+              {% endif %}
+              {% if states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_2_headline is defined %}
+                <h3>{{ states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_2_headline }}</h3>
+                Warnstufe: {{ states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_2_level }}
+                <br>
+                Von: {{ as_timestamp(states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_2_start) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <br>
+                Bis: {{ as_timestamp(states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_2_end) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <br>
+                {{ states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_2_description }}
+                <br>
+                <br>
+              {% endif %}
+              {% if states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_3_headline is defined %}
+                <h3>{{ states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_3_headline }}</h3>
+                Warnstufe: {{ states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_3_level }}
+                <br>
+                Von: {{ as_timestamp(states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_3_start) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <br>
+                Bis: {{ as_timestamp(states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_3_end) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <br>
+                {{ states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_3_description }}
+                <br>
+                <br>
+              {% endif %}
+              {% if states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_4_headline is defined %}
+                <h3>{{ states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_4_headline }}</h3>
+                Warnstufe: {{ states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_4_level }}
+                <br>
+                Von: {{ as_timestamp(states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_4_start) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <br>
+                Bis: {{ as_timestamp(states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_4_end) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <br>
+                {{ states.sensor.dwdweatherwarnings_current_warning_level.attributes.warning_4_description }}
+                <br>
+                <br>
+              {% endif %}
+              <a href="http://www.dwd.de/DWD/warnungen/warnapp_gemeinden/json/warnungen_gemeinde_map_baw.png">Aktuelle Warnkarte</a>
+              <br>
+              <img class="rounded" alt="Warnkarte" src="cid:warnungen_gemeinde_map_baw.png" /></body></html>
+
+
+shell_command:
+  get_warn_image: 'wget http://www.dwd.de/DWD/warnungen/warnapp_gemeinden/json/warnungen_gemeinde_map_baw.png -q -O warnungen_gemeinde_map_baw.png'

@@ -1,0 +1,200 @@
+################################################################
+## General Settings
+################################################################
+homeassistant:
+  # Name of the location where Home Assistant is running
+  name: Home
+  # Location required to calculate the time the sun rises and sets
+  latitude: !secret home_latitude
+  longitude: !secret home_longitude
+  elevation: 405
+  unit_system: metric
+  time_zone: Europe/Berlin
+  # Customization file
+  customize: !include includes/customize.yaml
+  # Authentication providers: no authentication in local network required
+  auth_providers:
+    - type: homeassistant
+    - type: trusted_networks
+      trusted_networks:
+        - 127.0.0.1
+        - ::1
+        - 192.168.2.0/24
+        - fd00::/8
+#      allow_bypass_login: true
+  # load Packages from directory
+  packages: !include_dir_named packages
+
+# display panels in the frontend to configure and manage parts of Home Assistant
+config:
+# System Health integration data can be viewed in Developer Tools on the “Info” tab
+system_health:
+
+# activate SSL
+# Source: https://community.home-assistant.io/t/ssl-and-home-assistant-running-on-a-synology-docker/32102
+http:
+  base_url: !secret base_url 
+  ssl_certificate: !secret ssl_certificate_path
+  ssl_key: !secret ssl_private_key
+  #ip_ban_enabled: true
+  #login_attempts_threshold: 3
+
+################################################################
+## Includes
+################################################################
+#automation: !include includes/automations.yaml
+binary_sensor: !include includes/binary_sensors.yaml
+group: !include includes/groups.yaml
+script: !include includes/scripts.yaml
+sensor: !include includes/sensors.yaml
+zone: !include includes/zones.yaml
+
+################################################################
+## Radio-Devices
+################################################################
+# Zigbee-Coordinator (NORTEK HUSBZB-1)
+zha:
+  usb_path: /zigbeestick
+  database_path: /data/zigbee.db
+#zwave:
+#  usb_path: /zwaveusbstick
+#  network_key: <your secret key here>
+
+################################################################
+## Platforms & Components
+################################################################
+# MQTT-Broker. Mosquitto-Docker MUSS vor HA gestartet werden. Todo: depend-on in Docker Config setzen
+# wird benötigt für Battery Status Automation (siehe Package 'battery_alert')
+mqtt:
+  broker: !secret DS_IP
+#  password: !secret mqtt_broker_password
+  discovery: true
+  discovery_prefix: homeassistant
+
+# Support for iOS app
+ios:
+# iOS notification
+notify:
+  - platform: ios
+    name: ios_app
+  #  target: !secret ios_token
+
+# Weather Prediction
+sun: 
+weather:
+  - platform: darksky
+    api_key: !secret darksky_api_key
+    mode: daily
+    scan_interval: 720
+    name: dark_sky_daily
+#  - platform: darksky
+#    api_key: !secret darksky_api_key
+#    mode: hourly
+#    scan_interval: 60
+#    name: dark_sky_hourly
+
+# Text to speech
+tts:
+  - platform: google_translate
+    service_name: google_say
+
+################################################################
+## Device-Tracking Platforms
+################################################################
+# Discover some devices automatically
+discovery:
+
+device_tracker:
+  - platform: bluetooth_tracker
+    track_new_devices: no
+    interval_seconds: 3
+  - platform: unifi
+    host: !secret unifi_host
+    verify_ssl: false
+    username: !secret unifi_user
+    password: !secret unifi_password
+    ssid_filter:
+      - 'mi-work'
+    track_new_devices: no
+    interval_seconds: 30
+#  - platform: bluetooth_tracker
+#    interval_seconds: 5
+#    consider_home: 180
+#    new_device_defaults:
+#      track_new_devices: no
+
+################################################################
+## Frontend
+################################################################
+lovelace:
+  mode: yaml
+#frontend:
+#  javascript_version: auto
+#map:
+
+################################################################
+## Custom Components (in /config/custom_components/)
+################################################################
+# HA Community Store
+hacs:
+  token: !secret hacs_token
+  
+################################################################
+## Test / Development
+################################################################
+# Samsung TV
+#media_player:
+#  - platform: samsungtv
+#    host: 192.168.2.22
+#    mac: d0:03:df:a8:e4:f8
+#    name: samsungtv
+#    port: 8001
+#    timeout: 10 #sec
+
+################################################################
+## todo
+################################################################
+weblink:
+  entities:
+    - name: Synology
+      url: https://192.168.2.11:5001
+      icon: mdi:network
+    - name: Router
+      url: http://192.168.2.1
+      icon: mdi:router-wireless
+    - name: UniFi
+      url: http://192.168.2.11:8443
+      icon: mdi:server   
+    
+################################################################
+## Recording, Logging, Lockbook
+################################################################
+# View all events in a logbook
+recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to be displayed in logbook and/or history
+  purge_keep_days: 5
+  exclude:
+    domains:
+      - weblink
+      - updater
+      - input_select
+    entities:
+      - sun.sun # Don't record sun data
+      - sensor.last_boot # Comes from 'systemmonitor' sensor platform
+      - sensor.date
+      - binary_sensor.workday
+      
+logbook: #recorded Entities, that will be displayed in Logbook
+#  include: !include includes/include.yaml
+  exclude: !include includes/exclude.yaml
+  
+history: #recorded Entities, that will be displayed in History
+#  include: !include includes/include.yaml
+  exclude: !include includes/exclude.yaml
+
+logger: 
+  default: warn #critical,fatal,error,warning,warn,info,debug,notset
+  logs:
+    zha: debug
+    zigpy: debug
+#    homeassistant.components.vacuum.xiaomi_miio: debug
+#    miio: debug

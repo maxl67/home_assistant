@@ -1,0 +1,11 @@
+  - name: home
+    latitude: !secret home_latitude
+    longitude: !secret home_longitude
+    radius: 20
+    icon: mdi:account-multiple
+
+  - name: TIK
+    latitude: !secret tik_latitude
+    longitude: !secret tik_longitude
+    radius: 65
+    icon: mdi:worker

@@ -1,0 +1,14 @@
+domains:
+  - automation
+  - script
+  - weblink
+  - updater
+  - systemmonitor
+#  - device_tracker  #some are included again
+entities:
+  - sensor.random
+  - sensor.date
+  - binary_sensor.hera
+  - sensor.vacuum_operation
+  - sensor.vacuum_accessories
+  

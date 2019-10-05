@@ -1,0 +1,82 @@
+################################################################
+## Packages / Fritzbox Net-Monitor
+## Source: https://git.truenoobs.de/darthsandmann/homeassistant/src/branch/master/disabled/packages/fritzbox.yaml
+################################################################
+
+# Fritzbox Smart Home
+#fritzbox:
+#  devices:
+#    - host: !secret fritz_host
+#      username: !secret fritz_home_username
+#      password: !secret fritz_home_password 
+
+################################################
+## Customize
+################################################
+homeassistant:
+  customize: 
+    sensor.fritz_is_connected:
+      templates:
+        #icon: "if (state = true) return 'mdi:speaker';
+        #                    else return 'mdi:speaker-off';"
+        icon_color: >
+          if (state === 'true') return 'rgb(251, 210, 41)'; 
+          else return 'rgb(54, 95, 140)';
+    binary_sensor.hpdrucker:
+      templates:
+        icon: >
+          if (state === 0) return 'mdi:printer-off';
+                            else return 'mdi:printer';
+        icon_color: >
+          if (state === 'off') return 'rgb(251, 210, 41)'; 
+          else return 'rgb(54, 95, 140)';
+
+################################################
+## Sensors
+################################################
+sensor:
+  - platform: fritzbox_netmonitor
+    host: !secret fritz_host
+    name: fritzbox
+
+################################################
+## Sensor-Attributes
+################################################
+  - platform: template
+    sensors:
+      fritz_is_linked:
+        friendly_name: "Status"
+        value_template: "{{ states.sensor.fritzbox.attributes.is_linked }}"
+        icon_template: mdi:router-wireless
+        #device_class: connectivity
+      fritz_is_connected:
+        friendly_name: "Online"
+        value_template: "{{ states.sensor.fritzbox.attributes.is_connected }}"
+        icon_template: mdi:wan
+        #device_class: connectivity
+      fritz_wan_access_type:
+        friendly_name: "Anschluss"
+        value_template: "{{ states.sensor.fritzbox.attributes.wan_access_type }}"
+        icon_template: mdi:ethernet-cable
+      fritz_external_ip:
+        friendly_name: "IP"
+        value_template: "{{ states.sensor.fritzbox.attributes.external_ip }}"
+        icon_template: mdi:link
+      fritz_rate_up:
+        friendly_name: "Upload"
+        value_template: "{{ (states.sensor.fritzbox.attributes.transmission_rate_up|int / 1024)|round(2) }}"
+        icon_template: mdi:cloud-upload
+        unit_of_measurement: "MB/sec"
+      fritz_rate_down:
+        friendly_name: "Download"
+        value_template: "{{ (states.sensor.fritzbox.attributes.transmission_rate_down|int / 1024)|round(2) }}"
+        icon_template: mdi:cloud-download
+        unit_of_measurement: "MB/sec"
+      fritz_rate_up_max:
+        friendly_name: "Upload Max"
+        value_template: "{{ states.sensor.fritzbox.attributes.max_byte_rate_up }}"
+        icon_template: mdi:transfer-up
+      fritz_rate_down_max:
+        friendly_name: "Download Max"
+        value_template: "{{ states.sensor.fritzbox.attributes.max_byte_rate_down }}"
+        icon_template: mdi:transfer-down

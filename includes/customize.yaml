@@ -1,0 +1,34 @@
+# Sonnenstand
+  sun.sun:
+    friendly_name: Sonnenstand
+
+# wird nicht mehr gebraucht
+  sensor.yr_symbol:
+    friendly_name: Wetter
+  
+
+################################################################
+## Battery Alert Package  (packages/battery_alert.yaml)
+## https://raw.githubusercontent.com/notoriousbdg/Home-AssistantConfig/master/packages/battery_alert.yaml
+################################################################
+# disable alerts for a specific entity
+  sensor.ipad_von_max_reigl_battery_level:
+    battery_alert_disabled: false
+  sensor.iphone8_max_battery:
+    battery_alert_disabled: true
+  sensor.iphonemax8_battery_level:
+    battery_alert_disabled: true
+  sensor.vacuum_battery:
+    battery_alert_disabled: true
+    
+# disable creating a sensor from battery attributes for a specific entity
+  sensor.lumi_lumi_sensor_magnet_aq2_032b77ce_1_1:  #DoorSensor 1
+    battery_sensor_creation_disabled: true
+  sensor.lumi_lumi_sensor_magnet_aq2_03139f7b_1_1:  #DoorSensor 2
+    battery_sensor_creation_disabled: true
+  sensor.lumi_lumi_sensor_magnet_aq2_031b3225_1_1:  #DoorSensor 3
+    battery_sensor_creation_disabled: true
+  device_tracker.iphonemax8:
+    battery_sensor_creation_disabled: true
+  device_tracker.iphoneing8:
+    battery_sensor_creation_disabled: true

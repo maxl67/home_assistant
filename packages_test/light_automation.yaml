@@ -1,0 +1,88 @@
+# my_package.yaml
+sensor:
+  - platform: template
+    sensors:
+      auto_light_start:
+        friendly_name: 'Lichter an um '
+        value_template: '{{ (as_timestamp(states.sun.sun.attributes.next_setting) + (states("input_slider.auto_light_offset_on") | int)  * 60)  | timestamp_custom("%H:%M") }}'
+      auto_light_stop:
+        friendly_name: 'Lichter aus um '
+        value_template: '{{ (as_timestamp("2017-06-09T21:00:00+00:00") + (states("input_slider.auto_light_offset_off") | int)  * 60)  | timestamp_custom("%H:%M") }}'
+ 
+  - platform: time_date
+    display_options:
+      - 'time'
+ 
+input_slider:
+  auto_light_offset_on:
+    name: Minuten nach Sonnenuntergang
+    icon: mdi:timer
+    initial: 0
+    min: -60
+    max: 60
+    step: 10
+  auto_light_offset_off:
+    name: Minuten nach 23Uhr
+    icon: mdi:timer
+    initial: 0
+    min: -60
+    max: 60
+    step: 10
+ 
+ 
+automation:
+  - alias: "auto_light_on enabled"
+    trigger:
+      platform: state
+      entity_id: input_slider.auto_light_offset_on, input_slider.auto_light_offset_off
+    action:
+    - service: homeassistant.turn_on
+      data:
+        entity_id:
+          - automation.auto_light_on
+    - service: homeassistant.turn_on
+      data:
+        entity_id:
+          - automation.auto_light_off
+           
+  - alias: 'auto_light_on'
+    initial_state: True
+    trigger:
+      - platform: time
+        minutes: '/1'
+        seconds: 10
+    condition:
+      condition: and
+      conditions:
+      - condition: template
+        # value_template: '{{ (now().strftime("%s") | int | timestamp_custom("%H:%M")) == states.sensor.auto_light_start.state }}'
+        value_template: '{{ (now().strftime("%s") | int | timestamp_custom("%H:%M")) > states.sensor.auto_light_start.state }}'
+      - condition: template
+        value_template: '{{ (now().strftime("%s") | int | timestamp_custom("%H:%M")) < states.sensor.auto_light_stop.state }}' 
+#        - condition: state entity_id: group.automatic_lights_outside state: 'off' action: - service: homeassistant.turn_on entity_id: group.automatic_lights_outside - alias: 'auto_light_off' initial_state: True trigger: - platform: time minutes: '/1' seconds: 10 condition: condition: and conditions: - condition: template # value_template: '{{ (now().strftime("%s") | int | timestamp_custom("%H:%M")) == states.sensor.auto_light_stop.state }}' value_template: '{{ (now().strftime("%s") | int | timestamp_custom("%H:%M")) > states.sensor.auto_light_stop.state }}'
+      - condition: template
+        value_template: '{{ (now().strftime("%s") | int | timestamp_custom("%H:%M")) < states.sensor.auto_light_start.state }}'
+      - condition: state
+        entity_id: group.automatic_lights_outside
+        state: 'on'
+    action:
+      - service: homeassistant.turn_off
+        entity_id: group.automatic_lights_outside
+ 
+group:
+  Automatic Lights Outside:
+    name: Automatic Lights Outside
+    entities:
+      - switch.outdoor_front_big
+      - switch.outdoor_front_small
+ 
+  Timer Light:
+    name: Timer Light
+    control: hidden
+    entities:
+    - automation.auto_light_off
+    - automation.auto_light_on
+    - input_slider.auto_light_offset_on
+    - sensor.auto_light_start
+    - input_slider.auto_light_offset_off
+    - sensor.auto_light_stop

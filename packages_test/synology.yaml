@@ -1,0 +1,40 @@
+###############################################################################
+#   @author         :   Trent Stanton
+#   @date           :   10/03/2018
+#   @package        :   Synology
+#   @description    :   Sensors for Synology NAS
+#   @url            :   
+###############################################################################
+homeassistant:
+  customize:
+    sensor.cpu_load_total:
+      friendly_name: CPU Usage
+    sensor.memory_usage_real:
+      friendly_name: Memory Usage
+    sensor.status_volume_2:
+      friendly_name: Volume 2 Status
+    sensor.volume_used_volume_1:
+      friendly_name: Volume 1 Usage
+    sensor.volume_used_volume_2:
+      friendly_name: Volume 2 Usage
+    sensor.maximum_disk_temp_volume_2:
+      friendly_name: Volume 2 Temperature
+    sensor.status_volume_1:
+      friendly_name: Volume 1 Status
+    sensor.status_volume_3:
+      friendly_name: Volume 3 Status
+
+sensor:
+# Synology
+  - platform: synologydsm
+    host: !secret sensor_synology_host
+    username: !secret sensor_synology_username
+    password: !secret sensor_synology_password
+    monitored_conditions:
+      - cpu_total_load
+      - memory_real_usage
+      - disk_status
+      - volume_status
+      - volume_percentage_used
+      - disk_temp
+      - volume_disk_temp_max
