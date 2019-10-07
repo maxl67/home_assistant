@@ -89,11 +89,15 @@ sensor:
   - platform: template
     sensors:
       max_status:
-        value_template: '{{ states.input_select.max_status_dropdown.state }}'
         friendly_name: 'Max'
+        value_template: '{{ states.input_select.max_status_dropdown.state }}'
+        entity_id:
+          - input_select.max_status_dropdown
       ing_status:
-        value_template: '{{ states.input_select.ing_status_dropdown.state }}'
         friendly_name: 'Ingrid'
+        value_template: '{{ states.input_select.ing_status_dropdown.state }}'
+        entity_id:
+          - input_select.ing_status_dropdown
   # Anzahl der Personen zuhause
   - platform: template
     sensors:

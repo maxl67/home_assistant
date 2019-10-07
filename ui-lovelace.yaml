@@ -147,12 +147,10 @@ views:
 
             - type: conditional
               conditions:
-                - entity: sensor.vacuum_status
-                  state_not: 'Cleaning'
-                - entity: sensor.vacuum_status
-                  state_not: 'Cleaning room'
-                - entity: sensor.vacuum_status
-                  state_not: 'Paused'
+                - entity: binary_sensor.vacuum_started
+                  state: 'off'
+                - entity: binary_sensor.vacuum_paused
+                  state: 'off'
               elements:
                 - type: icon
                   icon: mdi:play
@@ -170,7 +168,7 @@ views:
             - type: conditional
               conditions:
                 - entity: binary_sensor.vacuum_started
-                  state: 'Cleaning room'
+                  state: 'on'
               elements:
                 - type: icon
                   icon: mdi:pause
@@ -179,12 +177,12 @@ views:
                     service: script.vacuum_pause
                   style:
                     top: 90%
-                    left: 15%
+                    left: 21%
                     color: '#3090C7'
             - type: conditional
               conditions:
-                - entity: sensor.vacuum_status
-                  state: 'Paused'
+                - entity: binary_sensor.vacuum_paused
+                  state: 'on'
               elements:
                 - type: icon
                   icon: mdi:play-pause
@@ -193,7 +191,7 @@ views:
                     service: script.vacuum_resume
                   style:
                     top: 90%
-                    left: 15%
+                    left: 19%
                     color: '#3090C7'
             
             ## Labels (top)

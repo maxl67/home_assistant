@@ -23,15 +23,14 @@ homeassistant:
       icon: mdi:calendar-check
     input_select.vacuum_room:
       icon: mdi:floor-plan
+
 #    binary_sensor.vacuum_room:
 #      custom_ui_state_card: state-card-floorplan
 #      config: !include ../floorplan_vacuum.yaml
-
 #binary_sensor:
 #  - platform: mqtt
 #    state_topic: dummy/floorplan/sensor
 #    name: Vacuum Room
-
 #frontend:
 #  extra_html_url:
 #    - /local/custom_ui/state-card-floorplan.html
@@ -138,8 +137,13 @@ input_select:
 ###############################################################################
 binary_sensor:
   - platform: template
-    name: vacuum_paused
-value_template: "{{ states('vacuum.xiaomi_vacuum_cleaner.attributes.status') in ['9', '17', '23', '26'] }}"    
+    sensors:
+      vacuum_paused:
+        entity_id: vacuum.xiaomi_vacuum_cleaner
+        value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.status in ['Paused'] }}"    
+      vacuum_started:
+        entity_id: vacuum.xiaomi_vacuum_cleaner
+        value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.status in ['Cleaning', 'Definition missing for state 18'] }}"    
   
 sensor:
   - platform: template
@@ -148,6 +152,7 @@ sensor:
         value_template: '{{ states.input_select.vacuum_last_cleaned_room.state }}'
         friendly_name: 'cleaned room history'
         icon_template: 'mdi:broom'
+
   - platform: template
     sensors:
       vacuum_status:
@@ -257,7 +262,7 @@ script:
   ## would like to have one script 
   vacuum_resume:
     sequence:
-      - service: vacuum.start
+      - service: vacuum.start  #todo: is this really the correct command even for resume of room cleaning?
         entity_id: vacuum.xiaomi_vacuum_cleaner
   vacuum_pause:
     sequence:
@@ -362,7 +367,7 @@ script:
         data:
           entity_id: vacuum.xiaomi_vacuum_cleaner
           command: app_segment_clean
-          params: [3] #neu:3
+          params: [2] #erst 3, jetzt 2
   vacuum_bedroom:
     alias: "Vacuum Bedroom"
     sequence:
@@ -386,7 +391,7 @@ script:
         data:
           entity_id: vacuum.xiaomi_vacuum_cleaner
           command: app_segment_clean
-          params: [4] #neu:4
+          params: [3] #erst 4, jetzt 3
   vacuum_guestroom:
     alias: "Vacuum Guestroom"
     sequence:
@@ -394,7 +399,7 @@ script:
         data:
           entity_id: vacuum.xiaomi_vacuum_cleaner
           command: app_segment_clean
-          params: [5] #neu:5
+          params: [4] #erst 5, jetzt 4
 
   ## changing fan speed
   vacuum_set_quiet:
@@ -576,12 +581,12 @@ automation:
         state: 'off'
     action:
       - service_template: >
-          {% if (is_state('person.max', 'Home')) and (is_state('person.ing', 'Home'))  %}
+          {% if (is_state('person.max', 'Home') or is_state('person.max', 'Just Arrived')) and (is_state('person.ing', 'Home') or is_state('person.ing', 'Just Arrived')) %}
             notify.family_main_devices
-          {% elif is_state('person.max', 'Home') %}
+          {% elif is_state('person.max', 'Home') or is_state('person.max', 'Just Arrived') %}
             notify.max
-          {% elif is_state('person.ing', 'Home') %}
-            notify.ing
+          {% elif is_state('person.ing', 'Home') or is_state('person.ing', 'Just Arrived') %}
+            ## notify.ing
           {% endif %}
         data: #Hey, the vacuum dustbin needs to be cleared
           message: 'Nach der automatischen Reinigung den Staubbehälter von Dusti-E leeren.' 
