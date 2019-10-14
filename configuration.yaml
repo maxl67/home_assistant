@@ -104,19 +104,27 @@ tts:
 # Discover some devices automatically
 discovery:
 
+unifi:
+  controllers:
+    - host: !secret unifi_host
+      site: home
+      ssid_filter:
+        - 'mi-work'
+      dont_track_wired_clients: true
+
 device_tracker:
   - platform: bluetooth_tracker
     track_new_devices: no
     interval_seconds: 3
-  - platform: unifi
-    host: !secret unifi_host
-    verify_ssl: false
-    username: !secret unifi_user
-    password: !secret unifi_password
-    ssid_filter:
-      - 'mi-work'
-    track_new_devices: no
-    interval_seconds: 30
+#  - platform: unifi
+#    host: !secret unifi_host
+#    verify_ssl: false
+#    username: !secret unifi_user
+#    password: !secret unifi_password
+#    ssid_filter:
+#      - 'mi-work'
+#    track_new_devices: no
+#    interval_seconds: 30
 #  - platform: bluetooth_tracker
 #    interval_seconds: 5
 #    consider_home: 180

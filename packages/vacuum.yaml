@@ -3,7 +3,7 @@
 ##
 # Token ermittelt nach: https://www.home-assistant.io/components/vacuum.xiaomi_miio/#retrieving-the-access-token
 # Idee: https://github.com/stanvx/Home-Assistant-Configuration/blob/master/packages/xiaomi_robot_vacuum.yaml
-#        @author: Trent Stanton, @date: 19/05/2018
+#  und: @author: Trent Stanton, @date: 19/05/2018
 # Card: https://community.home-assistant.io/t/xiaomi-vacuum-cleaner-card/64456/7
 #       https://github.com/marcogazzola/Home-assistant-help/blob/master/Xiaomi-Vacuum/pkg_vacuum_xiaomi.yaml
 # Room: https://community.home-assistant.io/t/xiaomi-vacuum-s1-s60-t60-s61-t61-room-cleaning-by-room-name/122315/16
@@ -262,7 +262,7 @@ script:
   ## would like to have one script 
   vacuum_resume:
     sequence:
-      - service: vacuum.start  #todo: is this really the correct command even for resume of room cleaning?
+      - service: vacuum.start  #todo: is this really the correct command even for resume of room cleaning? or vacuum.turn_on
         entity_id: vacuum.xiaomi_vacuum_cleaner
   vacuum_pause:
     sequence:
@@ -289,7 +289,7 @@ script:
         data:
           entity_id: vacuum.xiaomi_vacuum_cleaner
           command: app_segment_clean
-          params: [18,1,3] 
+          params: [18,1,2] 
       - delay:
           seconds: 1
       - service: input_select.select_option
@@ -479,8 +479,7 @@ automation:
           state: 'on'
     action:
     - delay: '00:00:10'
-    - service: vacuum.turn_on
-      entity_id: vacuum.xiaomi_vacuum_cleaner
+    - service: script.vacuum_all
     - service: homeassistant.turn_on
       entity_id: input_boolean.automatic_vacuum_first_run
     - service: notify.family_main_devices
@@ -559,6 +558,12 @@ automation:
       to: 'Home'
       for:
         minutes: 2
+    - platform: state
+      entity_id: input_boolean.disable_dustbin_notification
+      to: 'off'
+    - platform: state
+      entity_id: input_boolean.automatic_vacuum_first_run
+      to: 'on'
     condition:
       condition: and
       conditions:
@@ -571,7 +576,7 @@ automation:
       - condition: template
         value_template: >
           {% if states.automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin.last_triggered is not none %}
-            {% if as_timestamp(now()) | int   -  as_timestamp(states.automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin.attributes.last_triggered) | int > 1800 %} true {% else %} false
+            {% if as_timestamp(now()) | int - as_timestamp(states.automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin.attributes.last_triggered) | int > 1800 %} true {% else %} false
             {% endif %}
           {% else %}
             false
@@ -581,16 +586,23 @@ automation:
         state: 'off'
     action:
       - service_template: >
-          {% if (is_state('person.max', 'Home') or is_state('person.max', 'Just Arrived')) and (is_state('person.ing', 'Home') or is_state('person.ing', 'Just Arrived')) %}
+          {% if (states.sensor.max_status.state in ['Home', 'Just Arrived']) and (states.sensor.ing_status.state in ['Home', 'Just Arrived']) %}
             notify.family_main_devices
-          {% elif is_state('person.max', 'Home') or is_state('person.max', 'Just Arrived') %}
+          {% elif states.sensor.max_status.state in ['Home', 'Just Arrived'] %}
             notify.max
-          {% elif is_state('person.ing', 'Home') or is_state('person.ing', 'Just Arrived') %}
-            ## notify.ing
+          {% elif states.sensor.ing_status.state in ['Home', 'Just Arrived'] %}
+            notify.ing
           {% endif %}
-        data: #Hey, the vacuum dustbin needs to be cleared
-          message: 'Nach der automatischen Reinigung den Staubbehälter von Dusti-E leeren.' 
+        data: 
+          message: 'Nach der automatischen Reinigung den Staubbehälter von Dusti-E leeren.'
           title: 'Staubbehälter leeren' 
+#          {% if (is_state('sensor.max_status', 'Home') or is_state('sensor.max_status', 'Just Arrived')) and (is_state('sensor.ing_status', 'Home') or is_state('sensor.ing_status', 'Just Arrived')) %}
+#            notify.family_main_devices
+#          {% elif is_state('sensor.max_status', 'Home') or is_state('sensor.max_status', 'Just Arrived') %}
+#            notify.max
+#          {% elif is_state('sensor.ing_status', 'Home') or is_state('sensor.ing_status', 'Just Arrived') %}
+#            notify.ing
+#          {% endif %}
   
   ## Start cleaning a room when 'input_select.vacuum_room' is changed
   - id: vacuum_start_roomcleaning

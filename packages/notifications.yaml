@@ -9,7 +9,7 @@
 #      sensor_class: opening
 
 group:
-  # 'group.all_doors' fasst den Status alle Türen zusammen.
+  # 'group.all_doors' fasst den Status aller Türen zusammen.
   #   Ist ein Türesensor 'on'='Offen', dann wird die Gruppe 'on'.
   all_doors:
     name: alle Türen
@@ -31,7 +31,7 @@ notify:
   - name: ing
     platform: group
     services:
-      - service: ios_iphoneingrid8
+      - service: ios_iphonemax8 #todo
 
 automation:
   - alias: Notify all - Open Doors

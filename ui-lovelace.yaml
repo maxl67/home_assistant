@@ -356,7 +356,7 @@ views:
               style:
                 pointer-events: auto
                 top: 79%
-                left: 16% #n/a
+                left: 14% #n/a
                 color: '#84a6ba'
                 transform: translate(0%,-50%)
                 font-family: Trebuchet MS
@@ -367,7 +367,7 @@ views:
               prefix: "Area: "
               style:
                 top: 79%
-                left: 48% #31%
+                left: 46% #31%
                 color: '#84a6ba'
                 transform: translate(0%,-50%)
                 pointer-events: none
@@ -379,7 +379,7 @@ views:
               prefix: "Time: "
               style:
                 top: 79%
-                left: 65% #51%
+                left: 68% #51%
                 color: '#84a6ba'
                 transform: translate(0%,-50%)
                 pointer-events: none
