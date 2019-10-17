@@ -596,13 +596,6 @@ automation:
         data: 
           message: 'Nach der automatischen Reinigung den Staubbehälter von Dusti-E leeren.'
           title: 'Staubbehälter leeren' 
-#          {% if (is_state('sensor.max_status', 'Home') or is_state('sensor.max_status', 'Just Arrived')) and (is_state('sensor.ing_status', 'Home') or is_state('sensor.ing_status', 'Just Arrived')) %}
-#            notify.family_main_devices
-#          {% elif is_state('sensor.max_status', 'Home') or is_state('sensor.max_status', 'Just Arrived') %}
-#            notify.max
-#          {% elif is_state('sensor.ing_status', 'Home') or is_state('sensor.ing_status', 'Just Arrived') %}
-#            notify.ing
-#          {% endif %}
   
   ## Start cleaning a room when 'input_select.vacuum_room' is changed
   - id: vacuum_start_roomcleaning

@@ -1,10 +1,10 @@
 ################################################################
-##
+## Notificaions for various situations
 ################################################################
-
+#todo: geht nicht für group
 #homeassistant:
 #  customize:
-#    group.all_doors.sensor:
+#    group.all_doors:
 #      device_class: door #binary_sensor
 #      sensor_class: opening
 
@@ -24,6 +24,7 @@ notify:
     platform: group
     services:
       - service: ios_iphonemax8
+      - service: ios_iphone8_ing 
   - name: max
     platform: group
     services:
@@ -31,14 +32,14 @@ notify:
   - name: ing
     platform: group
     services:
-      - service: ios_iphonemax8 #todo
+      - service: ios_iphone8_ing 
 
 automation:
   - alias: Notify all - Open Doors
     trigger:
       # niemand zuhause und mindestens eine Tür offen 
       platform: template
-      value_template: "{{ ( is_state('sensor.home_status', 'Away') or is_state('sensor.home_status', 'Just Left') ) 
+      value_template: "{{ sensor.home_status.state in ['Away', 'Extended Away']  
                           and is_state('group.all_doors', 'on') }}"
       for:
         seconds: 3

@@ -73,8 +73,6 @@ input_select:
     name: Home Status
     options:
       - Home
-      - Just Arrived
-      - Just Left
       - Away
       - Extended Away
 

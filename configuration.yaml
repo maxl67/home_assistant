@@ -115,7 +115,11 @@ unifi:
 device_tracker:
   - platform: bluetooth_tracker
     track_new_devices: no
-    interval_seconds: 3
+    interval_seconds: 10
+    consider_home: 180
+    new_device_defaults:
+      track_new_devices: false
+      hide_if_away: false
 #  - platform: unifi
 #    host: !secret unifi_host
 #    verify_ssl: false
@@ -125,11 +129,6 @@ device_tracker:
 #      - 'mi-work'
 #    track_new_devices: no
 #    interval_seconds: 30
-#  - platform: bluetooth_tracker
-#    interval_seconds: 5
-#    consider_home: 180
-#    new_device_defaults:
-#      track_new_devices: no
 
 ################################################################
 ## Frontend
