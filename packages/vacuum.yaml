@@ -271,7 +271,7 @@ script:
 
   ## do a complete cleanup
   vacuum_all:
-    alias: "Start cleaning appartment"
+    alias: "Start vacuum the appartment"
     sequence:
       - service: vacuum.start
         entity_id: vacuum.xiaomi_vacuum_cleaner
@@ -557,7 +557,7 @@ automation:
       entity_id: sensor.home_status
       to: 'Home'
       for:
-        minutes: 2
+        minutes: 1
     - platform: state
       entity_id: input_boolean.disable_dustbin_notification
       to: 'off'
@@ -570,9 +570,12 @@ automation:
       - condition: state
         entity_id: input_boolean.automatic_vacuum_first_run
         state: 'on'
+      - condition: state
+        entity_id: input_boolean.disable_dustbin_notification
+        state: 'off'
       - condition: time
         after: '07:30:00'
-        before: '22:30:00'
+        before: '23:00:00'
       - condition: template
         value_template: >
           {% if states.automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin.last_triggered is not none %}
@@ -581,9 +584,6 @@ automation:
           {% else %}
             false
           {% endif %}
-      - condition: state
-        entity_id: input_boolean.disable_dustbin_notification
-        state: 'off'
     action:
       - service_template: >
           {% if (states.sensor.max_status.state in ['Home', 'Just Arrived']) and (states.sensor.ing_status.state in ['Home', 'Just Arrived']) %}
@@ -594,7 +594,7 @@ automation:
             notify.ing
           {% endif %}
         data: 
-          message: 'Nach der automatischen Reinigung den Staubbehälter von Dusti-E leeren.'
+          message: 'Nach dem automatischen Saugen den Staubbehälter von Dusti-E leeren.'
           title: 'Staubbehälter leeren' 
   
   ## Start cleaning a room when 'input_select.vacuum_room' is changed
@@ -626,4 +626,3 @@ automation:
           'Max' : 'script.vacuum_set_max', 
           'Mop' : 'script.vacuum_set_mop'
           } [trigger.to_state.state] }}
-  
