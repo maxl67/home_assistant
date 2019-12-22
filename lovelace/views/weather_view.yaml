@@ -1,0 +1,153 @@
+id: weather
+title: Wetter
+path: weather
+icon: mdi:weather-partly-cloudy
+cards:
+  - type: conditional
+    conditions:
+      - entity: sensor.dwd_current_warn_count
+        state_not: '0'
+    card:
+      type: custom:vertical-stack-in-card
+      #title: Deutscher Wetterdienst
+      cards:
+        - type: custom:fold-entity-row
+          head:
+            type: section
+            label: DWD Warnungen & Alarm
+          open: false
+          entities:
+            - entity: input_boolean.dwd_weather_alert
+              type: custom:multiple-entity-row
+              name: Wetter Alarm
+              secondary_info: last-changed
+              primary:
+                entity: sensor.count_notification_alerts
+                name: Anz. Alarme
+            - entity: sensor.dwd_current_warn_count
+              type: custom:multiple-entity-row
+              name: Aktuell
+              secondary_info: last-changed
+              primary:
+                entity: sensor.dwd_advance_warn_count
+                name: bald
+        - type: divider
+
+        - type: markdown
+          #title: DWD Wetterwarnung!
+          content: >
+              <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.region_name }}</h3>
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_headline is defined %}
+                <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_headline }}</h3>
+                Warnstufe: {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_level }}
+                <br>
+                Von: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_start) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <br>
+                Bis: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_end) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <br>
+                {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_description }}
+                <br>
+                <br>
+              {% endif %}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_headline is defined %}
+                <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_headline }}</h3>
+                Warnstufe: {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_level }}
+                <br>
+                Von: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_start) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <br>
+                Bis: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_end) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <br>
+                {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_description }}
+                <br>
+                <br>
+              {% endif %}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_headline is defined %}
+                <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_headline }}</h3>
+                Warnstufe: {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_level }}
+                <br>
+                Von: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_start) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <br>
+                Bis: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_end) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <br>
+                {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_description }}
+                <br>
+                <br>
+              {% endif %}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_headline is defined %}
+                <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_headline }}</h3>
+                Warnstufe: {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_level }}
+                <br>
+                Von: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_start) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <br>
+                Bis: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_end) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <br>
+                {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_description }}
+                <br>
+                <br>
+              {% endif %}
+              <a href="http://www.dwd.de/DWD/warnungen/warnapp_gemeinden/json/warnungen_gemeinde_map_baw.png">Aktuelle Warnkarte</a>
+              <br>
+
+  - type: 'custom:weather-card-chart'
+    #title: home
+    #weather: weather.openweathermap
+    weather: weather.dark_sky_daily
+    sun: sun.sun
+    mode: daily #hourly | daily
+    locale: 'de-DE'
+#      - type: weather-forecast
+#        entity: weather.dark_sky
+#      - type: "custom:weather-card"
+#        entity: weather.dark_sky
+#        name: home
+#        icons: "/local/custom-lovelace/weather-card/icons/"
+
+  - type: custom:vertical-stack-in-card
+    cards:
+    - type: conditional
+      conditions:
+        - entity: input_select.type_of_satelite
+          state: "Bewölkung"
+      card:
+        type: picture-entity
+        entity: camera.satelite_clouds
+        name: Bewölkung
+        show_state: false
+        tap_action:
+          action: call-service
+          service: input_select.select_next
+          service_data:
+            entity_id: input_select.type_of_satelite
+    - type: conditional
+      conditions:
+        - entity: input_select.type_of_satelite
+          state: "Regen"
+      card:
+        type: picture-entity
+        entity: camera.satelite_rain
+        name: Regen
+        show_state: false
+        tap_action:
+          action: call-service
+          service: input_select.select_next
+          service_data:
+            entity_id: input_select.type_of_satelite            
+    - type: conditional
+      conditions:
+        - entity: input_select.type_of_satelite
+          state: "Schnee"
+      card:
+        type: picture-entity
+        entity: camera.satelite_snow
+        name: Schnee
+        show_state: false
+        tap_action:
+          action: call-service
+          service: input_select.select_next
+          service_data:
+            entity_id: input_select.type_of_satelite
+#test
+#  - type: glance
+#    title: Auswahl
+#    entities:
+#      - entity: input_select.type_of_satelite

@@ -1,24 +1,7 @@
 ##########################
 # Binary Sensors
 ##########################
-
-# Monitor system state
-- platform: ping
-  host: 192.168.2.11
-  name: hera
-  scan_interval: 60
-  count: 2
-- platform: ping
-  host: 192.168.2.1
-  name: router
-  scan_interval: 30
-  count: 2
-- platform: ping
-  host: 192.168.2.21
-  name: hpdrucker
-  scan_interval: 120
-  count: 2
-  
+ 
 - platform: workday
   country: DE
   province: BW

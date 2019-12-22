@@ -1,13 +1,16 @@
-################################################################
-## XIAOMI Roborock S6
-##
+###############################################################################
+#   @author       : Max Reigl
+#   @date         : 28.10.2019
+#   @package      : synology
+#   @description  : XIAOMI Roborock S6
+#   @links        : 
 # Token ermittelt nach: https://www.home-assistant.io/components/vacuum.xiaomi_miio/#retrieving-the-access-token
 # Idee: https://github.com/stanvx/Home-Assistant-Configuration/blob/master/packages/xiaomi_robot_vacuum.yaml
 #  und: @author: Trent Stanton, @date: 19/05/2018
 # Card: https://community.home-assistant.io/t/xiaomi-vacuum-cleaner-card/64456/7
 #       https://github.com/marcogazzola/Home-assistant-help/blob/master/Xiaomi-Vacuum/pkg_vacuum_xiaomi.yaml
 # Room: https://community.home-assistant.io/t/xiaomi-vacuum-s1-s60-t60-s61-t61-room-cleaning-by-room-name/122315/16
-################################################################
+###############################################################################
 
 vacuum:
   - platform: xiaomi_miio
@@ -262,7 +265,7 @@ script:
   ## would like to have one script 
   vacuum_resume:
     sequence:
-      - service: vacuum.start  #todo: is this really the correct command even for resume of room cleaning? or vacuum.turn_on
+      - service: vacuum.start  #todo: this is not the resume like in the xiaomi app (lower right corner button). will not resume after pausing a room cleaning!
         entity_id: vacuum.xiaomi_vacuum_cleaner
   vacuum_pause:
     sequence:

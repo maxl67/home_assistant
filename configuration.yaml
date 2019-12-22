@@ -18,10 +18,11 @@ homeassistant:
     - type: trusted_networks
       trusted_networks:
         - 127.0.0.1
-        - ::1
         - 192.168.2.0/24
+        - ::1
+        - ::ffff:127.0.0.1
         - fd00::/8
-#      allow_bypass_login: true
+      allow_bypass_login: true
   # load Packages from directory
   packages: !include_dir_named packages
 
@@ -54,7 +55,8 @@ zone: !include includes/zones.yaml
 ################################################################
 # Zigbee-Coordinator (NORTEK HUSBZB-1)
 zha:
-  usb_path: /zigbeestick
+  #usb_path: /zigbeestick #geht seit 0.99 nicht mehr
+  usb_path: /dev/ttyUSB1
   database_path: /data/zigbee.db
 #zwave:
 #  usb_path: /zwaveusbstick
@@ -73,25 +75,12 @@ mqtt:
 
 # Support for iOS app
 ios:
+mobile_app:
 # iOS notification
 notify:
   - platform: ios
     name: ios_app
   #  target: !secret ios_token
-
-# Weather Prediction
-sun: 
-weather:
-  - platform: darksky
-    api_key: !secret darksky_api_key
-    mode: daily
-    scan_interval: 720
-    name: dark_sky_daily
-#  - platform: darksky
-#    api_key: !secret darksky_api_key
-#    mode: hourly
-#    scan_interval: 60
-#    name: dark_sky_hourly
 
 # Text to speech
 tts:
@@ -103,20 +92,25 @@ tts:
 ################################################################
 # Discover some devices automatically
 discovery:
-
+  ignore:
+    - igd #=Internet Gateway Device: to prevent discovery notification of upnp/igd values of FitzBox
+#    - samsung_tv
+#  enable:
+#    - dlna_dmr
+  
 unifi:
   controllers:
     - host: !secret unifi_host
       site: home
       ssid_filter:
-        - 'mi-work'
+        - !secret unifi_ssid_private
       dont_track_wired_clients: true
 
 device_tracker:
   - platform: bluetooth_tracker
     track_new_devices: no
-    interval_seconds: 10
-    consider_home: 180
+    interval_seconds: 5
+    consider_home: 12
     new_device_defaults:
       track_new_devices: false
       hide_if_away: false
@@ -135,8 +129,9 @@ device_tracker:
 ################################################################
 lovelace:
   mode: yaml
-#frontend:
-#  javascript_version: auto
+frontend:
+  themes: !include includes/themes.yaml
+  javascript_version: latest
 #map:
 
 ################################################################
@@ -149,36 +144,25 @@ hacs:
 ################################################################
 ## Test / Development
 ################################################################
-# Samsung TV
-#media_player:
-#  - platform: samsungtv
-#    host: 192.168.2.22
-#    mac: d0:03:df:a8:e4:f8
-#    name: samsungtv
-#    port: 8001
-#    timeout: 10 #sec
+#calendar:
+#  - platform: caldav
+#    username: !secret caldav_user
+#    password: !secret caldav_pwd
+#    url: !secret caldav_url 
+#    url: https://p09-caldav.icloud.com/178482217/principal/calendars/CF16BBAC-3CC4-43A8-9DA2-B41A48B8C209
+#    calendars:
+#      - 'Privat Max'
+#      - name: 'gelber Sack'
+#        calendar: Ingrid
+#        search: 'Gelber Sack'
 
-################################################################
-## todo
-################################################################
-weblink:
-  entities:
-    - name: Synology
-      url: https://192.168.2.11:5001
-      icon: mdi:network
-    - name: Router
-      url: http://192.168.2.1
-      icon: mdi:router-wireless
-    - name: UniFi
-      url: http://192.168.2.11:8443
-      icon: mdi:server   
-    
 ################################################################
 ## Recording, Logging, Lockbook
 ################################################################
 # View all events in a logbook
 recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to be displayed in logbook and/or history
-  purge_keep_days: 5
+  purge_keep_days: 14
+  db_url: !secret HistoryDB_connection  # --> 'home-assistant_v2.db' now in MariaDB. Much faster.
   exclude:
     domains:
       - weblink
@@ -201,7 +185,7 @@ history: #recorded Entities, that will be displayed in History
 logger: 
   default: warn #critical,fatal,error,warning,warn,info,debug,notset
   logs:
-    zha: debug
-    zigpy: debug
+    zha: info
+#    zigpy: debug
 #    homeassistant.components.vacuum.xiaomi_miio: debug
 #    miio: debug

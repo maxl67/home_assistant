@@ -1,0 +1,28 @@
+# Samsung TV
+# https://github.com/roberodin/ha-samsungtv-custom/blob/master/README.md
+# https://github.com/giefca/ha-samsungtv-qled
+# https://github.com/xchwarze/ha-samsungtv-custom
+
+# https://community.home-assistant.io/t/samsung-smart-tv-no-control/32914/193
+# problem: tv kann eingeschaltet werden. ok.
+# alle anderen befehle bringen am tv ein fenster:
+# "HomeAssistant
+#  Für die Verbindung Ihres Geräts mit diesem TV ist ihre Genehmigung erforderlich.
+#  'Zulassen', 'Verbiet.', 'Schliessen'"
+media_player:
+  - platform: samsungtv_custom
+    host: !secret samsung_tv_ip
+    mac: !secret samsung_tv_mac
+    name: samsungtv
+    port: 8002
+    protocol: ctl_qled
+    sourcelist: '{"TV": "KEY_TV", "HDMI": "KEY_HDMI"}' #'{"TV":"AVM Fritz!Mediaserver":"hera":"Remote Access"}'
+    applist: "YouTube, Apple TV, Plex, Prime Video"
+#    timeout: 10 #sec
+
+  - platform: frontier_silicon
+    host: !secret radio_bad_ip
+    #name: radio_bad
+    #port: 80
+    #password: 1234
+    

@@ -1,470 +1,108 @@
+# https://github.com/thomasloven/hass-config/wiki/Misc-tricks#cardelemententity-row-triality
+# http://thomasloven.com/blog/2018/08/YAML-For-Nonprogrammers/
+
 title: Home Max&Ing
 resources:
   # Community Repo
-  - url: /community_plugin/monster-card/monster-card.js
+  - url: /community_plugin/custom-header/custom-header.js
+    type: module
+  - url: /community_plugin/lovelace-auto-entities/auto-entities.js
+    type: module
+  - url: /community_plugin/lovelace-multiple-entity-row/multiple-entity-row.js
+    type: js
+  - url: /community_plugin/lovelace-fold-entity-row/fold-entity-row.js
+    type: module    
+  - url: /community_plugin/lovelace-swipe-navigation/swipe-navigation.js
+    type: js
+  - url: /community_plugin/vertical-stack-in-card/vertical-stack-in-card.js
     type: js
   - url: /community_plugin/group-card/group-card.js
     type: module
-  - url: /community_plugin/vertical-stack-in-card/vertical-stack-in-card.js
-    type: js
   - url: /community_plugin/mini-graph-card/mini-graph-card-bundle.js
     type: module
-  - url: /community_plugin/lovelace-multiple-entity-row/multiple-entity-row.js
+  - url: /community_plugin/zha-network-card/zha-network-card.js
     type: js
   # Repo: https://github.com/sgttrs/lovelace-weather-card-chart
   - url: /community_plugin/lovelace-weather-card-chart/weather-card-chart.js
     type: module
-    
+
+# compact-custom-header
+#   https://maykar.github.io/compact-custom-header/
+# Custom Header (Nachfolger von compact-custom-header)
+#   https://maykar.github.io/custom-header/#configuration/main
+custom_header:
+  compact_mode: true
+  menu_hide: false
+  voice_hide: true
+  chevrons: false
+
+  tab_icons:
+    home: '{% if is_state("input_boolean.open_backdoor_alert", "on") or is_state("input_boolean.open_window_alert", "on") %}mdi:home-alert{% endif %}'
+    weather: '{% if is_state("input_boolean.dwd_weather_alert", "on") %}mdi:weather-lightning{% endif %}'
+    #auch: mdi:flash-circle
+  tabs_color:
+    home: '{% if is_state("input_boolean.open_backdoor_alert", "on") %}red{% elif is_state("input_boolean.open_window_alert", "on") %}yellow{% endif %}'
+    weather: '{% if states.sensor.dwd_current_warn_count.state|int > 0 %}red{% elif states.sensor.dwd_advance_warn_count.state|int > 0 %}yellow{% endif %}'
+  exceptions:
+    - conditions:
+        user: !secret username_ing
+        user_agent: Mobile
+      config:
+        menu_hide: true
+        disabled_mode: false
+        show_tabs: "home,weather,vacuum" #,plants,climate"
+        hide_help: true
+        hide_config: true
+        hide_unused: true
+    - conditions:
+        user: !secret username_max
+        user_agent: iPhone
+      config:
+        menu_hide: false
+        disabled_mode: false
+        show_tabs: "0 to 2, 4, 5, 6"
+#        hide_tabs: "plants,climate,zha_table,maintenance"
+        hide_help: true
+        hide_config: true
+        hide_unused: false
+
+# swipe-navigation
+#   https://github.com/maykar/lovelace-swipe-navigation
+swipe_nav:
+  wrap: false # ende <-> anfang
+  animate: swipe  # swipe, fade, flip
+  skip_tabs: 6, zha_table
+  prevent_default: true
+  swipe_amount: 35
+
 views:
-    # View tab title.
-  - title: Main
-    icon: mdi:home
-    cards:
-      - type: 'custom:group-card'
-        card:
-          type: entities
-          title: Status Personen
-          show_header_toggle: false
-        group: group.family_status
-      - type: glance
-        title: Türen
-        entities:
-          - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_032b77ce_1_6
-            name: Schlafzimmer
-          - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_03139f7b_1_6
-            name: Wohnzimmer
-          - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_031b3225_1_6
-            name: Gästezimmer
-          - entity: group.all_doors
-            name: Gesamt
-      - type: glance
-        title: Device Tracker
-        entities:
-          - entity: device_tracker.iphone8_max_wifi
-            name: Max [WiFi]
-          - entity: device_tracker.iphone8_max_bt
-            name: Max [BT]
-          - entity: device_tracker.iphone8_ing_wifi
-            name: Ing [WiFi]
-          - entity: device_tracker.iphone8_ing_bt
-            name: Ing [BT]
-      - type: 'custom:monster-card'
-        show_empty: false
-        card:
-          show_header_toggle: false
-          title: Low Battery Devices
-          type: entities
-        filter:
-          exclude:
-            - entity_id: sensor.iphone*
-            - entity_id: sensor.ipad*
-            - entity_id: input*
-          include:
-            - entity_id: '*battery*'
-              state: < 20
-            - attributes:
-                battery: < 20
-            #- attributes:
-            #    battery_level: <= 100
+  # main view containing presence status and all important/urgent items
+  - !include lovelace/views/home_view.yaml
 
-  - title: Wetter
-    icon: mdi:weather-partly-cloudy
-    cards:
-      - type: 'custom:weather-card-chart'
-        #title: home
-        #weather: weather.openweathermap
-        weather: weather.dark_sky_daily
-        sun: sun.sun
-        mode: daily #hourly | daily
-        locale: 'de-DE'
-#      - type: weather-forecast
-#        entity: weather.dark_sky
-#      - type: "custom:weather-card"
-#        entity: weather.dark_sky
-#        name: home
-#        icons: "/local/custom-lovelace/weather-card/icons/"
-
-#  - title: Media
-#    icon: mdi:library-movie
-#    cards:
-#      - type: media-control
-#       entity: media_player.samsungtv
+  # show local weather conditions and forecast
+  - !include lovelace/views/weather_view.yaml
   
-  - title: Vacuum
-    icon: mdi:robot-vacuum
-    cards:
-      - type: custom:vertical-stack-in-card
-        cards:
-        - type: picture-elements
-          #title: Dusti-E
-          image: '/local/vacuum1.jpg'
-          elements:
-            ## Command buttons (buttom)
-            - type: icon
-              icon: mdi:bell-ring
-              tap_action: 
-                action: call-service
-                service: vacuum.locate
-                service_data:
-                  entity_id: vacuum.xiaomi_vacuum_cleaner
-              style:
-                top: 90%
-                left: 80%
-                color: '#3090C7'
-            - type: icon
-              icon: mdi:crosshairs
-              tap_action: 
-                action: call-service
-                service: vacuum.clean_spot
-                service_data:
-                  entity_id: vacuum.xiaomi_vacuum_cleaner
-              style:
-                top: 90%
-                left: 65%
-                color: '#3090C7'
-            - type: icon
-              icon: mdi:home
-              tap_action: 
-                action: call-service
-                service: vacuum.return_to_base
-                service_data:
-                  entity_id: vacuum.xiaomi_vacuum_cleaner
-              style:
-                top: 90%
-                left: 50%
-                color: '#3090C7'
-            - type: icon
-              icon: mdi:stop
-              tap_action: 
-                action: call-service
-                service: vacuum.stop
-                service_data:
-                  entity_id: vacuum.xiaomi_vacuum_cleaner
-              style:
-                top: 90%
-                left: 35%
-                color: '#3090C7'
+  # view to operate the vacuum cleaner and all related params
+  - !include lovelace/views/vacuum_view.yaml
 
-            - type: conditional
-              conditions:
-                - entity: binary_sensor.vacuum_started
-                  state: 'off'
-                - entity: binary_sensor.vacuum_paused
-                  state: 'off'
-              elements:
-                - type: icon
-                  icon: mdi:play
-                  tap_action: 
-                    action: call-service
-                    service: script.vacuum_all #new: call script, to set value for 'input_select.vacuum_last_cleaned_room'
-                    # old: call service directly
-                    #service: vacuum.start
-                    #service_data:
-                    #  entity_id: vacuum.xiaomi_vacuum_cleaner
-                  style:
-                    top: 90%
-                    left: 20%
-                    color: '#3090C7'
-            - type: conditional
-              conditions:
-                - entity: binary_sensor.vacuum_started
-                  state: 'on'
-              elements:
-                - type: icon
-                  icon: mdi:pause
-                  tap_action: 
-                    action: call-service
-                    service: script.vacuum_pause
-                  style:
-                    top: 90%
-                    left: 21%
-                    color: '#3090C7'
-            - type: conditional
-              conditions:
-                - entity: binary_sensor.vacuum_paused
-                  state: 'on'
-              elements:
-                - type: icon
-                  icon: mdi:play-pause
-                  tap_action: 
-                    action: call-service
-                    service: script.vacuum_resume
-                  style:
-                    top: 90%
-                    left: 19%
-                    color: '#3090C7'
-            
-            ## Labels (top)
-            - type: state-label
-              entity: sensor.vacuum_operation
-              style:
-                top: 10%
-                left: 1%
-                color: rgb(255, 255, 255)
-                transform: translate(0%,-50%)
-                pointer-events: none
-                font-family: Trebuchet MS
-                font-size: 90%
-                font-weight: bold
-                border-color: rgb(34, 154, 210)
-                background-color: '#3090C7'
-                border-radius: 6px
-            - type: state-label
-              entity: sensor.vacuum_accessories
-              style:
-                top: 10%
-                right: 1%
-                color: rgb(255, 255, 255)
-                transform: translate(0%,-50%)
-                pointer-events: none
-                font-family: Trebuchet MS
-                font-size: 90%
-                font-weight: bold
-                border-color: rgb(34, 154, 210)
-                background-color: '#3090C7'
-                border-radius: 6px
-            - type: state-label
-              tap_action:
-                entity: vacuum.xiaomi_vacuum_cleaner
-                action: more-info
-              entity: vacuum.xiaomi_vacuum_cleaner
-              style:
-                top: 14%
-                right: 38%
-                color: rgb(255, 255, 255)
-                transform: translate(0%,-50%)
-                font-family: Trebuchet MS
-                font-size: 150%
-                font-weight: bold
-                border-color: rgb(34, 154, 210)
-                border-radius: 6px
-                background-color: '#cccccc'
-            
-            ## Information Maintenance (right)
-            - type: state-label
-              entity: sensor.vacuum_cleanmainbrush
-              style:
-                top: 35%
-                right: 1%
-                color: '#ffffff'
-                transform: translate(0%,-50%)
-                pointer-events: none
-                font-family: Trebuchet MS
-                font-size: 76%
-                font-weight: bold
-                border-right-style: solid
-                border-color: rgb(34, 154, 210)
-            - type: state-label
-              entity: sensor.vacuum_cleansidebrush
-              style:
-                top: 45%
-                right: 1%
-                color: '#ffffff'
-                transform: translate(0%,-50%)
-                pointer-events: none
-                font-family: Trebuchet MS
-                font-size: 76%
-                font-weight: bold
-                border-right-style: solid
-                border-color: rgb(34, 154, 210)
-            - type: state-label
-              entity: sensor.vacuum_cleanfilter
-              style:
-                top: 55%
-                right: 1%
-                color: '#ffffff'
-                transform: translate(0%,-50%)
-                pointer-events: none
-                font-family: Trebuchet MS
-                font-size: 76%
-                font-weight: bold
-                border-right-style: solid
-                border-color: rgb(34, 154, 210)
-                opacity: 0.8
-            - type: state-label
-              entity: sensor.vacuum_sensordirtyleft
-              style:
-                top: 65%
-                right: 1%
-                color: '#ffffff'
-                transform: translate(0%,-50%)
-                pointer-events: none
-                font-family: Trebuchet MS
-                font-size: 76%
-                font-weight: bold
-                border-right-style: solid
-                border-color: rgb(34, 154, 210)
-            
-            ## Information Operation (left)
-            - type: state-label
-              entity: sensor.vacuum_status
-              prefix: 'Status: '
-              style:
-                top: 40%
-                left: 1%
-                color: '#ffffff'
-                transform: translate(0%,-50%)
-                pointer-events: none
-                font-family: Trebuchet MS
-                font-size: 80%
-                font-weight: bold
-                border-left-style: solid
-                border-color: '#3090C7'
-            - type: state-label
-              entity: sensor.vacuum_battery
-              prefix: 'Battery: '
-              style:
-                top: 50%
-                left: 1%
-                color: '#ffffff'
-                transform: translate(0%,-50%)
-                pointer-events: none
-                font-family: Trebuchet MS
-                font-size: 80%
-                font-weight: bold
-                border-left-style: solid
-                border-color: rgb(34, 154, 210)
-            - type: state-label
-              entity: input_select.vacuum_fan_speed_list
-              prefix: 'Mode: '
-              #suffix: (sensor.vacuum_fan_speed)
-              tap_action: 
-                action: call-service
-                service: input_select.select_next
-                service_data:
-                  entity_id: input_select.vacuum_fan_speed_list
-              style:
-                pointer-events: auto              
-                top: 60%
-                left: 1%
-                color: '#ffffff'
-                transform: translate(0%,-50%)
-                font-family: Trebuchet MS
-                font-size: 80%
-                font-weight: bold
-                border-left-style: solid
-                border-color: rgb(34, 154, 210)
+  # view for plant sensors and care taking
+  - !include lovelace/views/plants_view.yaml
 
-            ## Information last run (center)
-            - type: state-label
-              tap_action:
-                action: more-info
-                entity: sensor.vacuum_cleaned_room
-              #entity: input_select.vacuum_last_cleaned_room
-              entity: sensor.vacuum_cleaned_room
-              prefix: "Room: "
-              style:
-                pointer-events: auto
-                top: 79%
-                left: 14% #n/a
-                color: '#84a6ba'
-                transform: translate(0%,-50%)
-                font-family: Trebuchet MS
-                font-size: 80%
-                font-weight: bold
-            - type: state-label
-              entity: sensor.vacuum_cleaned_area
-              prefix: "Area: "
-              style:
-                top: 79%
-                left: 46% #31%
-                color: '#84a6ba'
-                transform: translate(0%,-50%)
-                pointer-events: none
-                font-family: Trebuchet MS
-                font-size: 80%
-                font-weight: bold
-            - type: state-label
-              entity: sensor.vacuum_cleaning_time
-              prefix: "Time: "
-              style:
-                top: 79%
-                left: 68% #51%
-                color: '#84a6ba'
-                transform: translate(0%,-50%)
-                pointer-events: none
-                font-family: Trebuchet MS
-                font-size: 80%
-                font-weight: bold
-        - type: entities
-          entities:
-          - entity: input_select.vacuum_room
-          - type: section
-            label: automatisches Saugen #automatic cleanup
-          - entity: switch.disable_automatic_vacuum
-            type: custom:multiple-entity-row
-            toggle: true
-            name: Automatisches Saugen deaktivieren #Disable Daily Cleanup
-        - type: conditional
-          conditions:
-            - entity: input_boolean.disable_automatic_vacuum
-              state: "off"
-          card:
-            type: entities
-            #title: automatisches Saugen
-            show_header_toggle: false
-            entities:
-              - type: section
-                label: Benachrichtigungen # Notifications
-              - entity: switch.disable_dustbin_notification
-                name: Staubbehälter-Mitteilungen deaktivieren #Disable Notification
-              - type: section
-                label: Anwesenheit #presense status
-              - entity: input_boolean.automatic_vacuum_when_home
-                type: custom:multiple-entity-row
-                toggle: true
-                primary:
-                  entity: sensor.home_status
-                  name: akt. Status
-              - type: section
-                label: Verlauf #History
-              - entity: input_boolean.automatic_vacuum_first_run
-                type: custom:multiple-entity-row
-                #toggle: true
-                name: heute schon gereinigt?
-                primary:
-                  entity: sensor.vacuum_cleaned_room
-                  name: letzte Reinigung
+  # view for room climate control
+  - !include lovelace/views/climate_view.yaml
 
-  - title: Netzwerk
-    icon: mdi:network
-    cards:
-      - type: glance
-        title: Geräte
-        entities:
-          - entity: sensor.fritz_is_linked
-            name: FritzBox
-#          - entity: binary_sensor.router
-#            name: Modem
-          - entity: binary_sensor.hera
-            name: Hera
-          - entity: binary_sensor.hpdrucker
-            name: Drucker
-      - type: horizontal-stack
-        cards:
-          - type: glance
-            title: FritzBox
-            entities:
-              - entity: sensor.fritz_is_connected
-                name: Internet
-              - entity: sensor.fritz_wan_access_type
-                name: WAN Typ
-          - type: vertical-stack
-            cards:
-              - type: custom:mini-graph-card
-                name: data rate
-                icon: mdi:transfer-down
-                group: true
-                show:
-                  state: false
-                entities:
-                  - sensor.fritz_rate_up
-                  - sensor.fritz_rate_down
-                points_per_hour: 4 #0.5
-                hours_to_show: 12 #24
+  # view to operate TV (doesn't work yet)
+#  - !include lovelace/views/media_view.yaml
+
+  # view to monitor internet-connection, network, network devices
+  - !include lovelace/views/monitoring_view.yaml
+
+  # table with zigbee devices and network params
+  - !include lovelace/views/zigbee_view.yaml
 
   - title: Wartung
-    icon: mdi:toolbox
+    icon: mdi:tools
+    path: maintenance
     cards:
       - type: 'custom:group-card'
         card:
@@ -478,11 +116,3 @@ views:
           title: Batterie Alert
           show_header_toggle: false
         group: group.battery_alert
-
-  - title: Pflanzen
-    icon: mdi:flower
-    cards:
-      - type: markdown
-        title: Lovelace
-        content: >
-          Welcome to your **Lovelace UI**.  

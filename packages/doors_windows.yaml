@@ -1,0 +1,183 @@
+###############################################################################
+#   @author       : Max Reigl
+#   @date         : 14.11.2019
+#   @package      : doors_windows
+#   @description  : Notifications for situations around door and windows
+#   @links        : 
+###############################################################################
+
+# rename door sensors for monster card.
+# setting device class to door --> group.all_doors will also be shown as door
+homeassistant:
+  customize:
+    binary_sensor.lumi_lumi_sensor_magnet_aq2_032b77ce_1_6:
+      friendly_name: Schlafzimmer
+      device_class: door
+    binary_sensor.lumi_lumi_sensor_magnet_aq2_03139f7b_1_6:
+      friendly_name: Wohnzimmer W
+      device_class: door
+    binary_sensor.lumi_lumi_sensor_magnet_aq2_031b3225_1_6:
+      friendly_name: Gästezimmer
+      device_class: door
+    binary_sensor.lumi_lumi_sensor_magnet_aq2_0ee51c04_1_6:
+      friendly_name: Arbeitszimmer
+      device_class: door
+    binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6:
+      friendly_name: Küche
+      device_class: door
+    binary_sensor.lumi_lumi_sensor_magnet_aq2_f2fd4604_1_6:
+      friendly_name: Esszimmer
+      device_class: door
+    binary_sensor.lumi_lumi_sensor_magnet_aq2_9ac61c04_1_6:
+      friendly_name: Wohnzimmer S
+      device_class: door
+    binary_sensor.lumi_lumi_sensor_magnet_aq2_73c61c04_1_6:
+      friendly_name: Bad
+      device_class: window
+    binary_sensor.lumi_lumi_sensor_magnet_aq2_c2e41c04_1_6:
+      friendly_name: Gästebad
+      device_class: window
+      
+group:
+  # 'group.all_doors' fasst den Status aller Türen zusammen.
+  #   Ist ein Türesensor 'on'='Offen', dann wird die Gruppe 'on'.
+  all_doors:
+    name: alle Türen
+    icon: mdi:door
+    entities:
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_032b77ce_1_6 #1 schlafzimme
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_03139f7b_1_6 #2
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_031b3225_1_6 #3
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_0ee51c04_1_6 #4
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6 #5 Küche
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_f2fd4604_1_6 #6
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_9ac61c04_1_6 #7
+      #fehlt: AZ S
+  all_windows:
+    name: alle Fenster
+    icon: mdi:window-closed
+    entities:
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_73c61c04_1_6 #8: Bad
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_c2e41c04_1_6 #9: Gästebad
+      #fehlt: SZ, Dachfenster
+
+# value to remember if a alert is active
+input_boolean:
+  open_backdoor_alert:
+    name: Balkontür ist offen   #active warning: door is open
+    icon: mdi:alert-box-outline
+  open_window_alert:
+    name: Fenster ist offen   #active warning: window is open
+    icon: mdi:alert-box-outline
+  #open_frontdoor_alert: to be installed
+
+automation:
+  - alias: Notify all - Open Doors
+    trigger:
+      # niemand zuhause und mindestens eine Tür offen 
+      platform: template
+      value_template: "{{ states.sensor.home_status.state in ['Away', 'Extended Away']  
+                          and is_state('group.all_doors', 'on') }}"
+      for:
+        seconds: 6
+    action:
+      - service: input_boolean.turn_on
+        entity_id: input_boolean.open_backdoor_alert
+      - service: notify.family_main_devices
+        data_template:
+          title: "Smart Home Alerts"
+          message: "Mindestens eine Balkontür ist offen."
+          data:
+            subtitle: "Türen offen!"
+            push:
+              badge: "{{states.sensor.count_notification_alerts.state|int}}"
+              #sound: "US-EN-Daisy-Back-Door-Open.wav"
+  - alias: Notify all - Open Windows
+    trigger:
+      # niemand zuhause und mindestens ein Fenster offen 
+      platform: template
+      value_template: "{{ states.sensor.home_status.state in ['Away', 'Extended Away']  
+                          and is_state('group.all_windows', 'on') }}"
+      for:
+        seconds: 6
+    action:
+      - service: input_boolean.turn_on
+        entity_id: input_boolean.open_window_alert
+      - service: notify.family_main_devices
+        data_template:
+          title: "Smart Home Alerts"
+          message: "Mindestens ein Fenster ist offen."
+          data:
+            subtitle: "Fenster offen!"
+            push:
+              badge: "{{states.sensor.count_notification_alerts.state|int}}"
+              #sound: "US-EN-Daisy-Back-Door-Open.wav"
+
+  - alias: Reset alert - Open Doors
+    trigger:
+      # jemand zuhause oder alle Türen zu 
+      platform: template
+      value_template: "{{ (states.sensor.home_status.state in ['Home']  
+                           or is_state('group.all_doors', 'off'))
+                          and is_state('input_boolean.open_backdoor_alert', 'on') }}"
+      for:
+        seconds: 1
+    action:
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.open_backdoor_alert
+      - service: notify.family_main_devices
+        data_template:
+          title: "Smart Home ..."
+          message: "Türen Alarm aufgehoben."
+          data:
+            push:
+              badge: "{{states.sensor.count_notification_alerts.state|int}}"
+  - alias: Reset alert - Open Windows
+    trigger:
+      # jemand zuhause oder alle Fenster zu 
+      platform: template
+      value_template: "{{ (states.sensor.home_status.state in ['Home']  
+                           or is_state('group.all_windows', 'off'))
+                          and is_state('input_boolean.open_window_alert', 'on') }}"
+      for:
+        seconds: 1
+    action:
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.open_window_alert
+      - service: notify.family_main_devices
+        data_template:
+          title: "Smart Home ..."
+          message: "Fenster Alarm aufgehoben."
+          data:
+            push:
+              badge: "{{states.sensor.count_notification_alerts.state|int}}"
+
+  - alias: Test Zone Notify
+    trigger:
+      - platform: zone
+        entity_id: group.phone_max
+        zone: zone.home
+        event: "leave" # Event is either enter or leave
+      - platform: zone
+        entity_id: group.phone_max
+        zone: zone.tik
+        event: "enter" # Event is either enter or leave
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: group.all_doors
+          state: 'on'
+        - condition: template
+          value_template: "{{ states.sensor.ing_status.state not in ['home', 'Just Arrived'] }}"
+    action:
+      - service: input_boolean.turn_on
+        entity_id: input_boolean.open_backdoor_alert
+      - service: notify.max
+        data_template:
+          title: "Smart Home Alerts (Zone-test)"
+          message: "Mindestens eine Balkontür ist offen."
+          data:
+            subtitle: "Türen offen!"
+            push:
+              badge: "{{states.sensor.count_notification_alerts.state|int}}"

@@ -1,0 +1,337 @@
+id: vacuum
+title: Dusti-E
+path: vacuum
+icon: mdi:robot-vacuum
+cards:
+  - type: custom:vertical-stack-in-card
+    cards:
+    - type: picture-elements
+      #title: Dusti-E
+      image: '/local/vacuum1.jpg'
+      elements:
+        ## Command buttons (buttom)
+        - type: icon
+          icon: mdi:bell-ring
+          tap_action: 
+            action: call-service
+            service: vacuum.locate
+            service_data:
+              entity_id: vacuum.xiaomi_vacuum_cleaner
+          style:
+            top: 90%
+            left: 80%
+            color: '#3090C7'
+        - type: icon
+          icon: mdi:crosshairs
+          tap_action: 
+            action: call-service
+            service: vacuum.clean_spot
+            service_data:
+              entity_id: vacuum.xiaomi_vacuum_cleaner
+          style:
+            top: 90%
+            left: 65%
+            color: '#3090C7'
+        - type: icon
+          icon: mdi:home
+          tap_action: 
+            action: call-service
+            service: vacuum.return_to_base
+            service_data:
+              entity_id: vacuum.xiaomi_vacuum_cleaner
+          style:
+            top: 90%
+            left: 50%
+            color: '#3090C7'
+        - type: icon
+          icon: mdi:stop
+          tap_action: 
+            action: call-service
+            service: vacuum.stop
+            service_data:
+              entity_id: vacuum.xiaomi_vacuum_cleaner
+          style:
+            top: 90%
+            left: 35%
+            color: '#3090C7'
+
+        - type: conditional
+          conditions:
+            - entity: binary_sensor.vacuum_started
+              state: 'off'
+            - entity: binary_sensor.vacuum_paused
+              state: 'off'
+          elements:
+            - type: icon
+              icon: mdi:play
+              tap_action: 
+                action: call-service
+                service: script.vacuum_all #new: call script, to set value for 'input_select.vacuum_last_cleaned_room'
+                # old: call service directly
+                #service: vacuum.start
+                #service_data:
+                #  entity_id: vacuum.xiaomi_vacuum_cleaner
+              style:
+                top: 90%
+                left: 20%
+                color: '#3090C7'
+        - type: conditional
+          conditions:
+            - entity: binary_sensor.vacuum_started
+              state: 'on'
+          elements:
+            - type: icon
+              icon: mdi:pause
+              tap_action: 
+                action: call-service
+                service: script.vacuum_pause
+              style:
+                top: 90%
+                left: 21%
+                color: '#3090C7'
+        - type: conditional
+          conditions:
+            - entity: binary_sensor.vacuum_paused
+              state: 'on'
+          elements:
+            - type: icon
+              icon: mdi:play-pause
+              tap_action: 
+                action: call-service
+                service: script.vacuum_resume
+              style:
+                top: 90%
+                left: 19%
+                color: '#3090C7'
+        
+        ## Labels (top)
+        - type: state-label
+          entity: sensor.vacuum_operation
+          style:
+            top: 10%
+            left: 1%
+            color: rgb(255, 255, 255)
+            transform: translate(0%,-50%)
+            pointer-events: none
+            font-family: Trebuchet MS
+            font-size: 90%
+            font-weight: bold
+            border-color: rgb(34, 154, 210)
+            background-color: '#3090C7'
+            border-radius: 6px
+        - type: state-label
+          entity: sensor.vacuum_accessories
+          style:
+            top: 10%
+            right: 1%
+            color: rgb(255, 255, 255)
+            transform: translate(0%,-50%)
+            pointer-events: none
+            font-family: Trebuchet MS
+            font-size: 90%
+            font-weight: bold
+            border-color: rgb(34, 154, 210)
+            background-color: '#3090C7'
+            border-radius: 6px
+        - type: state-label
+          tap_action:
+            entity: vacuum.xiaomi_vacuum_cleaner
+            action: more-info
+          entity: vacuum.xiaomi_vacuum_cleaner
+          style:
+            top: 14%
+            right: 38%
+            color: rgb(255, 255, 255)
+            transform: translate(0%,-50%)
+            font-family: Trebuchet MS
+            font-size: 150%
+            font-weight: bold
+            border-color: rgb(34, 154, 210)
+            border-radius: 6px
+            background-color: '#cccccc'
+        
+        ## Information Maintenance (right)
+        - type: state-label
+          entity: sensor.vacuum_cleanmainbrush
+          style:
+            top: 35%
+            right: 1%
+            color: '#ffffff'
+            transform: translate(0%,-50%)
+            pointer-events: none
+            font-family: Trebuchet MS
+            font-size: 76%
+            font-weight: bold
+            border-right-style: solid
+            border-color: rgb(34, 154, 210)
+        - type: state-label
+          entity: sensor.vacuum_cleansidebrush
+          style:
+            top: 45%
+            right: 1%
+            color: '#ffffff'
+            transform: translate(0%,-50%)
+            pointer-events: none
+            font-family: Trebuchet MS
+            font-size: 76%
+            font-weight: bold
+            border-right-style: solid
+            border-color: rgb(34, 154, 210)
+        - type: state-label
+          entity: sensor.vacuum_cleanfilter
+          style:
+            top: 55%
+            right: 1%
+            color: '#ffffff'
+            transform: translate(0%,-50%)
+            pointer-events: none
+            font-family: Trebuchet MS
+            font-size: 76%
+            font-weight: bold
+            border-right-style: solid
+            border-color: rgb(34, 154, 210)
+            opacity: 0.8
+        - type: state-label
+          entity: sensor.vacuum_sensordirtyleft
+          style:
+            top: 65%
+            right: 1%
+            color: '#ffffff'
+            transform: translate(0%,-50%)
+            pointer-events: none
+            font-family: Trebuchet MS
+            font-size: 76%
+            font-weight: bold
+            border-right-style: solid
+            border-color: rgb(34, 154, 210)
+        
+        ## Information Operation (left)
+        - type: state-label
+          entity: sensor.vacuum_status
+          prefix: 'Status: '
+          style:
+            top: 40%
+            left: 1%
+            color: '#ffffff'
+            transform: translate(0%,-50%)
+            pointer-events: none
+            font-family: Trebuchet MS
+            font-size: 80%
+            font-weight: bold
+            border-left-style: solid
+            border-color: '#3090C7'
+        - type: state-label
+          entity: sensor.vacuum_battery
+          prefix: 'Battery: '
+          style:
+            top: 50%
+            left: 1%
+            color: '#ffffff'
+            transform: translate(0%,-50%)
+            pointer-events: none
+            font-family: Trebuchet MS
+            font-size: 80%
+            font-weight: bold
+            border-left-style: solid
+            border-color: rgb(34, 154, 210)
+        - type: state-label
+          entity: input_select.vacuum_fan_speed_list
+          prefix: 'Mode: '
+          #suffix: (sensor.vacuum_fan_speed)
+          tap_action: 
+            action: call-service
+            service: input_select.select_next
+            service_data:
+              entity_id: input_select.vacuum_fan_speed_list
+          style:
+            pointer-events: auto              
+            top: 60%
+            left: 1%
+            color: '#ffffff'
+            transform: translate(0%,-50%)
+            font-family: Trebuchet MS
+            font-size: 80%
+            font-weight: bold
+            border-left-style: solid
+            border-color: rgb(34, 154, 210)
+
+        ## Information last run (center)
+        - type: state-label
+          tap_action:
+            action: more-info
+            entity: sensor.vacuum_cleaned_room
+          #entity: input_select.vacuum_last_cleaned_room
+          entity: sensor.vacuum_cleaned_room
+          prefix: "Room: "
+          style:
+            pointer-events: auto
+            top: 79%
+            left: 14% #n/a
+            color: '#84a6ba'
+            transform: translate(0%,-50%)
+            font-family: Trebuchet MS
+            font-size: 80%
+            font-weight: bold
+        - type: state-label
+          entity: sensor.vacuum_cleaned_area
+          prefix: "Area: "
+          style:
+            top: 79%
+            left: 46% #31%
+            color: '#84a6ba'
+            transform: translate(0%,-50%)
+            pointer-events: none
+            font-family: Trebuchet MS
+            font-size: 80%
+            font-weight: bold
+        - type: state-label
+          entity: sensor.vacuum_cleaning_time
+          prefix: "Time: "
+          style:
+            top: 79%
+            left: 68% #51%
+            color: '#84a6ba'
+            transform: translate(0%,-50%)
+            pointer-events: none
+            font-family: Trebuchet MS
+            font-size: 80%
+            font-weight: bold
+    - type: entities
+      entities:
+      - entity: input_select.vacuum_room
+      - type: section
+        label: automatisches Saugen #automatic cleanup
+      - entity: switch.disable_automatic_vacuum
+        type: custom:multiple-entity-row
+        toggle: true
+        name: Automatisches Saugen deaktivieren #Disable Daily Cleanup
+    - type: conditional
+      conditions:
+        - entity: input_boolean.disable_automatic_vacuum
+          state: "off"
+      card:
+        type: entities
+        #title: automatisches Saugen
+        show_header_toggle: false
+        entities:
+          - type: section
+            label: Benachrichtigungen # Notifications
+          - entity: switch.disable_dustbin_notification
+            name: Staubbehälter-Mitteilungen deaktivieren #Disable Notification
+          - type: section
+            label: Anwesenheit #presense status
+          - entity: input_boolean.automatic_vacuum_when_home
+            type: custom:multiple-entity-row
+            toggle: true
+            primary:
+              entity: sensor.home_status
+              name: akt. Status
+          - type: section
+            label: Verlauf #History
+          - entity: input_boolean.automatic_vacuum_first_run
+            type: custom:multiple-entity-row
+            #toggle: true
+            name: heute schon gereinigt?
+            primary:
+              entity: sensor.vacuum_cleaned_room
+              name: letzte Reinigung

@@ -1,0 +1,11 @@
+id: plants
+title: Pflanzen
+path: plants
+icon: mdi:flower
+
+#https://github.com/Gluwc/check-button-card/blob/master/README.md
+cards:
+  - type: markdown
+    title: Lovelace
+    content: >
+      Welcome to your **Lovelace UI**.  

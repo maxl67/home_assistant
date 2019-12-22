@@ -1,0 +1,306 @@
+# https://github.com/kalkih/mini-graph-card
+# https://www.home-assistant.io/lovelace/entities/
+id: network
+title: Netzwerk
+path: network
+icon: mdi:lan #mdi:network
+cards:
+    - type: custom:vertical-stack-in-card
+      cards:
+        - type: entities
+          title: FritzBox (6490)
+          show_header_toggle: false
+          entities:
+            - type: custom:fold-entity-row
+              head:
+                type: section
+                label: Provider
+              open: true
+              entities:
+              - entity: sensor.fritz_last_boot
+                type: custom:multiple-entity-row
+                name: letzter Connect
+                primary:
+                  entity: sensor.fritz_uptime
+                  name: uptime 
+              - entity: sensor.fritzbox #fritz_is_linked
+                type: custom:multiple-entity-row
+                name: Verbindung
+                icon: mdi:wan
+                primary:
+                  entity: sensor.fritz_wan_access_type
+                  name: type 
+              - entity: sensor.fritz_external_ip
+                type: custom:multiple-entity-row
+                name: IPv4
+                secondary_info: last-changed
+                primary:
+                  entity: sensor.fritz_is_connected
+                  name: internet
+            - type: section
+              #- entity: sensor.fritz_rate_up
+              #- entity: sensor.fritz_rate_down
+              #- entity: sensor.fritz_rate_up_max
+              #- entity: sensor.fritz_rate_down_max
+        - type: horizontal-stack
+          cards:
+            - type: custom:mini-graph-card
+              name: Download
+              icon: mdi:transfer-down
+              decimals: 0
+              group: false
+              show:
+                state: true
+                labels: true
+              #  extrema: true
+                icon_adaptive_color: true
+              points_per_hour: 2 #0.5
+              hours_to_show: 24
+              hour24: true
+              lower_bound: 0
+              upper_bound: 160
+              font_size: 65
+              color_thresholds:
+                - value: 0
+                  color: "#c0392b"
+                - value: 100
+                  color: "#d35400"
+                - value: 120
+                  color: "#f39c12"
+                - value: 140
+                  color: green
+              entities:
+                - entity: sensor.speedtest_download
+                  name: bandw #idth
+                - entity: sensor.fritz_rate_down
+                  name: rate
+                  color: '#3090C7'
+              #  - entity: sensor.fritz_rate_down_max
+              #    name: rate max
+                - entity: sensor.speedtest_ping
+                  name: ping
+                  y_axis: secondary
+                  color: gray
+                  show_points: false
+                  show_line: false
+            - type: custom:mini-graph-card
+              name: Upload
+              icon: mdi:transfer-up
+              decimals: 1
+              group: false
+              show:
+                state: true
+                labels: true
+              #  extrema: true
+                icon_adaptive_color: true
+              points_per_hour: 2 #0.5
+              hours_to_show: 24
+              hour24: true
+              lower_bound: 0
+              upper_bound: 12
+              font_size: 65
+              color_thresholds:
+                - value: 0
+                  color: "#c0392b"
+                - value: 8
+                  color: "#d35400"
+                - value: 8.75
+                  color: "#f39c12"
+                - value: 9.5
+                  color: green
+              entities:
+                - entity: sensor.speedtest_upload
+                  name: bandw #idth
+                - entity: sensor.fritz_rate_up
+                  name: rate
+                  color: '#3090C7'
+              #  - entity: sensor.fritz_rate_up_max
+              #    name: rate max
+                - entity: sensor.speedtest_ping
+                  name: ping
+                  y_axis: secondary
+                  color: gray
+                  show_points: false
+                  show_line: false
+
+#      - type: entities
+#        title: Speedtest.Net
+#        show_header_toggle: false
+#        entities:
+#          - entity: sensor.speedtest_ping
+#          - entity: sensor.speedtest_upload
+#          - entity: sensor.speedtest_download
+
+      # DISK STATION 
+    - type: entities
+      title: Hera (DS916+)
+      show_header_toggle: false
+      entities:
+#        - type: section
+#          label: System
+        - type: custom:fold-entity-row
+          head:
+            type: section
+            label: System
+          open: true
+          entities:
+          - entity: sensor.last_boot
+            name: letzter Systemstart
+            icon: mdi:restart
+          - entity: sensor.lets_encrypt_cert
+            name: Ablaufdatum Zertifikat
+            icon: mdi:certificate
+          - entity: sensor.hera_dsm_cpu_load_total
+            type: custom:multiple-entity-row
+            name: CPU Load
+            secondary_info: last-changed
+            primary:
+              entity: sensor.hera_dsm_avg_processes_5_min
+              name: proc load 5' 
+            secondary:
+              entity: sensor.hera_dsm_avg_processes_15_min
+              name: proc load 15' 
+          - entity: sensor.hera_dsm_memory_usage_real
+            name: Memory Usage
+            secondary_info: last-changed
+            type: custom:multiple-entity-row
+            primary:
+              entity: sensor.memory_free
+              name: free
+#        - type: section
+#          label: Volume 1
+        - type: custom:fold-entity-row
+          head:
+            type: section
+            label: Volume 1
+          open: true
+          entities:
+          - entity: sensor.hera_dsm_status_volume_1
+            name: Status Volume 1
+            icon: mdi:database-check
+            type: custom:multiple-entity-row
+            secondary_info: last-changed
+            primary:
+#              entity: sensor.hera_dsm_maximum_disk_temp_volume_1 # shows always 0° 
+              entity: sensor.maximum_disk_temp_volume_1 #own calculated max sensor.
+              name: max temp
+            #secondary:
+            #  entity: sensor.hera_dsm_average_disk_temp_volume_1
+            #  name: avg temp
+          - entity: sensor.hera_dsm_volume_used_volume_1
+            type: custom:multiple-entity-row
+            name: Usage Volume 1
+            icon: mdi:chart-pie
+            primary:
+              entity: sensor.hera_dsm_used_space_volume_1
+              name: Used
+            secondary:
+              entity: sensor.hera_dsm_total_size_volume_1
+              name: Size
+        # List of Disks
+        - type: custom:fold-entity-row
+          head:
+            type: section
+            label: Disks
+          open: false
+          entities:
+#        - type: section
+#          label: Disks 
+          - entity: sensor.hera_dsm_status_sda
+            type: custom:multiple-entity-row
+            icon: mdi:harddisk
+            name: Disk1 (sda)
+            secondary_info: last-changed
+            primary:
+              entity: sensor.hera_dsm_temperature_sdb
+              name: temp
+          - entity: sensor.hera_dsm_status_sda
+            type: custom:multiple-entity-row
+            icon: mdi:harddisk
+            name: Disk2 (sdb)
+            secondary_info: last-changed
+            primary:
+              entity: sensor.hera_dsm_temperature_sdb
+              name: temp
+          - entity: sensor.hera_dsm_status_sdc
+            type: custom:multiple-entity-row
+            icon: mdi:harddisk
+            name: Disk3 (sdc)
+            secondary_info: last-changed
+            primary:
+              entity: sensor.hera_dsm_temperature_sdc
+              name: temp
+
+    - type: entities
+      title: Home Assistant
+      show_header_toggle: false
+      entities:
+        - entity: sensor.historydb_size
+          name: Recorder Database
+          icon: mdi:database
+        - entity: sensor.current_version
+          type: custom:multiple-entity-row
+          name: Aktuelle Version
+          icon: mdi:home-assistant
+          primary:
+            entity: sensor.latest_version
+            name: latest
+        - entity: sensor.hacs
+          name: HACS updates
+
+    - type: entities
+      title: Login
+      show_header_toggle: false
+      entities:
+        - type: custom:fold-entity-row
+          head:
+            type: section
+            label: intern
+          open: false
+          entities:
+            - type: weblink
+              url: https://fritz.box
+              icon: mdi:network-router
+              name: FritzBox (int)
+            - type: weblink
+              url: https://hera:5001
+              icon: mdi:nas
+              name: DSM hera (int)
+            - type: weblink
+              url: https://hera:8443
+              icon: mdi:access-point-network
+              name: Unifi Controller (int)
+        - type: custom:fold-entity-row
+          head:
+            type: section
+            label: extern
+          open: false
+          entities:
+            - type: weblink
+              url: https://wkj60fbqxmykyvov.myfritz.net:8441/
+              icon: mdi:network-router
+              name: FritzBox (ext)
+            - type: weblink
+              url: https://maxing.myds.me:5001/
+              icon: mdi:nas
+              name: DSM hera (ext)
+            - type: weblink
+              url: https://unifi.maxing.myds.me
+              icon: mdi:access-point-network
+              name: Unifi Controller (ext)
+      
+    - type: glance
+      title: Geräte
+      entities:
+        - entity: binary_sensor.router
+          name: Modem
+        - entity: binary_sensor.hera
+          name: Hera
+        - entity: binary_sensor.roborock
+          name: Dusti-E
+        - entity: binary_sensor.hpdrucker
+          name: Drucker
+        - entity: binary_sensor.smarttv
+          name: TV
+        - entity: binary_sensor.radiobad
+          name: Bad-Radio

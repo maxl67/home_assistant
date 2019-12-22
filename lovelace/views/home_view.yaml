@@ -1,0 +1,144 @@
+id: home
+title: Home
+icon: mdi:home
+path: home
+cards:
+  # show only open (or unavailable) door-/window sensons 
+#  - type: 'custom:monster-card'
+  - type: custom:auto-entities
+    show_empty: false
+    card:
+      type: entities
+      title: Offene Türen
+      show_header_toggle: false
+    filter:
+      include:
+        - entity_id: "binary_sensor.lumi_lumi_sensor_magnet_aq2*"
+          state: "on"
+        - entity_id: "binary_sensor.lumi_lumi_sensor_magnet_aq2*"
+          state: "unavailable"
+  # show low battery devices
+#  - type: 'custom:monster-card'
+  - type: custom:auto-entities
+    show_empty: false
+    card:
+      type: entities
+      title: Low Battery Devices
+      show_header_toggle: false
+    filter:
+      exclude:
+        - entity_id: "sensor.iphone*"
+        - entity_id: "sensor.ipad*"
+        - entity_id: "input*"
+      include:
+        - entity_id: "sensor.lumi_lumi_sensor_magnet_aq2*"
+          state: "<= 15" #%
+        - entity_id: "*battery*"
+          state: "< 15"
+        - name: "*battery*"
+          state: "< 15"
+        - attributes:
+            battery: "< 15"
+        #- attributes: #here the vacuum will show with status 'charging' etc.
+        #    battery_level: < 20
+  # status of all persons (and guests)
+#      - type: 'custom:group-card'
+#        card:
+#          type: entities
+#          title: Status Personen
+#          show_header_toggle: false
+#        group: group.family_status
+  - type: entities
+    title: Status Personen
+    show_header_toggle: false
+    entities:
+      - entity: sensor.max_status
+      - entity: sensor.ing_status
+      - entity: input_boolean.guests
+      #- entity: sensor.n_people_home
+      - entity: sensor.home_status
+#      - type: divider
+#      - entity: input_datetime.max_status_dropdown_last_changed
+#      - entity: input_datetime.ing_status_dropdown_last_changed
+#      - entity: input_datetime.home_status_dropdown_last_changed
+  
+  # device tracking status (for testing)
+  - type: glance
+    title: Device Tracker
+    entities:
+      - entity: device_tracker.iphone8_max_wifi
+        name: Max [WiFi]
+      - entity: device_tracker.iphone8_max_bt
+        name: Max [BT]
+      - entity: device_tracker.iphone8_ing_wifi
+        name: Ing [WiFi]
+      - entity: device_tracker.iphone8_ing_bt
+        name: Ing [BT]
+
+  # all door- and window sensors (while implementing)
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: glance
+        title: Fenster & Türen
+        show_state: false
+        entities:
+          - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_031b3225_1_6
+            name: Gästez.
+          - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_03139f7b_1_6
+            name: Wohn.-W
+          - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_9ac61c04_1_6
+            name: Wohn.-S
+          - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_f2fd4604_1_6
+            name: Essz.
+          - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6
+            name: Küche
+          - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_0ee51c04_1_6
+            name: Büro-O
+          - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_032b77ce_1_6
+            name: Schlafz.
+          - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_73c61c04_1_6
+            name: Bad
+          - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_c2e41c04_1_6
+            name: Gästebad
+      - type: entities
+        show_header_toggle: false
+        entities:
+          - type: custom:fold-entity-row
+            head:
+              type: section
+              label: Gruppen & Alarm
+            open: false
+            entities:
+              - entity: group.all_doors
+                name: Balkontüren
+                type: custom:multiple-entity-row
+                primary:
+                  entity: input_boolean.open_backdoor_alert
+                  name: Alarm
+              - entity: group.all_windows
+                name: Fenster
+                type: custom:multiple-entity-row
+                primary:
+                  entity: input_boolean.open_window_alert
+                  name: Alarm
+              - entity: sensor.count_notification_alerts
+                name: Anz. aktiver Alarme
+
+  # diese Karte erst mal nicht mehr anzeigen. Plug01 bleibt an wegen ZigBee Mesh 
+#  - type: conditional
+#    conditions: 
+#      - entity: input_boolean.disable_power_automation
+#        state: "off"
+#    card:
+  - type: entities
+    title: Power
+    show_header_toggle: false
+    entities:
+      - entity: input_boolean.disable_power_automation
+      - entity: switch.osram_plug_01_a1bf020a_3
+        name: Media Rack
+        type: custom:multiple-entity-row
+        toggle: true
+        primary:
+          entity: sensor.osram_plug_01_a1bf020a_3_2820
+          name: Verbrauch?

@@ -1,8 +1,14 @@
-################################################################
-## Packages / Fritzbox Net-Monitor
-## Source: https://git.truenoobs.de/darthsandmann/homeassistant/src/branch/master/disabled/packages/fritzbox.yaml
-################################################################
+###############################################################################
+#   @author       : Max Reigl
+#   @date         : 12.11.2019
+#   @package      : fritzbox
+#   @description  : Monitoring of FritzBox router and Fritz smart home components
+#   @links        : https://git.truenoobs.de/darthsandmann/homeassistant/src/branch/master/disabled/packages/fritzbox.yaml
+###############################################################################
 
+################################################
+## Platforms
+################################################
 # Fritzbox Smart Home
 #fritzbox:
 #  devices:
@@ -10,33 +16,22 @@
 #      username: !secret fritz_home_username
 #      password: !secret fritz_home_password 
 
+
 ################################################
 ## Customize
 ################################################
-homeassistant:
-  customize: 
-    sensor.fritz_is_connected:
-      templates:
-        #icon: "if (state = true) return 'mdi:speaker';
-        #                    else return 'mdi:speaker-off';"
-        icon_color: >
-          if (state === 'true') return 'rgb(251, 210, 41)'; 
-          else return 'rgb(54, 95, 140)';
-    binary_sensor.hpdrucker:
-      templates:
-        icon: >
-          if (state === 0) return 'mdi:printer-off';
-                            else return 'mdi:printer';
-        icon_color: >
-          if (state === 'off') return 'rgb(251, 210, 41)'; 
-          else return 'rgb(54, 95, 140)';
+#homeassistant:
+    # FritzBox Sensors
 
 ################################################
 ## Sensors
 ################################################
+# this ption must be activated in FritzBox
+# Heimnetz > Netzwerk > Netzwerkeinstellungen > Heimnetzfreigaben
+#    > Statusinformationen über UPnP übertragen
 sensor:
   - platform: fritzbox_netmonitor
-    host: !secret fritz_host
+    host: !secret fritz_host_ip
     name: fritzbox
 
 ################################################
@@ -47,7 +42,7 @@ sensor:
       fritz_is_linked:
         friendly_name: "Status"
         value_template: "{{ states.sensor.fritzbox.attributes.is_linked }}"
-        icon_template: mdi:router-wireless
+        icon_template: mdi:network-router
         #device_class: connectivity
       fritz_is_connected:
         friendly_name: "Online"
@@ -61,22 +56,36 @@ sensor:
       fritz_external_ip:
         friendly_name: "IP"
         value_template: "{{ states.sensor.fritzbox.attributes.external_ip }}"
-        icon_template: mdi:link
-      fritz_rate_up:
+        icon_template: mdi:ip-network-outline
+      fritz_uptime:
+        friendly_name: "Uptime"
+        value_template: "{{ (states.sensor.fritzbox.attributes.uptime|int / (60*60*24)) | round(0) }}"
+        unit_of_measurement: "days"
+#        value_template: "{{ as_timestamp(states.sensor.fritzbox.attributes.uptime) }}"
+#        unit_of_measurement: "secs"
+        icon_template: mdi:restart
+      fritz_last_boot:
+        friendly_name: "Last boot"
+        value_template: "{{ (as_timestamp(now())|int - states.sensor.fritzbox.attributes.uptime) | 
+                              timestamp_custom('%d.%m %H:%M') | timestamp_local }}"
+        icon_template: mdi:restart
+      fritz_rate_up: #Current upstream speed in bytes/s
         friendly_name: "Upload"
-        value_template: "{{ (states.sensor.fritzbox.attributes.transmission_rate_up|int / 1024)|round(2) }}"
+        value_template: "{{ (states.sensor.fritzbox.attributes.transmission_rate_up|int / 1024**2)|round(1) }}"
         icon_template: mdi:cloud-upload
         unit_of_measurement: "MB/sec"
-      fritz_rate_down:
+      fritz_rate_down: #Current downstream speed in bytes/s
         friendly_name: "Download"
-        value_template: "{{ (states.sensor.fritzbox.attributes.transmission_rate_down|int / 1024)|round(2) }}"
+        value_template: "{{ (states.sensor.fritzbox.attributes.transmission_rate_down|int / 1024**2)|round(1) }}"
         icon_template: mdi:cloud-download
         unit_of_measurement: "MB/sec"
-      fritz_rate_up_max:
+      fritz_rate_up_max: #Maximum upstream-rate in bytes/s
         friendly_name: "Upload Max"
-        value_template: "{{ states.sensor.fritzbox.attributes.max_byte_rate_up }}"
+        value_template: "{{ (states.sensor.fritzbox.attributes.max_byte_rate_up|int / 1024**2)|round(0) }}"
         icon_template: mdi:transfer-up
-      fritz_rate_down_max:
+        unit_of_measurement: "MB/sec"
+      fritz_rate_down_max: #Maximum downstream-rate in bytes/s
         friendly_name: "Download Max"
-        value_template: "{{ states.sensor.fritzbox.attributes.max_byte_rate_down }}"
+        value_template: "{{ (states.sensor.fritzbox.attributes.max_byte_rate_down|int / 1024**2)|round(0) }}"
         icon_template: mdi:transfer-down
+        unit_of_measurement: "MB/sec"

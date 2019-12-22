@@ -1,0 +1,100 @@
+###############################################################################
+#   @author       : Max Reigl
+#   @date         : 08.11.2019
+#   @package      : network
+#   @description  : various sensors for network devices, services and performance
+#   @links        : 
+###############################################################################
+
+
+################################################
+## Platforms
+################################################
+# uses the Speedtest.net web service to measure network bandwidth performance
+speedtestdotnet:
+  scan_interval:
+    minutes: 30
+  monitored_conditions:
+    - ping
+    - download
+    - upload
+
+################################################
+## Customize
+################################################
+homeassistant:
+  customize:
+    # Speedtest.net Sensors 
+    sensor.speedtest_ping:
+      friendly_name: Ping
+    sensor.speedtest_upload:
+      friendly_name: Upload Speed
+      icon: mdi:cloud-upload
+    sensor.speedtest_download:
+      friendly_name: Download Speed
+      icon: mdi:cloud-download
+
+    # Network sensors. todo: Not working!
+    binary_sensor.hpdrucker:
+      templates:
+        icon: >
+          {% if is_state('binary_sensor.hpdrucker', 'on') %}
+            mdi:printer
+          {% else %}
+            mdi:printer-off
+          {% endif %}
+        icon_color: >
+          if (is_state('binary_sensor.hpdrucker', 'off')) return 'rgb(251, 210, 41)'; 
+          else return 'rgb(54, 95, 140)';
+
+################################################
+## Sensors
+################################################
+binary_sensor:
+  # Monitor IP-connection to systems state
+  - platform: ping
+    host: !secret DS_IP
+    name: hera
+    scan_interval: 60
+    count: 2
+  - platform: ping
+    host: !secret fritz_host_ip
+    name: router
+    scan_interval: 30
+    count: 2
+  - platform: ping
+    host: !secret laser_printer_ip
+    name: hpdrucker
+    scan_interval: 120
+    count: 2
+  - platform: ping
+    host: !secret samsung_tv_ip
+    name: smarttv
+    scan_interval: 300
+    count: 2
+  - platform: ping
+    host: !secret xiaomi_vacuum_ip
+    name: roborock
+    scan_interval: 120
+    count: 2
+  - platform: ping
+    host: !secret radio_bad_ip
+    name: radiobad
+    scan_interval: 120
+    count: 2
+
+sensor:
+  # Monitor Home Assistant database size
+  - platform: sql
+    db_url: !secret HistoryDB_connection
+    queries:
+    - name: historydb_size
+      query: 'SELECT table_schema "database", Round(Sum(data_length + index_length) / 1048576, 1) "value" FROM information_schema.tables WHERE table_schema="HAhistory" GROUP BY table_schema'
+      column: 'value'
+      unit_of_measurement: MB
+  
+  # check on the version of home assistant
+  - platform: version
+    source: local
+  - platform: version
+    source: docker

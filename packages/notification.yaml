@@ -1,0 +1,74 @@
+###############################################################################
+#   @author       : Max Reigl
+#   @date         : 20.12.2019
+#   @package      : notification
+#   @description  : Notifications and alert values 
+#   @links        : 
+###############################################################################
+
+notify:
+# Definition der Gruppe von Geräten, die benachrichtigt werden sollen,
+  - name: family_main_devices
+    platform: group
+    services:
+      - service: ios_iphonemax8
+#hack: voruebergehend deaktiviert
+#      - service: ios_iphone8_ing 
+  - name: max
+    platform: group
+    services:
+      - service: ios_iphonemax8
+  - name: ing
+    platform: group
+    services:
+#hack: voruebergehend umgeleitet
+#      - service: ios_iphone8_ing 
+      - service: ios_iphonemax8
+#end hack
+
+# Mail Benachrichtigung
+  - name: gmail_smtp
+    platform: smtp
+    server: smtp.gmail.com
+    port: 587
+    timeout: 15
+    sender: !secret gmail_user
+    encryption: starttls
+    username: !secret gmail_user
+    password: !secret gmail_app_pwd
+    recipient:
+      - !secret max_email
+      #- !secret ing_email
+    sender_name: My Home Assistant
+
+  - name: gmx_smtp
+    platform: smtp
+    server: mail.gmx.net
+    port: 587
+    timeout: 15
+    sender: !secret gmx_user
+    encryption: starttls
+    username: !secret gmx_user
+    password: !secret gmx_pwd
+    recipient:
+      - !secret max_email
+    sender_name: My Home Assistant
+
+
+# sensor counts all active alerts for numbering the badge
+#   more alerts can be integrated!
+sensor:
+  - platform: template
+    sensors:
+      count_notification_alerts:
+        friendly_name: 'count active alerts'
+        entity_id:
+          - input_boolean.open_backdoor_alert
+          - input_boolean.open_window_alert
+          - input_boolean.dwd_weather_alert
+        value_template: "{{ (1 if is_state('input_boolean.open_backdoor_alert', 'on') else 0)
+                          + (1 if is_state('input_boolean.open_window_alert', 'on') else 0)
+                          + (1 if is_state('input_boolean.dwd_weather_alert', 'on') else 0) 
+                        }}"
+            # numeric would be like that: + (0 if is_state('sensor.dwd_current_warn_count', '0') else 1) 
+        icon_template: mdi:comment-alert

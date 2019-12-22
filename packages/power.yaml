@@ -1,0 +1,80 @@
+###############################################################################
+#   @author       : Max Reigl
+#   @date         : 14.11.2019
+#   @package      : power
+#   @description  : power consumtion and regulation
+#   @links        : 
+###############################################################################
+
+################################################
+## Platforms
+################################################
+
+################################################
+## Customize
+################################################
+
+###############################################################################
+#                               Variables
+###############################################################################
+input_boolean:
+  disable_power_automation:
+    name: Stromabschaltung deaktivieren
+#    initial: on #default: Auto aus, da Plug sonst scheinbar das ZigBee Routing stoppt.
+
+################################################
+
+###############################################################################
+#                               Automations
+###############################################################################
+automation:
+  - id: power_down_mediarack
+    alias: switch off media rack
+    trigger:
+    - platform: state
+      entity_id: sensor.home_status
+      from: 'Home'
+      to: 'Away'
+      for:
+        minutes: 10
+    - platform: state
+      entity_id: input_boolean.disable_power_automation
+      to: 'off'
+    - platform: homeassistant
+      event: start
+    condition:
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: sensor.home_status
+        state: 'Away'
+      - condition: state
+        entity_id: input_boolean.disable_power_automation
+        state: 'off'
+    action:
+    - service: switch.turn_off
+      entity_id: switch.osram_plug_01_a1bf020a_3
+
+  - id: power_up_mediarack
+    alias: switch on media rack
+    trigger:
+      - platform: state
+        entity_id: sensor.home_status
+        to: 'Home'
+      - platform: state
+        entity_id: input_boolean.disable_power_automation
+        to: 'off'
+      - platform: homeassistant
+        event: start
+    condition:
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: sensor.home_status
+        state: 'Home'
+      - condition: state  # from sunset until sunrise
+        entity_id: sun.sun
+        state: 'below_horizon'
+    action:
+      - service: switch.turn_on
+        entity_id: switch.osram_plug_01_a1bf020a_3

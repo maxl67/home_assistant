@@ -1,0 +1,34 @@
+###############################################################################
+#   @author       : Max Reigl
+#   @date         : __.__.2019
+#   @package      : plamts
+#   @description  : 
+#   @links        : 
+#https://community.home-assistant.io/t/miflora-sensor-plant-database/53131/66
+#https://www.home-assistant.io/lovelace/plant-status/
+ 
+#https://www.home-assistant.io/integrations/miflora/
+#https://www.home-assistant.io/integrations/plant/
+#https://github.com/khronimo/MiFloraDB
+ 
+#https://www.danielmartingonzalez.com/caring-your-plants-with-mi-flora-and-home-assistant/
+#https://github.com/ChristianKuehnel/plantgateway
+#https://community.home-assistant.io/t/plantgateway-and-home-assistant/43886/4
+ 
+###############################################################################
+
+
+################################################
+## Platforms
+################################################
+
+
+################################################
+## Customize
+################################################
+#homeassistant:
+#  customize:
+
+################################################
+## Sensors
+################################################

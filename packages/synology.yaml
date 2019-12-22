@@ -1,0 +1,69 @@
+###############################################################################
+#   @author       : Max Reigl
+#   @date         : 28.10.2019
+#   @package      : synology
+#   @description  : Sensors for Synology NAS
+#   @links        : https://www.home-assistant.io/integrations/synologydsm/
+###############################################################################
+
+homeassistant:
+  customize:
+    sensor.last_boot:
+      friendly_name: Last Boot
+      device_class: timestamp
+
+sensor:
+  # Synology DSM Sensor
+  - platform: synologydsm
+    name: Hera DSM # --> sensor.hera_dsm_*
+    host: !secret DS_local_IP
+    port: !secret DSM_port
+    ssl: true
+    username: !secret DSM_sensor_username
+    password: !secret DSM_sensor_password
+    monitored_conditions:
+      - cpu_total_load
+      - cpu_5min_load  # Leistung: avg. # of processes + length queue (not %)
+      - cpu_15min_load # Leistung: avg. # of processes + length queue
+      - memory_real_usage
+      - disk_status
+      - disk_temp
+      - volume_status
+      - volume_size_used
+      - volume_size_total
+      - volume_percentage_used
+      - volume_disk_temp_max  # val=0, does not change. not used. min_max calculated separately.
+      #- volume_disk_temp_avg # does not work.
+  - platform: template
+    sensors:
+      # we have to define 2 new sensors, because the value has to be divided
+      hera_dsm_avg_processes_5_min:
+        friendly_name: Hera DSM Process Load (avg. 5min)
+        value_template: "{{ states('sensor.hera_dsm_cpu_load_5_min')| float / 100 }}"
+        icon_template: mdi:layers
+      hera_dsm_avg_processes_15_min:
+        friendly_name: Hera DSM Process Load (avg. 15min)
+        value_template: "{{ states('sensor.hera_dsm_cpu_load_15_min')| float / 100 }}"
+        icon_template: mdi:layers
+  - platform: min_max
+    name: maximum_disk_temp_volume_1
+    type: max
+    entity_ids:
+      - sensor.hera_dsm_temperature_sda
+      - sensor.hera_dsm_temperature_sdb
+      - sensor.hera_dsm_temperature_sdc
+
+  - platform: cert_expiry
+    host: !secret ssl_cert_name
+    port: 443
+    name: lets_encrypt_cert
+
+automation:
+  - alias: update_cert_expiry_on_reboot
+    trigger:
+      - platform: homeassistant
+        event: start
+    action:
+      - delay: "0:00:50"
+      - service: homeassistant.update_entity
+        entity_id: sensor.lets_encrypt_cert

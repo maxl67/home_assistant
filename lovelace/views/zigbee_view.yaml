@@ -1,0 +1,36 @@
+id: zha_table
+title: Zigbee
+path: zha_table
+icon: mdi:zigbee
+panel: true
+cards:
+  - type: 'custom:zha-network-card'
+    clickable: true
+    columns:
+      - name: Name
+        prop: name
+#      - attr: area_id
+#        name: Area
+      - attr: available
+        id: available
+        modify: x || "false"
+        name: Online
+      - attr: rssi
+        name: RSSI
+      - attr: lqi
+        name: LQI
+      - attr: last_seen
+        name: Last Seen
+      - attr: manufacturer
+        name: Manufacturer
+      - attr: model
+        name: Model
+      - attr: ieee
+        name: IEEE
+      - name: NWK
+        prop: nwk
+      - attr: power_source
+        name: Power Source
+#     - attr: quirk_class
+#       name: Quirk
+    sort_by: available #, name

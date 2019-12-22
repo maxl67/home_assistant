@@ -1,0 +1,59 @@
+id: climate
+title: Klima
+path: climate
+icon: mdi:thermometer-lines
+
+cards:
+  - type: vertical-stack
+    cards:
+      - type: custom:mini-graph-card
+        entities: 
+          - entity: sensor.lumi_lumi_weather_95154a04_temperature
+            name: temp WZ
+            show_state: false
+          - entity: sensor.lumi_lumi_weather_95154a04_humidity
+            name: humi WZ
+            y_axis: 'secondary'
+            show_state: false
+        height: 85
+        line_width: 2
+        font_size: 70
+        hours_to_show: 100 #<=168
+        points_per_hour: 1
+        lower_bound: 18
+        upper_bound: 24
+        lower_bound_secondary: 40
+        upper_bound_secondary: 80
+        show:
+          #extrema: true
+          fill: true
+        color_thresholds:
+          - value: 28
+            color: "#e74c3c"
+          - value: 15
+            color: "#1db954"
+          - value: 0
+            color: "#3498db"
+
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Raumklima
+        open: true
+        entities:
+        - entity: sensor.lumi_lumi_weather_95154a04_temperature
+          type: custom:multiple-entity-row
+          name: Wohnzimmer
+          secondary_info: last-changed
+          hide_state: true
+          primary:
+            entity: sensor.lumi_lumi_weather_95154a04_humidity
+            name: Feuchte 
+          secondary:
+            entity: sensor.lumi_lumi_weather_95154a04_pressure
+            name: Druck
+          tertiary:
+            entity: sensor.lumi_lumi_weather_95154a04_temperature
+            name: Temp
+
+  
