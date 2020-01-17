@@ -69,6 +69,7 @@ sensor:
         value_template: "{{ (1 if is_state('input_boolean.open_backdoor_alert', 'on') else 0)
                           + (1 if is_state('input_boolean.open_window_alert', 'on') else 0)
                           + (1 if is_state('input_boolean.dwd_weather_alert', 'on') else 0) 
+                          + (1 if is_state('binary_sensor.vacuum_error_alert', 'on') else 0) 
                         }}"
             # numeric would be like that: + (0 if is_state('sensor.dwd_current_warn_count', '0') else 1) 
         icon_template: mdi:comment-alert

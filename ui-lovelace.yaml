@@ -22,6 +22,11 @@ resources:
     type: module
   - url: /community_plugin/zha-network-card/zha-network-card.js
     type: js
+  - url: /community_plugin/check-button-card/check-button-card.js
+    type: js
+#neu: simple themostat
+  - url: /community_plugin/simple-thermostat/simple-thermostat.js
+    type: module
   # Repo: https://github.com/sgttrs/lovelace-weather-card-chart
   - url: /community_plugin/lovelace-weather-card-chart/weather-card-chart.js
     type: module
@@ -37,12 +42,14 @@ custom_header:
   chevrons: false
 
   tab_icons:
+    #NOTE: only in one line, no multiple lines with '>'!!
     home: '{% if is_state("input_boolean.open_backdoor_alert", "on") or is_state("input_boolean.open_window_alert", "on") %}mdi:home-alert{% endif %}'
-    weather: '{% if is_state("input_boolean.dwd_weather_alert", "on") %}mdi:weather-lightning{% endif %}'
-    #auch: mdi:flash-circle
+#    weather: '{% if is_state("input_boolean.dwd_weather_alert", "on") %}mdi:weather-lightning{% endif %}'
+    weather: '{% if is_state("input_boolean.dwd_weather_alert", "on") %}{% if is_state("sensor.dwd_current_warn_gewitter", "True") %}mdi:weather-lightning-rainy{% elif is_state("sensor.dwd_current_warn_sturm", "True") %}mdi:weather-windy{% elif is_state("sensor.dwd_current_warn_level_glaette", "True") %}mdi:snowflake-alert{% elif is_state("sensor.dwd_current_warn_frost", "True") %}mdi:thermometer-alert{% else %}mdi:weather-lightning{% endif %}{% endif %}'
   tabs_color:
     home: '{% if is_state("input_boolean.open_backdoor_alert", "on") %}red{% elif is_state("input_boolean.open_window_alert", "on") %}yellow{% endif %}'
-    weather: '{% if states.sensor.dwd_current_warn_count.state|int > 0 %}red{% elif states.sensor.dwd_advance_warn_count.state|int > 0 %}yellow{% endif %}'
+    weather: '{% if states.sensor.dwd_weather_warnings_current_warning_level.state|int >= 3 %}red{% elif states.sensor.dwd_weather_warnings_current_warning_level.state|int >= 2 %}yellow{% endif %}'
+    vacuum: '{% if is_state("binary_sensor.vacuum_error_alert", "on") %}red{% elif is_state("input_boolean.dustbin_full_alert", "on") %}yellow{% elif states.vacuum.xiaomi_vacuum_cleaner.state.startswith("cleaning") %}green{% elif is_state("input_boolean.disable_automatic_vacuum", "on") %}gray{% endif %}'
   exceptions:
     - conditions:
         user: !secret username_ing
@@ -104,13 +111,16 @@ views:
     icon: mdi:tools
     path: maintenance
     cards:
-      - type: 'custom:group-card'
+      - type: entities
+        entities:
+          - entity: input_select.debug_mode
+      - type: custom:group-card
         card:
           type: entities
           title: Batterie Status
           show_header_toggle: false
         group: group.battery_status
-      - type: 'custom:group-card'
+      - type: custom:group-card
         card:
           type: entities
           title: Batterie Alert

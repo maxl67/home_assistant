@@ -1,8 +1,8 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 28.10.2019
-#   @package      : synology
-#   @description  : XIAOMI Roborock S6
+#   @date         : 15.01.2020
+#   @package      : vacuum
+#   @description  : XIAOMI Roborock S6 automation
 #   @links        : 
 # Token ermittelt nach: https://www.home-assistant.io/components/vacuum.xiaomi_miio/#retrieving-the-access-token
 # Idee: https://github.com/stanvx/Home-Assistant-Configuration/blob/master/packages/xiaomi_robot_vacuum.yaml
@@ -79,6 +79,23 @@ switch:
           {% else %}
             mdi:cellphone-message
           {% endif %}
+      dustbin_full_alert:
+        friendly_name: Staubbehälter leeren   #dustbin has to be cleaned  
+        value_template: "{{ is_state('input_boolean.dustbin_full_alert', 'on') }}"
+        turn_on:
+          service: homeassistant.turn_on
+          data:
+            entity_id: input_boolean.dustbin_full_alert
+        turn_off:
+          service: homeassistant.turn_off
+          data:
+            entity_id: input_boolean.dustbin_full_alert
+        icon_template: >-
+          {% if is_state('input_boolean.dustbin_full_alert', 'on') %}
+            mdi:delete-alert
+          {% else %}
+            mdi:delete-outline
+          {% endif %}
 
 input_boolean:
   disable_automatic_vacuum:
@@ -93,6 +110,11 @@ input_boolean:
   disable_dustbin_notification:
     name: Staubbehälternachrichten aus #disable dustbin notification
     initial: off
+
+  dustbin_full_alert:
+    name: Staubbehälter leeren  #dustbin has to be cleaned
+    icon: mdi:delete-alert
+
 
 input_select:
   vacuum_room:
@@ -147,7 +169,13 @@ binary_sensor:
       vacuum_started:
         entity_id: vacuum.xiaomi_vacuum_cleaner
         value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.status in ['Cleaning', 'Definition missing for state 18'] }}"    
-  
+
+      vacuum_error_alert:
+        entity_id: vacuum.xiaomi_vacuum_cleaner
+        icon_template: mdi:alert-octagon
+        value_template: '{{ is_state("vacuum.xiaomi_vacuum_cleaner","error") }}'
+
+
 sensor:
   - platform: template
     sensors: #not sure if I need this sensor in addition to input_select
@@ -165,9 +193,9 @@ sensor:
         value_template: >
           {% set val =  states.vacuum.xiaomi_vacuum_cleaner.attributes.status  %}
           {% if val == 'Definition missing for state 18' %}
-            'Cleaning room'
+            Cleaning room
           {% else %}
-            '{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.status }}'
+            {{ states.vacuum.xiaomi_vacuum_cleaner.attributes.status }}
           {% endif %}
         icon_template: >
           {% set val =  states.vacuum.xiaomi_vacuum_cleaner.attributes.status  %}
@@ -440,6 +468,54 @@ script:
 #                               Automations
 ###############################################################################
 automation:
+  # Notify devices if vacuum reports error status
+  - alias: Notify all - Vacuum Error
+    trigger:
+      # vacuum has state 'error'
+      - platform: state
+        entity_id: binary_sensor.vacuum_error_alert 
+        to: 'on'
+        for:
+          seconds: 6
+      #- platform: homeassistant
+      #  event: start
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: binary_sensor.vacuum_error_alert
+          state: 'on'
+    action:
+      - service: notify.family_main_devices
+        data_template:
+          title: "Smart Home Alerts"
+          message: "DustiE hat einen Fehlerstatus."
+          data:
+            subtitle: "DustiE Error!"
+            push:
+              badge: "{{states.sensor.count_notification_alerts.state|int}}"
+  - alias: Reset alert - Vacuum Error
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.vacuum_error_alert 
+        to: 'off'
+      - platform: homeassistant
+        event: start
+    condition:
+      condition: and
+      conditions:
+        - condition: state
+          entity_id: binary_sensor.vacuum_error_alert
+          state: 'off'
+    action:
+      - service: notify.family_main_devices
+        data_template:
+          title: "Smart Home ..."
+          message: "DustiE Fehler behoben."
+          data:
+            push:
+              badge: "{{states.sensor.count_notification_alerts.state|int}}"
+  
   ## automated full cleanup
   ## Monday between 8:00 and 17:00 if nobody is at home (or automatic_vacuum_when_home='on')
   - id: vacuum_start_fullcleanup
@@ -489,25 +565,31 @@ automation:
       data:
         message: 'wöchentliches Saugen der gesamten Wohnung wurde gestartet.'
         title: 'Automatisierung Dusti-E'
+    - delay: '01:50:00'
+    - service: homeassistant.turn_on
+      entity_id: input_boolean.dustbin_full_alert
 
   ## automated partly cleanup
   ## Thursday between 8:00 and 17:00, if nobody is at home (or automatic_vacuum_when_home='on')
   - id: vacuum_start_partialcleanup
     alias: Start partly vacuum
     trigger:
-    - platform: state
-      entity_id: sensor.home_status
-      from: 'Home'
-      to: 'Away'
-      for:
-        minutes: 2
-    - platform: time
-      at: '8:02:00'
-    - platform: state
-      entity_id: input_boolean.disable_automatic_vacuum
-      to: 'off'
-    - platform: state
-      entity_id: input_boolean.automatic_vacuum_when_home
+      # last person left (gone for 2 min)
+      - platform: state
+        entity_id: sensor.home_status
+        from: 'Home'
+        to: 'Away'
+        for:
+          minutes: 2
+      # at 8:02, if everybody already has left earlier 
+      - platform: time
+        at: '8:02:00'
+      # change in options variables
+      - platform: state
+        entity_id: input_boolean.disable_automatic_vacuum
+        to: 'off'
+      - platform: state
+        entity_id: input_boolean.automatic_vacuum_when_home
     condition:
       condition: and
       conditions:
@@ -539,6 +621,9 @@ automation:
       data:
         message: 'wöchentliches Saugen von Küche, Schlafzimmer und Bad wurde gestartet.'
         title: 'Automatisierung Dusti-E'
+    - delay: '00:45:00'
+    - service: homeassistant.turn_on
+      entity_id: input_boolean.dustbin_full_alert
 
   ## Reset the variable 'automatic_vacuum_first_run' at midnight so that a new automatic cleanup can be triggered the next day 
   - id: vacuum_reset_first_run
@@ -580,6 +665,7 @@ automation:
         after: '07:30:00'
         before: '23:00:00'
       - condition: template
+        # last time this automation was triggered is more than 1800secs=30min ago
         value_template: >
           {% if states.automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin.last_triggered is not none %}
             {% if as_timestamp(now()) | int - as_timestamp(states.automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin.attributes.last_triggered) | int > 1800 %} true {% else %} false

@@ -3,8 +3,7 @@ title: Home
 icon: mdi:home
 path: home
 cards:
-  # show only open (or unavailable) door-/window sensons 
-#  - type: 'custom:monster-card'
+  # show only open (or unavailable) door-/window sensors (if any...)
   - type: custom:auto-entities
     show_empty: false
     card:
@@ -17,8 +16,7 @@ cards:
           state: "on"
         - entity_id: "binary_sensor.lumi_lumi_sensor_magnet_aq2*"
           state: "unavailable"
-  # show low battery devices
-#  - type: 'custom:monster-card'
+  # show low battery devices (if any...)
   - type: custom:auto-entities
     show_empty: false
     card:
@@ -41,15 +39,10 @@ cards:
             battery: "< 15"
         #- attributes: #here the vacuum will show with status 'charging' etc.
         #    battery_level: < 20
-  # status of all persons (and guests)
-#      - type: 'custom:group-card'
-#        card:
-#          type: entities
-#          title: Status Personen
-#          show_header_toggle: false
-#        group: group.family_status
+
+  # show persons and home status
   - type: entities
-    title: Status Personen
+    title: Anwesenheit
     show_header_toggle: false
     entities:
       - entity: sensor.max_status
@@ -57,10 +50,6 @@ cards:
       - entity: input_boolean.guests
       #- entity: sensor.n_people_home
       - entity: sensor.home_status
-#      - type: divider
-#      - entity: input_datetime.max_status_dropdown_last_changed
-#      - entity: input_datetime.ing_status_dropdown_last_changed
-#      - entity: input_datetime.home_status_dropdown_last_changed
   
   # device tracking status (for testing)
   - type: glance
@@ -75,11 +64,31 @@ cards:
       - entity: device_tracker.iphone8_ing_bt
         name: Ing [BT]
 
+  # status of power switches
+  # todo: diese Karte erst mal nicht mehr anzeigen. Plug01 bleibt an wegen ZigBee Mesh 
+#  - type: conditional
+#    conditions: 
+#      - entity: input_boolean.disable_power_automation
+#        state: "off"
+#    card:
+  - type: entities
+    title: Power
+    show_header_toggle: false
+    entities:
+      - entity: input_boolean.disable_power_automation
+      - entity: switch.osram_plug_01_a1bf020a_3
+        name: Media Rack
+        type: custom:multiple-entity-row
+        toggle: true
+        #primary:
+        #  entity: sensor.osram_plug_01_a1bf020a_3_2820
+        #  name: Verbrauch?
+
   # all door- and window sensors (while implementing)
   - type: custom:vertical-stack-in-card
     cards:
       - type: glance
-        title: Fenster & Türen
+        title: Türen & Fenster
         show_state: false
         entities:
           - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_031b3225_1_6
@@ -123,22 +132,3 @@ cards:
                   name: Alarm
               - entity: sensor.count_notification_alerts
                 name: Anz. aktiver Alarme
-
-  # diese Karte erst mal nicht mehr anzeigen. Plug01 bleibt an wegen ZigBee Mesh 
-#  - type: conditional
-#    conditions: 
-#      - entity: input_boolean.disable_power_automation
-#        state: "off"
-#    card:
-  - type: entities
-    title: Power
-    show_header_toggle: false
-    entities:
-      - entity: input_boolean.disable_power_automation
-      - entity: switch.osram_plug_01_a1bf020a_3
-        name: Media Rack
-        type: custom:multiple-entity-row
-        toggle: true
-        primary:
-          entity: sensor.osram_plug_01_a1bf020a_3_2820
-          name: Verbrauch?

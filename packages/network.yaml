@@ -84,7 +84,19 @@ binary_sensor:
     count: 2
 
 sensor:
-  # Monitor Home Assistant database size
+  # monitor Home Assistant system state
+  - platform: systemmonitor
+    resources:
+    - type: disk_use_percent
+      arg: /
+    - type: memory_free
+    - type: processor_use
+    - type: network_in
+      arg: eth0
+    - type: network_out
+      arg: eth0
+    - type: last_boot
+  # monitor Home Assistant database size
   - platform: sql
     db_url: !secret HistoryDB_connection
     queries:
@@ -92,8 +104,7 @@ sensor:
       query: 'SELECT table_schema "database", Round(Sum(data_length + index_length) / 1048576, 1) "value" FROM information_schema.tables WHERE table_schema="HAhistory" GROUP BY table_schema'
       column: 'value'
       unit_of_measurement: MB
-  
-  # check on the version of home assistant
+  # check on the version of Home Assistant
   - platform: version
     source: local
   - platform: version

@@ -1,15 +1,3 @@
 ##########################
 # Sensors
 ##########################
-
-- platform: systemmonitor
-  resources:
-  - type: disk_use_percent
-    arg: /
-  - type: memory_free
-  - type: processor_use
-  - type: network_in
-    arg: eth0
-  - type: network_out
-    arg: eth0
-  - type: last_boot

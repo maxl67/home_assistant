@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 21.12.2019
+#   @date         : 16.01.2020
 #   @package      : weather
 #   @description  : all kinds of weather information
 #   @links        : 
@@ -14,11 +14,10 @@
 
 homeassistant:
   customize: 
-    # Sonnenstand
     sun.sun:
       friendly_name: Sonnenstand
 
-# Weather Prediction platforms
+# Weather platforms
 sun: 
 weather:
   - platform: darksky
@@ -33,6 +32,7 @@ weather:
 #    name: dark_sky_hourly
 
 input_select:
+  # selection of which satelite picture to show
   type_of_satelite:
     name: Auswahl
     options:
@@ -50,36 +50,146 @@ input_boolean:
 sensor:
   - platform: dwd_weather_warnings
     region_name: !secret dwd_region_name
+    # Typen der Warnungen
+    # 0: Gewitter, Starkes Gewitter
+    # 1: Windböen, Sturmböen
+    # 2: ?‚
+    # 3: Schneefall
+    # 4: Nebel
+    # 5: Frost
+    # 6: Glätte, Glatteis
+    # 8: Hitze (always level 10)
+    # 9: UV-Index (always level 20)
+
+  - platform: template
+    sensors: 
+      outside_temperature:
+        value_template: '{{states.weather.dark_sky_daily.attributes.temperature|float}}'
+        unit_of_measurement: "°C"
+      outside_humidity:
+        value_template: '{{states.weather.dark_sky_daily.attributes.humidity|int}}'
+        unit_of_measurement: "%"
+      sun_is_shining:
+        value_template: '{{states.weather.dark_sky_daily.state in ("sunny","partlycloudy")}}'
+      sunshine_intensity:
+        #value_template: '{% if is_state("sensor.sun_is_shining", "True") %}100{% else %}0{% endif %}'
+        value_template: '{% if is_state("sensor.sun_is_shining", "True") %}{{(states.sun.sun.attributes.elevation/90*100)|int}}{% else %}0{% endif %}'
+        unit_of_measurement: "%"
 
   - platform: template
     sensors:
+      # Anzahl und Gesamtlevel der DWD-Warnungen
       dwd_current_warn_count:
         value_template: '{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count }}'
+      dwd_current_warn_level:
+        value_template: '{{ states.sensor.dwd_weather_warnings_current_warning_level.state }}'
       dwd_advance_warn_count:
         value_template: '{{ states.sensor.dwd_weather_warnings_advance_warning_level.attributes.warning_count }}'
 
+      # DWD-Warnunfen nach Typen getrennet mit zugehörigem Level
+      dwd_current_warn_gewitter:
+        value_template: >
+          {% set ns = namespace(found=false) %}
+          {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith("_type") -%}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr]==0 %}
+                  {% set ns.found = true %}
+              {% endif %}
+          {% endfor %}
+          {{ns.found}}
+      dwd_current_warn_level_gewitter:
+        value_template: >
+          {%- set ns = namespace(level=0) -%}
+          {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
+            {%- set type_attr= "warning_"+loop.index|string + "_type" -%}
+            {%- set lvl_attr=  "warning_"+loop.index|string + "_level" -%}
+            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] == 0 -%}
+               {%- set ns.level = states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr]  -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ns.level}}
+
+      dwd_current_warn_sturm:
+        value_template: >
+          {% set ns = namespace(found=false) %}
+          {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith("_type") -%}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr]==1 %}
+                  {% set ns.found = true %}
+              {% endif %}
+          {% endfor %}
+          {{ns.found}}
+      dwd_current_warn_level_sturm:
+        value_template: >
+          {%- set ns = namespace(level=0) -%}
+          {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
+            {%- set type_attr= "warning_"+loop.index|string + "_type" -%}
+            {%- set lvl_attr=  "warning_"+loop.index|string + "_level" -%}
+            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] == 1 -%}
+               {%- set ns.level = states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr]  -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ns.level}}
+
+      dwd_current_warn_glaette:
+        value_template: >
+          {% set ns = namespace(found=false) %}
+          {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith("_type") -%}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr]==6 %}
+                  {% set ns.found = true %}
+              {% endif %}
+          {% endfor %}
+          {{ns.found}}
+      dwd_current_warn_level_glaette:
+        value_template: >
+          {%- set ns = namespace(level=0) -%}
+          {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
+            {%- set type_attr= "warning_"+loop.index|string + "_type" -%}
+            {%- set lvl_attr=  "warning_"+loop.index|string + "_level" -%}
+            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] == 6 -%}
+               {%- set ns.level = states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr]  -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ns.level}}
+
+      dwd_current_warn_frost:
+        value_template: >
+          {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_type == 5 
+             or states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_type == 5 
+             or states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_type == 5 
+             or states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_type == 5 
+          }}
+      dwd_current_warn_level_frost:
+        value_template: >
+          {%- set ns = namespace(level=0) -%}
+          {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
+            {%- set type_attr= "warning_"+loop.index|string + "_type" -%}
+            {%- set lvl_attr=  "warning_"+loop.index|string + "_level" -%}
+            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] == 5 -%}
+               {%- set ns.level = states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr]  -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ns.level}}
+
 # get live satelite pictures
 camera:
-#- platform: template
-#  name: selected_satelite
-#  still_image_url: >
-#    {{ {
-#        'Regen' : 'https://api.sat24.com/animated/EU/visual/1/W_dot_%20Europe%20Standard%20Time/2937470',
-#        'Bewölkung' : 'https://api.sat24.com/animated/ALPS/rainTMC/1/W_dot_%20Europe%20Standard%20Time/3381693',
-#        'Schnee' : 'https://api.sat24.com/animated/ALPS/snow/1/W_dot_%20Europe%20Standard%20Time/8170881'
-#       } [input_select.type_of_satelite] }}
-    
-- platform: generic
-#  still_image_url: http://api.sat24.com/animated/DE/visual/2/W_dot_%20Europe%20Standard%20Time/5053188
-  still_image_url: https://api.sat24.com/animated/EU/visual/1/W_dot_%20Europe%20Standard%20Time/2937470
-  name: satelite_clouds
-- platform: generic
-#  still_image_url: http://api.sat24.com/animated/DE/rainTMC/2/W_dot_%20Europe%20Standard%20Time/220026
-  still_image_url: https://api.sat24.com/animated/ALPS/rainTMC/1/W_dot_%20Europe%20Standard%20Time/3381693
-  name: satelite_rain
-- platform: generic
-  still_image_url: https://api.sat24.com/animated/ALPS/snow/1/W_dot_%20Europe%20Standard%20Time/8170881
-  name: satelite_snow
+  #- platform: template
+  #  name: selected_satelite
+  #  still_image_url: >
+  #    {{ {
+  #        'Regen' : 'https://api.sat24.com/animated/EU/visual/1/W_dot_%20Europe%20Standard%20Time/2937470',
+  #        'Bewölkung' : 'https://api.sat24.com/animated/ALPS/rainTMC/1/W_dot_%20Europe%20Standard%20Time/3381693',
+  #        'Schnee' : 'https://api.sat24.com/animated/ALPS/snow/1/W_dot_%20Europe%20Standard%20Time/8170881'
+  #       } [input_select.type_of_satelite] }}
+  - platform: generic
+  #  still_image_url: http://api.sat24.com/animated/DE/visual/2/W_dot_%20Europe%20Standard%20Time/5053188
+    still_image_url: https://api.sat24.com/animated/EU/visual/1/W_dot_%20Europe%20Standard%20Time/2937470
+    name: satelite_clouds
+  - platform: generic
+  #  still_image_url: http://api.sat24.com/animated/DE/rainTMC/2/W_dot_%20Europe%20Standard%20Time/220026
+    still_image_url: https://api.sat24.com/animated/ALPS/rainTMC/1/W_dot_%20Europe%20Standard%20Time/3381693
+    name: satelite_rain
+  - platform: generic
+    still_image_url: https://api.sat24.com/animated/ALPS/snow/1/W_dot_%20Europe%20Standard%20Time/8170881
+    name: satelite_snow
 
 automation:
   - alias: send_dwd_warning

@@ -23,12 +23,12 @@ homeassistant:
         - ::ffff:127.0.0.1
         - fd00::/8
       allow_bypass_login: true
-  # load Packages from directory
+  # load packages from directory
   packages: !include_dir_named packages
 
 # display panels in the frontend to configure and manage parts of Home Assistant
 config:
-# System Health integration data can be viewed in Developer Tools on the “Info” tab
+# 'System Health' integration data can be viewed in Developer Tools on the 'Info' tab
 system_health:
 
 # activate SSL
@@ -41,13 +41,13 @@ http:
   #login_attempts_threshold: 3
 
 ################################################################
-## Includes
+## Includes (mostly moved to packages)
 ################################################################
 #automation: !include includes/automations.yaml
 binary_sensor: !include includes/binary_sensors.yaml
-group: !include includes/groups.yaml
-script: !include includes/scripts.yaml
-sensor: !include includes/sensors.yaml
+#group: !include includes/groups.yaml
+#script: !include includes/scripts.yaml
+#sensor: !include includes/sensors.yaml
 zone: !include includes/zones.yaml
 
 ################################################################
@@ -55,7 +55,7 @@ zone: !include includes/zones.yaml
 ################################################################
 # Zigbee-Coordinator (NORTEK HUSBZB-1)
 zha:
-  #usb_path: /zigbeestick #geht seit 0.99 nicht mehr
+  #usb_path: /zigbeestick #naming of USB device does not work anymore since v0.99
   usb_path: /dev/ttyUSB1
   database_path: /data/zigbee.db
 #zwave:
@@ -114,15 +114,7 @@ device_tracker:
     new_device_defaults:
       track_new_devices: false
       hide_if_away: false
-#  - platform: unifi
-#    host: !secret unifi_host
-#    verify_ssl: false
-#    username: !secret unifi_user
-#    password: !secret unifi_password
-#    ssid_filter:
-#      - 'mi-work'
-#    track_new_devices: no
-#    interval_seconds: 30
+
 
 ################################################################
 ## Frontend
@@ -144,6 +136,14 @@ hacs:
 ################################################################
 ## Test / Development
 ################################################################
+input_select:
+  debug_mode:
+    name: Debug Mode
+    options:
+      - none
+      - all
+    initial: none
+
 #calendar:
 #  - platform: caldav
 #    username: !secret caldav_user
@@ -158,26 +158,71 @@ hacs:
 
 ################################################################
 ## Recording, Logging, Lockbook
+# https://community.home-assistant.io/t/large-homeassistant-database-files/4201/240
 ################################################################
-# View all events in a logbook
 recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to be displayed in logbook and/or history
-  purge_keep_days: 14
+  purge_keep_days: 7
   db_url: !secret HistoryDB_connection  # --> 'home-assistant_v2.db' now in MariaDB. Much faster.
   exclude:
     domains:
       - weblink
       - updater
       - input_select
+      - camera
     entities:
       - sun.sun # Don't record sun data
-      - sensor.last_boot # Comes from 'systemmonitor' sensor platform
       - sensor.date
       - binary_sensor.workday
-      
+    # systemmonitor (HA host system)
+      - sensor.last_boot 
+      - sensor.processor_use
+      - sensor.memory_free
+      - sensor.network_in_eth0
+      - sensor.network_out_eth0
+    # router: Fritzbox
+      - sensor.fritzbox
+      #- sensor.fritz_rate_down
+      #- sensor.fritz_rate_up
+    # network diveces
+      - binary_sensor.router
+      - binary_sensor.hera
+      - binary_sensor.roborock
+      - binary_sensor.hpdrucker
+      #- binary_sensor.smarttv
+      - binary_sensor.radiobad
+    # Home Assistant
+      - sensor.latest_version
+      - sensor.hacs
+      - sensor.lets_encrypt_cert
+    # diverse
+      - automation.update_battery_status_group_members
+      - automation.battery_persistent_notification_clear
+      - sensor.vacuum_battery
+      - sensor.osram_plug_01_a1bf020a_3_2820
+      #- sensor.lumi_lumi_weather_95154a04_pressure
+
 logbook: #recorded Entities, that will be displayed in Logbook
-#  include: !include includes/include.yaml
-  exclude: !include includes/exclude.yaml
-  
+  exclude: #!include includes/exclude.yaml
+    domains:
+#      - automation
+#      - script
+      - weblink
+      - updater
+      - systemmonitor
+    #  - device_tracker  #some are included again
+    entities:
+      - sensor.random
+      - sensor.date
+      - binary_sensor.hera
+      - sensor.vacuum_operation
+      - sensor.vacuum_accessories
+      - sensor.hera_dsm_avg_processes_15_min
+      - sensor.hera_dsm_avg_processes_5_min
+      - sensor.geocoded_location
+      - automation.update_requested_temp
+      - automation.battery_sensor_from_attributes
+      - automation.battery_persistent_notification
+
 history: #recorded Entities, that will be displayed in History
 #  include: !include includes/include.yaml
   exclude: !include includes/exclude.yaml

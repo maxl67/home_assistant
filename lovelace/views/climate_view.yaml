@@ -2,44 +2,62 @@ id: climate
 title: Klima
 path: climate
 icon: mdi:thermometer-lines
-
 cards:
   - type: vertical-stack
     cards:
+      # temperature living room
       - type: custom:mini-graph-card
+        name: Wohnzimmer
+        #range
+        hours_to_show: 24 #<=168
+        points_per_hour: 6
         entities: 
           - entity: sensor.lumi_lumi_weather_95154a04_temperature
-            name: temp WZ
+            name: Ist temp
+            show_state: true
+            state_adaptive_color: true
+          - entity: sensor.requested_temperature_wz
+            name: Soll temp
             show_state: false
-          - entity: sensor.lumi_lumi_weather_95154a04_humidity
-            name: humi WZ
+            color: "#4d4d4d" #dark gray , black
+            show_fill: false
+            smoothing: false
+            show_points: false
+          - entity: sensor.sunshine_intensity
+            name: Sonne
             y_axis: 'secondary'
             show_state: false
-        height: 85
+            color: '#91920e' #gray
+            show_points: false
+            show_line: false
+        #formatting
+        hour24: true
+        height: 100
         line_width: 2
         font_size: 70
-        hours_to_show: 100 #<=168
-        points_per_hour: 1
         lower_bound: 18
-        upper_bound: 24
-        lower_bound_secondary: 40
-        upper_bound_secondary: 80
+        upper_bound: 25
+        lower_bound_secondary: 0
+        upper_bound_secondary: 100
         show:
-          #extrema: true
+          extrema: true
           fill: true
+          labels: true #or hover (y-axis)
+          icon_adaptive_color: true
         color_thresholds:
-          - value: 28
-            color: "#e74c3c"
-          - value: 15
-            color: "#1db954"
-          - value: 0
-            color: "#3498db"
+          - value: 19
+            color: "#3090C7"
+          - value: 21
+            color: green
+          - value: 23
+            color: "#d35400"
 
+      # climate sensors
       - type: custom:fold-entity-row
         head:
           type: section
           label: Raumklima
-        open: true
+        open: false
         entities:
         - entity: sensor.lumi_lumi_weather_95154a04_temperature
           type: custom:multiple-entity-row
@@ -56,4 +74,56 @@ cards:
             entity: sensor.lumi_lumi_weather_95154a04_temperature
             name: Temp
 
-  
+      # humidity 
+      - type: custom:mini-graph-card
+        name: Luftfeuchte
+        #range
+        hours_to_show: 24
+        points_per_hour: 12
+        entities: 
+          - entity: sensor.lumi_lumi_weather_95154a04_humidity
+            name: Wohnzimmer
+            show_state: true
+            state_adaptive_color: true
+          - entity: sensor.outside_humidity
+            name: aussen
+            show_state: true
+            color: "#4d4d4d" #dark gray , black
+            show_fill: false
+        #formatting
+        hour24: true
+        height: 100
+        line_width: 2
+        font_size: 70
+        lower_bound: 20
+        upper_bound: 100
+        show:
+          #extrema: true
+          labels: true #or hover (y-axis)
+        color_thresholds_transition: hard
+        color_thresholds:
+          - value: 0
+            color: "#3090C7"
+          - value: 40
+            color: "#009A00"
+          - value: 60
+            color: "#f4ad01"
+          - value: 70
+            color: "#d35400"
+
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: history-graph
+        #title: 'aussen'
+        hours_to_show: 24
+        entities:
+          - entity: sensor.outside_temperature
+            name: aussen
+      - type: history-graph
+        #title: 'Wohnzimmer'
+        hours_to_show: 24
+        entities:
+          - entity: sensor.lumi_lumi_weather_95154a04_temperature
+            name: Wohnzimmer (LUMI)
+          #- entity: sensor.lumi_lumi_weather_95154a04_humidity
+          #  name: Feuchte

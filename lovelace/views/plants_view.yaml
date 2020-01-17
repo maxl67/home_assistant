@@ -5,7 +5,25 @@ icon: mdi:flower
 
 #https://github.com/Gluwc/check-button-card/blob/master/README.md
 cards:
-  - type: markdown
-    title: Lovelace
-    content: >
-      Welcome to your **Lovelace UI**.  
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: custom:check-button-card
+        entity: sensor.button_lastwatered_mandarinenbaum
+        title: Mandarinenbaum
+        severity:
+        - value: 5 minutes
+          hue: '120'
+        - value: 10 minutes
+          hue: '40'
+        - value: 20 minutes
+          hue: '0'
+      - type: custom:check-button-card
+        title: Orchideen
+        entity: sensor.button_lastwatered_orchideen
+        severity:
+        - value: 5 minutes
+          hue: '120'
+        - value: 10 minutes
+          hue: '40'
+        - value: 20 minutes
+          hue: '0'

@@ -6,9 +6,44 @@ domains:
   - systemmonitor
 #  - device_tracker  #some are included again
 entities:
+  # home assistant
   - sensor.random
   - sensor.date
+  # DSM
   - binary_sensor.hera
+  - sensor.hera_dsm_avg_processes_15_min
+  - sensor.hera_dsm_avg_processes_5_min
+  # FritzBox
+  - sensor.fritz_uptime
+  - sensor.fritz_last_boot
+  - sensor.fritz_wan_access_type
+  - sensor.fritz_rate_down
+  - sensor.fritz_rate_up
+  - sensor.fritz_rate_down_max
+  - sensor.fritz_rate_up_max
+  # devices
+  - sensor.geocoded_location
+  # network
+  - sensor.speedtest_ping
+  # plants
+  - sensor.test_button
+  - sensor.button_lastwatered_mandarinenbaum
+  - sensor.button_lastwatered_orchideen
+  # vacuum
   - sensor.vacuum_operation
   - sensor.vacuum_accessories
-  
+  - sensor.vacuum_cleaned_area
+  - sensor.vacuum_cleaning_time
+  - sensor.vacuum_cleanmainbrush
+  - sensor.vacuum_cleansidebrush
+  - sensor.vacuum_cleanfilter
+  - sensor.vacuum_sensordirtyleft
+  - sensor.vacuum_do_not_disturb
+  - sensor.vacuum_battery
+  - binary_sensor.vacuum_paused
+  - binary_sensor.vacuum_started
+  - sensor.vacuum_cleaned_room
+  # power control
+  - sensor.osram_plug_01_a1bf020a_3_2820
+  # climate
+  - sensor.lumi_lumi_weather_95154a04_pressure

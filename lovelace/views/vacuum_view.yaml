@@ -5,8 +5,8 @@ icon: mdi:robot-vacuum
 cards:
   - type: custom:vertical-stack-in-card
     cards:
+    # nice picture card with all kinds of information ind buttons to operate vacuum
     - type: picture-elements
-      #title: Dusti-E
       image: '/local/vacuum1.jpg'
       elements:
         ## Command buttons (buttom)
@@ -296,6 +296,8 @@ cards:
             font-family: Trebuchet MS
             font-size: 80%
             font-weight: bold
+
+    # options for room cleaning and automation (always displayed)
     - type: entities
       entities:
       - entity: input_select.vacuum_room
@@ -305,6 +307,8 @@ cards:
         type: custom:multiple-entity-row
         toggle: true
         name: Automatisches Saugen deaktivieren #Disable Daily Cleanup
+
+    # options for automatic cleanup only if activated)
     - type: conditional
       conditions:
         - entity: input_boolean.disable_automatic_vacuum
@@ -314,10 +318,7 @@ cards:
         #title: automatisches Saugen
         show_header_toggle: false
         entities:
-          - type: section
-            label: Benachrichtigungen # Notifications
-          - entity: switch.disable_dustbin_notification
-            name: Staubbehälter-Mitteilungen deaktivieren #Disable Notification
+          #presense status
           - type: section
             label: Anwesenheit #presense status
           - entity: input_boolean.automatic_vacuum_when_home
@@ -325,7 +326,26 @@ cards:
             toggle: true
             primary:
               entity: sensor.home_status
-              name: akt. Status
+              name: Home Status
+          # Notifications
+          - type: section
+            label: Benachrichtigungen & Alarm # Notifications
+          - entity: switch.disable_dustbin_notification
+            name: Staubbehälter-Mitteilungen deaktivieren #Disable notifications
+          - entity: switch.dustbin_full_alert
+            name: Staubbehälter leeren
+            type: custom:multiple-entity-row
+            toggle: true
+            primary:
+              entity: input_boolean.dustbin_full_alert
+              name: Alarm
+          - entity: binary_sensor.vacuum_error_alert
+            name: Sauger Störung
+            type: custom:multiple-entity-row
+            primary:
+              entity: vacuum.xiaomi_vacuum_cleaner
+              name: Status
+          #History
           - type: section
             label: Verlauf #History
           - entity: input_boolean.automatic_vacuum_first_run
@@ -334,4 +354,46 @@ cards:
             name: heute schon gereinigt?
             primary:
               entity: sensor.vacuum_cleaned_room
-              name: letzte Reinigung
+              name: Bereich
+
+  # DEBUG: show some additional infos (while implementing)
+  - type: conditional
+    conditions:
+      - entity: input_select.debug_mode
+        state_not: 'none'
+    card:
+      type: custom:vertical-stack-in-card
+      cards:
+      - type: entities
+        title: Debug
+        show_header_toggle: false
+        entities:
+          - type: custom:fold-entity-row
+            head:
+              type: section
+              label: Notification & Alarm
+            open: false
+            entities:
+              - entity: vacuum.xiaomi_vacuum_cleaner
+                name: Sauger Status
+                type: custom:multiple-entity-row
+                primary:
+                  entity: binary_sensor.vacuum_error_alert
+                  name: Alarm
+              - entity: input_boolean.automatic_vacuum_first_run
+                name: Staubbehälter leeren
+                type: custom:multiple-entity-row
+                toggle: true
+                primary:
+                  entity: input_boolean.dustbin_full_alert
+                  name: Alarm
+              - entity: sensor.count_notification_alerts
+                name: Anz. aktiver Alarme
+      - type: divider
+      - type: markdown
+        content: >
+          state= {{states.vacuum.xiaomi_vacuum_cleaner.state}}<br/>
+          status={{states.vacuum.xiaomi_vacuum_cleaner.attributes.status}}<br/>
+          sensor={{states.sensor.vacuum_status.state}}
+          <hr/>
+          <small>{{states.vacuum.xiaomi_vacuum_cleaner}}</small>

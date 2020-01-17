@@ -1,0 +1,32 @@
+###############################################################################
+#   @author       : Max Reigl
+#   @date         : 17.01.2020
+#   @package      : climate
+#   @description  : heating, temperature, humidity
+#   @links        : 
+###############################################################################
+
+sensor:
+  - platform: template
+    sensors:
+      requested_temperature_wz:
+        friendly_name: SOLL temp
+        value_template: '{% if (now().weekday in (0,1,2,3,4) and (6<= now().hour < 9 or 17<= now().hour < 22)) or (now().weekday in (0,1,2,3,4) and (6<= now().hour < 22)) %}21{% else %}17{% endif %}'
+        unit_of_measurement: "°C"
+
+automation:
+  - alias: 'update_requested_temp'
+    trigger:
+#      - platform: time_pattern
+#        minutes: '/5'
+      - platform: time
+        at: '06:00:00'
+      - platform: time
+        at: '09:00:00'
+      - platform: time
+        at: '17:00:00'
+      - platform: time
+        at: '22:00:00'
+    action:
+      - service: homeassistant.update_entity
+        entity_id: sensor.requested_temperature_wz

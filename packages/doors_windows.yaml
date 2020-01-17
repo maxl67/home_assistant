@@ -10,27 +10,28 @@
 # setting device class to door --> group.all_doors will also be shown as door
 homeassistant:
   customize:
-    binary_sensor.lumi_lumi_sensor_magnet_aq2_032b77ce_1_6:
-      friendly_name: Schlafzimmer
+    binary_sensor.lumi_lumi_sensor_magnet_aq2_031b3225_1_6:
+      friendly_name: Gästezimmer
       device_class: door
     binary_sensor.lumi_lumi_sensor_magnet_aq2_03139f7b_1_6:
       friendly_name: Wohnzimmer W
       device_class: door
-    binary_sensor.lumi_lumi_sensor_magnet_aq2_031b3225_1_6:
-      friendly_name: Gästezimmer
-      device_class: door
-    binary_sensor.lumi_lumi_sensor_magnet_aq2_0ee51c04_1_6:
-      friendly_name: Arbeitszimmer
-      device_class: door
-    binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6:
-      friendly_name: Küche
+    binary_sensor.lumi_lumi_sensor_magnet_aq2_9ac61c04_1_6:
+      friendly_name: Wohnzimmer S
       device_class: door
     binary_sensor.lumi_lumi_sensor_magnet_aq2_f2fd4604_1_6:
       friendly_name: Esszimmer
       device_class: door
-    binary_sensor.lumi_lumi_sensor_magnet_aq2_9ac61c04_1_6:
-      friendly_name: Wohnzimmer S
+    binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6:
+      friendly_name: Küche
       device_class: door
+    binary_sensor.lumi_lumi_sensor_magnet_aq2_0ee51c04_1_6:
+      friendly_name: Arbeitszimmer
+      device_class: door
+    binary_sensor.lumi_lumi_sensor_magnet_aq2_032b77ce_1_6:
+      friendly_name: Schlafzimmer
+      device_class: door
+
     binary_sensor.lumi_lumi_sensor_magnet_aq2_73c61c04_1_6:
       friendly_name: Bad
       device_class: window
@@ -45,20 +46,20 @@ group:
     name: alle Türen
     icon: mdi:door
     entities:
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_032b77ce_1_6 #1 schlafzimme
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_03139f7b_1_6 #2
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_031b3225_1_6 #3
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_0ee51c04_1_6 #4
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_031b3225_1_6 #1 Gästezimmer
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_03139f7b_1_6 #2 Wohnzimmer W
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_9ac61c04_1_6 #3 Wohnzimmer S
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_f2fd4604_1_6 #4 Esszimmer
       - binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6 #5 Küche
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_f2fd4604_1_6 #6
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_9ac61c04_1_6 #7
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_0ee51c04_1_6 #7 Arbeitszimmer
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_032b77ce_1_6 #8 Schlafzimmer
       #fehlt: AZ S
   all_windows:
     name: alle Fenster
     icon: mdi:window-closed
     entities:
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_73c61c04_1_6 #8: Bad
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_c2e41c04_1_6 #9: Gästebad
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_73c61c04_1_6 #12: Bad
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_c2e41c04_1_6 #13: Gästebad
       #fehlt: SZ, Dachfenster
 
 # value to remember if a alert is active

@@ -26,9 +26,9 @@
 ################################################
 ## Sensors
 ################################################
-# this ption must be activated in FritzBox
-# Heimnetz > Netzwerk > Netzwerkeinstellungen > Heimnetzfreigaben
-#    > Statusinformationen über UPnP übertragen
+# this option must be activated in FritzBox
+#   Heimnetz > Netzwerk > Netzwerkeinstellungen > Heimnetzfreigaben
+#     > Statusinformationen über UPnP übertragen
 sensor:
   - platform: fritzbox_netmonitor
     host: !secret fritz_host_ip
