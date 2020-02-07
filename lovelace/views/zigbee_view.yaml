@@ -25,10 +25,10 @@ cards:
         name: Manufacturer
       - attr: model
         name: Model
-      - attr: ieee
-        name: IEEE
-      - name: NWK
-        prop: nwk
+#      - attr: ieee
+#        name: IEEE
+#      - name: NWK
+#        prop: nwk
       - attr: power_source
         name: Power Source
 #     - attr: quirk_class

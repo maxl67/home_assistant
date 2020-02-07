@@ -30,7 +30,7 @@ cards:
         - entity_id: "input*"
       include:
         - entity_id: "sensor.lumi_lumi_sensor_magnet_aq2*"
-          state: "<= 15" #%
+          state: "<= 15" 
         - entity_id: "*battery*"
           state: "< 15"
         - name: "*battery*"
@@ -44,6 +44,7 @@ cards:
   - type: entities
     title: Anwesenheit
     show_header_toggle: false
+    state_color: true
     entities:
       - entity: sensor.max_status
       - entity: sensor.ing_status
@@ -59,10 +60,27 @@ cards:
         name: Max [WiFi]
       - entity: device_tracker.iphone8_max_bt
         name: Max [BT]
+      - entity: sensor.max_present_e
+        name: Max [O-Mon]
+        icon: mdi:set-left
+      - entity: sensor.max_present_w
+        name: Max [W-Mon]
+        icon: mdi:set-right
+      - entity: sensor.max_home_confidence
+        name: Max [Monitor]
+        #icon: mdi:set-left-right
       - entity: device_tracker.iphone8_ing_wifi
         name: Ing [WiFi]
       - entity: device_tracker.iphone8_ing_bt
         name: Ing [BT]
+      - entity: sensor.ing_present_e
+        name: Ing [O-Mon]
+        icon: mdi:set-left
+      - entity: sensor.ing_present_w
+        name: Ing [W-Mon]
+        icon: mdi:set-right
+      - entity: sensor.ing_home_confidence
+        name: Ing [Monitor]
 
   # status of power switches
   # todo: diese Karte erst mal nicht mehr anzeigen. Plug01 bleibt an wegen ZigBee Mesh 

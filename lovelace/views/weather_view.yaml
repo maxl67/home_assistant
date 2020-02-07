@@ -28,7 +28,10 @@ cards:
             #    name: bald
             #  secondary:
                 entity: sensor.dwd_current_warn_level
-                name: Level
+                name: DWD lvl
+              secondary:
+                entity: sensor.dwd_max_warn_level
+                name: max lvl
             - entity: sensor.dwd_current_warn_gewitter 
               type: custom:multiple-entity-row
               name: Gewitter-Warnung
@@ -42,6 +45,20 @@ cards:
               icon: mdi:weather-windy
               primary:
                 entity: sensor.dwd_current_warn_level_sturm
+                name: Level
+            - entity: sensor.dwd_current_warn_regen
+              type: custom:multiple-entity-row
+              name: Regen-Warnung
+              icon: mdi:weather-pouring
+              primary:
+                entity: sensor.dwd_current_warn_level_regen
+                name: Level
+            - entity: sensor.dwd_current_warn_schnee
+              type: custom:multiple-entity-row
+              name: Schnee-Warnung
+              icon: mdi:weather-snowy-heavy
+              primary:
+                entity: sensor.dwd_current_warn_level_schnee
                 name: Level
             - entity: sensor.dwd_current_warn_frost
               type: custom:multiple-entity-row

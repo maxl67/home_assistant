@@ -41,7 +41,7 @@ input_select:
       - Schnee
     initial: Regen
 
-# value to remember if a alert is active
+# value to remember if a alert is active (alert=message to phone and badge+=1)
 input_boolean:
   dwd_weather_alert:
     name: DWD Warnung   #active weather warning
@@ -53,7 +53,7 @@ sensor:
     # Typen der Warnungen
     # 0: Gewitter, Starkes Gewitter
     # 1: Windböen, Sturmböen
-    # 2: ?‚
+    # 2: Dauerregen
     # 3: Schneefall
     # 4: Nebel
     # 5: Frost
@@ -62,15 +62,19 @@ sensor:
     # 9: UV-Index (always level 20)
 
   - platform: template
-    sensors: 
-      outside_temperature:
+    sensors:
+      # todo: temp from darksky, should be a own sensor outside
+      outside_temperature: 
         value_template: '{{states.weather.dark_sky_daily.attributes.temperature|float}}'
         unit_of_measurement: "°C"
+      # todo: temp from darksky, should be a own sensor outside
       outside_humidity:
         value_template: '{{states.weather.dark_sky_daily.attributes.humidity|int}}'
         unit_of_measurement: "%"
+      # todo: temp from darksky, should be a own sensor outside
       sun_is_shining:
         value_template: '{{states.weather.dark_sky_daily.state in ("sunny","partlycloudy")}}'
+      # todo: temp from darksky, should be a own sensor outside
       sunshine_intensity:
         #value_template: '{% if is_state("sensor.sun_is_shining", "True") %}100{% else %}0{% endif %}'
         value_template: '{% if is_state("sensor.sun_is_shining", "True") %}{{(states.sun.sun.attributes.elevation/90*100)|int}}{% else %}0{% endif %}'
@@ -85,8 +89,16 @@ sensor:
         value_template: '{{ states.sensor.dwd_weather_warnings_current_warning_level.state }}'
       dwd_advance_warn_count:
         value_template: '{{ states.sensor.dwd_weather_warnings_advance_warning_level.attributes.warning_count }}'
+      dwd_max_warn_level:
+        value_template: >
+          {%- set ns = namespace(level=0) -%}
+          {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
+            {%- set lvl_attr=  "warning_"+loop.index|string + "_level" -%}
+            {%- set ns.level = (ns.level, states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr])|max  -%}
+          {%- endfor -%}
+          {{ns.level}}
 
-      # DWD-Warnunfen nach Typen getrennet mit zugehörigem Level
+      # DWD-Warnstufen nach Typen getrennt mit zugehörigem Level
       dwd_current_warn_gewitter:
         value_template: >
           {% set ns = namespace(found=false) %}
@@ -103,7 +115,7 @@ sensor:
             {%- set type_attr= "warning_"+loop.index|string + "_type" -%}
             {%- set lvl_attr=  "warning_"+loop.index|string + "_level" -%}
             {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] == 0 -%}
-               {%- set ns.level = states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr]  -%}
+               {%- set ns.level = (ns.level, states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr])|max  -%}
             {%- endif -%}
           {%- endfor -%}
           {{ns.level}}
@@ -124,7 +136,49 @@ sensor:
             {%- set type_attr= "warning_"+loop.index|string + "_type" -%}
             {%- set lvl_attr=  "warning_"+loop.index|string + "_level" -%}
             {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] == 1 -%}
-               {%- set ns.level = states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr]  -%}
+               {%- set ns.level = (ns.level, states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr])|max  -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ns.level}}
+
+      dwd_current_warn_regen:
+        value_template: >
+          {% set ns = namespace(found=false) %}
+          {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith("_type") -%}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr]==2 %}
+                  {% set ns.found = true %}
+              {% endif %}
+          {% endfor %}
+          {{ns.found}}
+      dwd_current_warn_level_regen:
+        value_template: >
+          {%- set ns = namespace(level=0) -%}
+          {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
+            {%- set type_attr= "warning_"+loop.index|string + "_type" -%}
+            {%- set lvl_attr=  "warning_"+loop.index|string + "_level" -%}
+            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] == 2 -%}
+               {%- set ns.level = (ns.level, states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr])|max  -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ns.level}}
+
+      dwd_current_warn_schnee:
+        value_template: >
+          {% set ns = namespace(found=false) %}
+          {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith("_type") -%}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr]==3 %}
+                  {% set ns.found = true %}
+              {% endif %}
+          {% endfor %}
+          {{ns.found}}
+      dwd_current_warn_level_schnee:
+        value_template: >
+          {%- set ns = namespace(level=0) -%}
+          {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
+            {%- set type_attr= "warning_"+loop.index|string + "_type" -%}
+            {%- set lvl_attr=  "warning_"+loop.index|string + "_level" -%}
+            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] == 3 -%}
+               {%- set ns.level = (ns.level, states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr])|max  -%}
             {%- endif -%}
           {%- endfor -%}
           {{ns.level}}
@@ -145,18 +199,20 @@ sensor:
             {%- set type_attr= "warning_"+loop.index|string + "_type" -%}
             {%- set lvl_attr=  "warning_"+loop.index|string + "_level" -%}
             {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] == 6 -%}
-               {%- set ns.level = states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr]  -%}
+               {%- set ns.level = (ns.level, states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr])|max  -%}
             {%- endif -%}
           {%- endfor -%}
           {{ns.level}}
 
       dwd_current_warn_frost:
         value_template: >
-          {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_type == 5 
-             or states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_type == 5 
-             or states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_type == 5 
-             or states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_type == 5 
-          }}
+          {% set ns = namespace(found=false) %}
+          {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith("_type") -%}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr]==5 %}
+                  {% set ns.found = true %}
+              {% endif %}
+          {% endfor %}
+          {{ns.found}}
       dwd_current_warn_level_frost:
         value_template: >
           {%- set ns = namespace(level=0) -%}
@@ -164,7 +220,7 @@ sensor:
             {%- set type_attr= "warning_"+loop.index|string + "_type" -%}
             {%- set lvl_attr=  "warning_"+loop.index|string + "_level" -%}
             {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] == 5 -%}
-               {%- set ns.level = states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr]  -%}
+               {%- set ns.level = (ns.level, states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr])|max  -%}
             {%- endif -%}
           {%- endfor -%}
           {{ns.level}}
@@ -200,14 +256,27 @@ automation:
       - platform: state
         entity_id: sensor.dwd_weather_warnings_current_warning_level
     condition:
-      condition: template
-      value_template: '{{ (trigger.to_state.state != trigger.from_state.state) and trigger.to_state.state | int > 0 }}'
+      condition: and
+      conditions:
+      - condition: template
+        value_template: '{{ states.sensor.dwd_current_warn_count.state | int > 0 }}'
+      - condition: state
+        entity_id: input_boolean.dwd_weather_alert
+        state: 'off'
+#      - condition: state
+#        entity_id: script.send_dwd_warn_mail
+#        state: 'off'
+      - condition: or
+        conditions:
+        - condition: template
+          value_template: '{{ states.sensor.dwd_max_warn_level.state | int >= 3 }}'
+        - condition: template
+          value_template: '{{ states.sensor.dwd_current_warn_level_sturm.state | int >= 2 }}'
+        - condition: template
+          value_template: '{{ states.sensor.dwd_current_warn_level_gewitter.state | int >= 2 }}'
     action:
       - service: input_boolean.turn_on
         entity_id: input_boolean.dwd_weather_alert
-      - condition: state
-        entity_id: script.send_dwd_warn_mail
-        state: 'off'
       - service: homeassistant.turn_on
         entity_id: script.send_dwd_warn_mail
   
@@ -228,7 +297,7 @@ automation:
           message: "DWD Wetterwarnung aufgehoben."
           data:
             push:
-              badge: "{{states.sensor.count_notification_alerts.state|int}}"
+              badge: "{{ states.sensor.count_notification_alerts.state|int }}"
 
 script:
   send_dwd_warn_mail:
@@ -242,7 +311,7 @@ script:
           data:
             subtitle: "Warnstufe: {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_level }}"
             push:
-              badge: "{{states.sensor.count_notification_alerts.state|int}}"
+              badge: "{{ states.sensor.count_notification_alerts.state|int }}"
 #      - service: shell_command.get_warn_image
 #      - delay:
  #         minutes: 1

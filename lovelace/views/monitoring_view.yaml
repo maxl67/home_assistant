@@ -5,123 +5,124 @@ title: Netzwerk
 path: network
 icon: mdi:lan #mdi:network
 cards:
-    - type: custom:vertical-stack-in-card
-      cards:
-        - type: entities
-          title: FritzBox (6490)
-          show_header_toggle: false
-          entities:
-            - type: custom:fold-entity-row
-              head:
-                type: section
-                label: Provider
-              open: true
-              entities:
-              - entity: sensor.fritz_last_boot
-                type: custom:multiple-entity-row
-                name: letzter Connect
-                primary:
-                  entity: sensor.fritz_uptime
-                  name: uptime 
-              - entity: sensor.fritzbox #fritz_is_linked
-                type: custom:multiple-entity-row
-                name: Verbindung
-                icon: mdi:wan
-                primary:
-                  entity: sensor.fritz_wan_access_type
-                  name: type 
-              - entity: sensor.fritz_external_ip
-                type: custom:multiple-entity-row
-                name: IPv4
-                secondary_info: last-changed
-                primary:
-                  entity: sensor.fritz_is_connected
-                  name: internet
-            - type: section
-              #- entity: sensor.fritz_rate_up
-              #- entity: sensor.fritz_rate_down
-              #- entity: sensor.fritz_rate_up_max
-              #- entity: sensor.fritz_rate_down_max
-        - type: horizontal-stack
-          cards:
-            - type: custom:mini-graph-card
-              name: Download
-              icon: mdi:transfer-down
-              decimals: 0
-              group: false
-              show:
-                state: true
-                labels: true
-              #  extrema: true
-                icon_adaptive_color: true
-              points_per_hour: 2 #0.5
-              hours_to_show: 24
-              hour24: true
-              lower_bound: 0
-              upper_bound: 160
-              font_size: 65
-              color_thresholds:
-                - value: 0
-                  color: "#c0392b"
-                - value: 100
-                  color: "#d35400"
-                - value: 120
-                  color: "#f39c12"
-                - value: 140
-                  color: green
-              entities:
-                - entity: sensor.speedtest_download
-                  name: bandw #idth
-                - entity: sensor.fritz_rate_down
-                  name: rate
-                  color: '#3090C7'
-              #  - entity: sensor.fritz_rate_down_max
-              #    name: rate max
-                - entity: sensor.speedtest_ping
-                  name: ping
-                  y_axis: secondary
-                  color: gray
-                  show_points: false
-                  show_line: false
-            - type: custom:mini-graph-card
-              name: Upload
-              icon: mdi:transfer-up
-              decimals: 1
-              group: false
-              show:
-                state: true
-                labels: true
-              #  extrema: true
-                icon_adaptive_color: true
-              points_per_hour: 2 #0.5
-              hours_to_show: 24
-              hour24: true
-              lower_bound: 0
-              upper_bound: 12
-              font_size: 65
-              color_thresholds:
-                - value: 0
-                  color: "#c0392b"
-                - value: 8
-                  color: "#d35400"
-                - value: 8.75
-                  color: "#f39c12"
-                - value: 9.5
-                  color: green
-              entities:
-                - entity: sensor.speedtest_upload
-                  name: bandw #idth
-                - entity: sensor.fritz_rate_up
-                  name: rate
-                  color: '#3090C7'
-              #  - entity: sensor.fritz_rate_up_max
-              #    name: rate max
-                - entity: sensor.speedtest_ping
-                  name: ping
-                  y_axis: secondary
-                  color: gray
-                  show_points: false
-                  show_line: false
+  # ========== FritzBox ==============
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: entities
+        title: FritzBox (6490)
+        show_header_toggle: false
+        entities:
+          - type: custom:fold-entity-row
+            head:
+              type: section
+              label: Provider
+            open: false
+            entities:
+            - entity: sensor.fritz_last_boot
+              type: custom:multiple-entity-row
+              name: letzter Connect
+              primary:
+                entity: sensor.fritz_uptime
+                name: uptime 
+            - entity: sensor.fritzbox #fritz_is_linked
+              type: custom:multiple-entity-row
+              name: Verbindung
+              icon: mdi:wan
+              primary:
+                entity: sensor.fritz_wan_access_type
+                name: type 
+            - entity: sensor.fritz_external_ip
+              type: custom:multiple-entity-row
+              name: IPv4
+              secondary_info: last-changed
+              primary:
+                entity: sensor.fritz_is_connected
+                name: internet
+          - type: section
+            #- entity: sensor.fritz_rate_up
+            #- entity: sensor.fritz_rate_down
+            #- entity: sensor.fritz_rate_up_max
+            #- entity: sensor.fritz_rate_down_max
+      - type: horizontal-stack
+        cards:
+          - type: custom:mini-graph-card
+            name: Download
+            icon: mdi:transfer-down
+            decimals: 0
+            group: false
+            show:
+              state: true
+              labels: true
+            #  extrema: true
+              icon_adaptive_color: true
+            points_per_hour: 2 #0.5
+            hours_to_show: 24
+            hour24: true
+            lower_bound: 0
+            upper_bound: 160
+            font_size: 65
+            color_thresholds:
+              - value: 0
+                color: "#c0392b" #red
+              - value: 100
+                color: "#d35400" #dark orange
+              - value: 120
+                color: "#f39c12" #dark yellow
+              - value: 140
+                color: green
+            entities:
+              - entity: sensor.speedtest_download
+                name: bandw #idth
+              - entity: sensor.fritz_rate_down
+                name: rate
+                color: '#3090C7'
+            #  - entity: sensor.fritz_rate_down_max
+            #    name: rate max
+              - entity: sensor.speedtest_ping
+                name: ping
+                y_axis: secondary
+                color: gray
+                show_points: false
+                show_line: false
+          - type: custom:mini-graph-card
+            name: Upload
+            icon: mdi:transfer-up
+            decimals: 1
+            group: false
+            show:
+              state: true
+              labels: true
+            #  extrema: true
+              icon_adaptive_color: true
+            points_per_hour: 2 #0.5
+            hours_to_show: 24
+            hour24: true
+            lower_bound: 0
+            upper_bound: 12
+            font_size: 65
+            color_thresholds:
+              - value: 0
+                color: "#c0392b" #red
+              - value: 8
+                color: "#d35400" #dark orange
+              - value: 8.75
+                color: "#f39c12" #dark yellow
+              - value: 9.5
+                color: green
+            entities:
+              - entity: sensor.speedtest_upload
+                name: bandw #idth
+              - entity: sensor.fritz_rate_up
+                name: rate
+                color: '#3090C7'
+            #  - entity: sensor.fritz_rate_up_max
+            #    name: rate max
+              - entity: sensor.speedtest_ping
+                name: ping
+                y_axis: secondary
+                color: gray
+                show_points: false
+                show_line: false
 
 #      - type: entities
 #        title: Speedtest.Net
@@ -131,176 +132,412 @@ cards:
 #          - entity: sensor.speedtest_upload
 #          - entity: sensor.speedtest_download
 
-      # DISK STATION 
-    - type: entities
-      title: Hera (DS916+)
-      show_header_toggle: false
-      entities:
-#        - type: section
-#          label: System
-        - type: custom:fold-entity-row
-          head:
-            type: section
-            label: System
-          open: true
-          entities:
-          - entity: sensor.last_boot
-            name: letzter Systemstart
-            icon: mdi:restart
-          - entity: sensor.lets_encrypt_cert
-            name: Ablaufdatum Zertifikat
-            icon: mdi:certificate
-          - entity: sensor.hera_dsm_cpu_load_total
-            type: custom:multiple-entity-row
-            name: CPU Load
-            secondary_info: last-changed
-            primary:
-              entity: sensor.hera_dsm_avg_processes_5_min
-              name: proc load 5' 
-            secondary:
-              entity: sensor.hera_dsm_avg_processes_15_min
-              name: proc load 15' 
-          - entity: sensor.hera_dsm_memory_usage_real
-            name: Memory Usage
-            secondary_info: last-changed
-            type: custom:multiple-entity-row
-            primary:
-              entity: sensor.memory_free
-              name: free
+  # ========== DISK STATION ==============
+  - type: entities
+    title: Hera (DS916+)
+    show_header_toggle: false
+    entities:
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: System
+        open: true
+        entities:
+        - entity: sensor.last_boot
+          name: letzter Systemstart
+          icon: mdi:restart
+        - entity: sensor.lets_encrypt_cert
+          name: Ablaufdatum Zertifikat
+          icon: mdi:certificate
+        - entity: sensor.hera_dsm_cpu_load_total
+          type: custom:multiple-entity-row
+          name: CPU Load
+          secondary_info: last-changed
+          primary:
+#            entity: sensor.hera_dsm_avg_processes_5_min
+#            name: proc load 5' 
+#          secondary:
+            entity: sensor.hera_dsm_avg_processes_15_min
+            name: proc load 15' 
+        - entity: sensor.hera_dsm_memory_usage_real
+          name: Memory Usage
+          secondary_info: last-changed
+          type: custom:multiple-entity-row
+          primary:
+            entity: sensor.memory_free
+            name: free
 #        - type: section
 #          label: Volume 1
-        - type: custom:fold-entity-row
-          head:
-            type: section
-            label: Volume 1
-          open: true
-          entities:
-          - entity: sensor.hera_dsm_status_volume_1
-            name: Status Volume 1
-            icon: mdi:database-check
-            type: custom:multiple-entity-row
-            secondary_info: last-changed
-            primary:
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Volume 1
+        open: true
+        entities:
+        - entity: sensor.hera_dsm_status_volume_1
+          name: Status Volume 1
+          icon: mdi:database-check
+          type: custom:multiple-entity-row
+          secondary_info: last-changed
+          primary:
 #              entity: sensor.hera_dsm_maximum_disk_temp_volume_1 # shows always 0° 
-              entity: sensor.maximum_disk_temp_volume_1 #own calculated max sensor.
-              name: max temp
-            #secondary:
-            #  entity: sensor.hera_dsm_average_disk_temp_volume_1
-            #  name: avg temp
-          - entity: sensor.hera_dsm_volume_used_volume_1
-            type: custom:multiple-entity-row
-            name: Usage Volume 1
-            icon: mdi:chart-pie
-            primary:
-              entity: sensor.hera_dsm_used_space_volume_1
-              name: Used
-            secondary:
-              entity: sensor.hera_dsm_total_size_volume_1
-              name: Size
-        # List of Disks
-        - type: custom:fold-entity-row
-          head:
-            type: section
-            label: Disks
-          open: false
-          entities:
+            entity: sensor.maximum_disk_temp_volume_1 #own calculated max sensor.
+            name: max temp
+          #secondary:
+          #  entity: sensor.hera_dsm_average_disk_temp_volume_1
+          #  name: avg temp
+        - entity: sensor.hera_dsm_volume_used_volume_1
+          type: custom:multiple-entity-row
+          name: Usage Volume 1
+          icon: mdi:chart-pie
+          primary:
+            entity: sensor.hera_dsm_used_space_volume_1
+            name: Used
+          secondary:
+            entity: sensor.hera_dsm_total_size_volume_1
+            name: Size
+      # List of Disks
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Disks
+        open: false
+        entities:
 #        - type: section
 #          label: Disks 
-          - entity: sensor.hera_dsm_status_sda
-            type: custom:multiple-entity-row
-            icon: mdi:harddisk
-            name: Disk1 (sda)
-            secondary_info: last-changed
-            primary:
-              entity: sensor.hera_dsm_temperature_sdb
-              name: temp
-          - entity: sensor.hera_dsm_status_sda
-            type: custom:multiple-entity-row
-            icon: mdi:harddisk
-            name: Disk2 (sdb)
-            secondary_info: last-changed
-            primary:
-              entity: sensor.hera_dsm_temperature_sdb
-              name: temp
-          - entity: sensor.hera_dsm_status_sdc
-            type: custom:multiple-entity-row
-            icon: mdi:harddisk
-            name: Disk3 (sdc)
-            secondary_info: last-changed
-            primary:
-              entity: sensor.hera_dsm_temperature_sdc
-              name: temp
-
-    - type: entities
-      title: Home Assistant
-      show_header_toggle: false
-      entities:
-        - entity: sensor.historydb_size
-          name: Recorder Database
-          icon: mdi:database
-        - entity: sensor.current_version
+        - entity: sensor.hera_dsm_status_sda
           type: custom:multiple-entity-row
-          name: Aktuelle Version
-          icon: mdi:home-assistant
+          icon: mdi:harddisk
+          name: Disk1 (sda)
+          secondary_info: last-changed
           primary:
-            entity: sensor.latest_version
-            name: latest
-        - entity: sensor.hacs
-          name: HACS updates
+            entity: sensor.hera_dsm_temperature_sdb
+            name: temp
+        - entity: sensor.hera_dsm_status_sda
+          type: custom:multiple-entity-row
+          icon: mdi:harddisk
+          name: Disk2 (sdb)
+          secondary_info: last-changed
+          primary:
+            entity: sensor.hera_dsm_temperature_sdb
+            name: temp
+        - entity: sensor.hera_dsm_status_sdc
+          type: custom:multiple-entity-row
+          icon: mdi:harddisk
+          name: Disk3 (sdc)
+          secondary_info: last-changed
+          primary:
+            entity: sensor.hera_dsm_temperature_sdc
+            name: temp
 
-    - type: entities
-      title: Login
-      show_header_toggle: false
-      entities:
-        - type: custom:fold-entity-row
-          head:
-            type: section
-            label: intern
-          open: false
+  # ========== Home Assistant ==============
+  - type: entities
+    title: Home Assistant
+    show_header_toggle: false
+    entities:
+      - entity: sensor.current_version
+        type: custom:multiple-entity-row
+        name: Aktuelle Version
+        icon: mdi:home-assistant
+        primary:
+          entity: sensor.latest_version
+          name: latest
+      - entity: sensor.hacs
+        name: HACS updates
+      - entity: sensor.historydb_size
+        name: Recorder Database
+        icon: mdi:database
+
+  # ========== Login ==============
+  - type: entities
+    title: Login
+    show_header_toggle: false
+    entities:
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: intern
+        open: false
+        entities:
+          - type: weblink
+            url: https://fritz.box
+            icon: mdi:network-router
+            name: FritzBox (int)
+          - type: weblink
+            url: https://hera:5001
+            icon: mdi:nas
+            name: DSM hera (int)
+          - type: weblink
+            url: https://hera:8443
+            icon: mdi:access-point-network
+            name: Unifi Controller (int)
+          - type: weblink
+            url: https://homematic-raspi/ #.fritz.box/
+            icon: mdi:raspberry-pi
+            name: HomeMatic piVCCU3
+            #url: http://ccu3-webui
+            #name: RaspberryMatic
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: extern
+        open: false
+        entities:
+          - type: weblink
+            url: https://wkj60fbqxmykyvov.myfritz.net:8441/
+            icon: mdi:network-router
+            name: FritzBox (ext)
+          - type: weblink
+            url: https://maxing.myds.me:5001/
+            icon: mdi:nas
+            name: DSM hera (ext)
+          - type: weblink
+            url: https://unifi.maxing.myds.me
+            icon: mdi:access-point-network
+            name: Unifi Controller (ext)
+
+
+  # ========== Devices ==============
+  - type: glance
+    title: Geräte
+    entities:
+#      - entity: binary_sensor.router
+#        name: Modem
+#      - entity: binary_sensor.hera
+#        name: Hera
+      - entity: binary_sensor.rpi_ost
+        name: RPi-1
+      - entity: binary_sensor.rpi_west
+        name: RPi-2
+      - entity: binary_sensor.roborock
+        name: Dusti-E
+      - entity: binary_sensor.hpdrucker
+        name: Drucker
+      - entity: binary_sensor.smarttv
+        name: TV
+#      - entity: binary_sensor.radiobad
+#        name: Bad-Radio
+
+
+  # ========== Raspberry Pi's ==============
+  # ---- Raspi 1 ----
+  - type: conditional
+    conditions:
+      - entity: binary_sensor.rpi_ost
+        state: "on"
+    card:
+      type: 'custom:vertical-stack-in-card'
+      cards:
+        - type: entities
+          title: Raspi1 (RPi 4b)
+          show_header_toggle: false
           entities:
-            - type: weblink
-              url: https://fritz.box
-              icon: mdi:network-router
-              name: FritzBox (int)
-            - type: weblink
-              url: https://hera:5001
-              icon: mdi:nas
-              name: DSM hera (int)
-            - type: weblink
-              url: https://hera:8443
-              icon: mdi:access-point-network
-              name: Unifi Controller (int)
-        - type: custom:fold-entity-row
-          head:
-            type: section
-            label: extern
-          open: false
+          - type: custom:fold-entity-row
+            head:
+              type: section
+              label: System
+            open: false
+            entities:
+            - entity: sensor.raspi1lastboot
+              name: letzter Systemstart
+              icon: mdi:restart
+            - entity: sensor.raspi1powerstatus
+              name: Power Status
+              icon: mdi:power-plug
+          - type: section
+        - type: horizontal-stack
+          cards:
+            - type: custom:mini-graph-card
+              entities:
+                - sensor.raspi1cpuusage
+              name: CPU
+              icon: mdi:cpu-64-bit
+              line_color: '#2980b9'
+              line_width: 2
+              hours_to_show: 24
+              points_per_hour: 12
+              show_points: false
+              decimals: 0
+              group: false
+              show:
+                state: true
+                labels: true
+                icon_adaptive_color: true
+              hour24: true
+              font_size: 65
+              color_thresholds:
+                - value: 0
+                  color: "#008000" #green
+                - value: 40
+                  color: "#f39c12" #dark yellow
+                - value: 60
+                  color: "#d35400" #dark orange
+                - value: 80
+                  color: "#c0392b" #red
+            - type: custom:mini-graph-card
+              entities:
+                - sensor.raspi1temperature
+              name: Temp
+              line_color: '#e39a24'
+              line_width: 2
+              hours_to_show: 24
+              points_per_hour: 4
+              show_points: false
+              decimals: 0
+              group: false
+              show:
+                state: true
+                icon_adaptive_color: true
+                labels: true
+              hour24: true
+              font_size: 65
+              color_thresholds:
+                - value: 0
+                  color: "#008000" #green
+                - value: 60
+                  color: "#f39c12" #dark yellow
+                - value: 65
+                  color: "#d35400" #dark orange
+                - value: 70
+                  color: "#c0392b" #red
+        - type: custom:bar-card
           entities:
-            - type: weblink
-              url: https://wkj60fbqxmykyvov.myfritz.net:8441/
-              icon: mdi:network-router
-              name: FritzBox (ext)
-            - type: weblink
-              url: https://maxing.myds.me:5001/
-              icon: mdi:nas
-              name: DSM hera (ext)
-            - type: weblink
-              url: https://unifi.maxing.myds.me
-              icon: mdi:access-point-network
-              name: Unifi Controller (ext)
-      
-    - type: glance
-      title: Geräte
-      entities:
-        - entity: binary_sensor.router
-          name: Modem
-        - entity: binary_sensor.hera
-          name: Hera
-        - entity: binary_sensor.roborock
-          name: Dusti-E
-        - entity: binary_sensor.hpdrucker
-          name: Drucker
-        - entity: binary_sensor.smarttv
-          name: TV
-        - entity: binary_sensor.radiobad
-          name: Bad-Radio
+            - entity: sensor.raspi1memoryuse
+              title: RAM
+              icon: mdi:memory
+              show_icon: true
+            - entity: sensor.raspi1diskuse
+              title: HDD
+              color: '#2980b9'
+              icon: mdi:sd
+              show_icon: true
+          align: split
+          columns: 2
+          title_position: inside
+  - type: conditional
+    conditions:
+      - entity: binary_sensor.rpi_ost
+        state: "off"
+    card:
+      type: markdown
+      content: >
+        <h3>Raspi1 (Ost)</h3>
+        Ist offline!!
+
+  # ---- Raspi 2 ----
+  - type: conditional
+    conditions:
+      - entity: binary_sensor.rpi_west
+        state: "on"
+    card:
+      type: 'custom:vertical-stack-in-card'
+      cards:
+        - type: entities
+          title: Raspi2 (RPi 3b+)
+          show_header_toggle: false
+          entities:
+          - type: custom:fold-entity-row
+            head:
+              type: section
+              label: System
+            open: false
+            entities:
+            - entity: sensor.raspi2lastboot
+              name: letzter Systemstart
+              icon: mdi:restart
+            - entity: sensor.raspi2powerstatus
+              name: Power Status
+              icon: mdi:power-plug
+          - type: custom:fold-entity-row
+            head:
+              type: section
+              label: HomeMatic piVCCU 
+            open: false
+            entities:
+            - entity: sensor.hm_ccu_last_reboot
+              name: letzter Reboot
+              icon: mdi:restart
+              #icon: mdi:home-automation
+            - entity: binary_sensor.hm_homematic_up
+              name: Verbindung
+              icon: mdi:sync
+              secondary_info: last-changed
+          - type: section
+        - type: horizontal-stack
+          cards:
+            - type: custom:mini-graph-card
+              entities:
+                - sensor.raspi2cpuusage
+              name: CPU
+              icon: mdi:cpu-64-bit
+              line_color: '#2980b9'
+              line_width: 2
+              hours_to_show: 24
+              points_per_hour: 12
+              show_points: false
+              decimals: 0
+              group: false
+              show:
+                state: true
+                labels: true
+                icon_adaptive_color: true
+              hour24: true
+              font_size: 65
+              color_thresholds:
+                - value: 0
+                  color: "#008000" #green
+                - value: 40
+                  color: "#f39c12" #dark yellow
+                - value: 60
+                  color: "#d35400" #dark orange
+                - value: 80
+                  color: "#c0392b" #red
+            - type: custom:mini-graph-card
+              entities:
+                - sensor.raspi2temperature
+              name: Temp
+              line_color: '#e39a24'
+              line_width: 2
+              hours_to_show: 24
+              points_per_hour: 4
+              show_points: false
+              decimals: 0
+              group: false
+              show:
+                state: true
+                labels: true
+                icon_adaptive_color: true
+              hour24: true
+              font_size: 65
+              color_thresholds:
+                - value: 0
+                  color: "#008000" #green
+                - value: 50
+                  color: "#f39c12" #dark yellow
+                - value: 60
+                  color: "#d35400" #dark orange
+                - value: 70
+                  color: "#c0392b" #red
+        - type: custom:bar-card
+          entities:
+            - entity: sensor.raspi2memoryuse
+              title: RAM
+              icon: mdi:memory
+              show_icon: true
+            - entity: sensor.raspi2diskuse
+              title: HDD
+              color: '#2980b9'
+              icon: mdi:sd
+              show_icon: true
+          align: split
+          columns: 2
+          title_position: inside
+  - type: conditional
+    conditions:
+      - entity: binary_sensor.rpi_west
+        state: "off"
+    card:
+      type: markdown
+      content: >
+        <h3>Raspi2 (West)</h3>
+        Ist offline!!

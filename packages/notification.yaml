@@ -66,6 +66,7 @@ sensor:
           - input_boolean.open_backdoor_alert
           - input_boolean.open_window_alert
           - input_boolean.dwd_weather_alert
+          - binary_sensor.vacuum_error_alert
         value_template: "{{ (1 if is_state('input_boolean.open_backdoor_alert', 'on') else 0)
                           + (1 if is_state('input_boolean.open_window_alert', 'on') else 0)
                           + (1 if is_state('input_boolean.dwd_weather_alert', 'on') else 0) 

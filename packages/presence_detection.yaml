@@ -1,12 +1,12 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 28.10.2019
+#   @date         : 05.02.2020
 #   @package      : presence_detection
 #   @description  : Presence Detection with different states
 #   @links        : 
-# Idea: https://philhawthorne.com/making-home-assistants-presence-detection-not-so-binary/
-# evtl noch einbauen: https://www.home-assistant.io/components/bayesian/
-# todo: BTLE: https://community.home-assistant.io/t/monitor-reliable-multi-user-distributed-bluetooth-occupancy-presence-detection/68505
+# States: https://philhawthorne.com/making-home-assistants-presence-detection-not-so-binary/
+# BTLE (Monitor.sh): https://community.home-assistant.io/t/monitor-reliable-multi-user-distributed-bluetooth-occupancy-presence-detection/68505
+#                    https://github.com/andrewjfreyer/monitor
 # Group als trigger: https://community.home-assistant.io/t/automation-trigger-on-any-member-of-a-group-is-it-possible/55795
 ###############################################################################
 
@@ -43,13 +43,13 @@ group:
     name: Phone Max
     control: hidden
     entities:
-      - device_tracker.iphone8_max_wifi
+     #- device_tracker.iphone8_max_wifi
       - device_tracker.iphone8_max_bt
   phone_ing:
     name: Phone Ingrid
     control: hidden
     entities:
-      - device_tracker.iphone8_ing_wifi
+      - device_tracker.iphone8_ing_wifi #todo
       - device_tracker.iphone8_ing_bt
  
 # mögliche Statuswerte für Personen und den Gesamtstatus 'sensor.home_status'
@@ -98,7 +98,64 @@ input_boolean:
     name: Wir haben Gäste #We have guests
     icon: mdi:account-multiple
     
+
 sensor:
+  # reading the MQTT messages from BlueTooth monitor.sh into confidence sensors for separate areas 
+  # Person 1
+  - platform: mqtt
+    state_topic: 'monitor/ost/iphone_max_bt'
+    value_template: '{{ value_json.confidence }}'
+    unit_of_measurement: '%'
+    name: 'Max present E'
+    availability_topic: "monitor/ost/status"
+    payload_available: "online"
+    payload_not_available: "offline"
+    json_attributes_topic: 'monitor/ost/iphone_max_bt'
+  - platform: mqtt
+    state_topic: 'monitor/west/iphone_max_bt'
+    value_template: '{{ value_json.confidence }}'
+    unit_of_measurement: '%'
+    name: 'Max present W'
+    availability_topic: "monitor/west/status"
+    payload_available: "online"
+    payload_not_available: "offline"
+    json_attributes_topic: 'monitor/west/iphone_max_bt'
+  # combining all area values into a total confidence value
+  - platform: min_max
+    name: "Max Home Confidence"
+    type: max
+    round_digits: 0 #todo: not working
+    entity_ids:
+      - sensor.max_present_e
+      - sensor.max_present_w
+  # person 2
+  - platform: mqtt
+    state_topic: 'monitor/ost/iphone_ing_bt'
+    value_template: '{{ value_json.confidence }}'
+    unit_of_measurement: '%'
+    name: 'Ing present E'
+    availability_topic: "monitor/ost/status"
+    payload_available: "online"
+    payload_not_available: "offline"
+    json_attributes_topic: 'monitor/ost/iphone_ing_bt'
+  - platform: mqtt
+    state_topic: 'monitor/west/iphone_ing_bt'
+    value_template: '{{ value_json.confidence }}'
+    unit_of_measurement: '%'
+    name: 'Ing present W'
+    availability_topic: "monitor/west/status"
+    payload_available: "online"
+    payload_not_available: "offline"
+    json_attributes_topic: 'monitor/west/iphone_ing_bt'
+  # combining all area values into a total confidence value
+  - platform: min_max
+    name: "Ing Home Confidence"
+    type: max
+    round_digits: 0
+    entity_ids:
+      - sensor.ing_present_e
+      - sensor.ing_present_w
+
   # der Status der Personen
   - platform: template
     sensors:
@@ -118,7 +175,7 @@ sensor:
       n_people_home:
         friendly_name: Number of People Home
         entity_id:
-          # list all entities (not group) otherwise the trigger will but perform correctly
+          # list all entities (not group) otherwise the trigger will not perform correctly
           - device_tracker.iphone8_max_wifi
           - device_tracker.iphone8_ing_wifi
           - device_tracker.iphone8_ing_bt
@@ -142,8 +199,172 @@ sensor:
 
 
 automation:
-  # save the time a status was changed last, because these values will be reset every time HA isrebooted
-  - alias: Person-Status last changed date and time
+  # update device_tracker bluetooth states from the confidence values derived from BlueTooth monitor.sh 
+  # we stick to the device_tracker sensors because they were already in use...input_boolean would be fine too...
+  # ...and I like the idea, that the monitor.sh scripts are just a better source for the intended bluetooth device_trackers.
+  - alias: Max Occupancy On
+    hide_entity: true
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.max_home_confidence
+        above: 10
+    action:
+      - service: device_tracker.see
+        data:
+          dev_id: iphone8_max_bt
+          location_name: home
+          source_type: bluetooth
+  - alias: Max Occupancy Off
+    hide_entity: true
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.max_home_confidence
+        below: 10
+    action:
+      - service: device_tracker.see
+        data:
+          dev_id: iphone8_max_bt
+          location_name: not_home
+          source_type: bluetooth
+
+  - alias: Ing Occupancy On
+    hide_entity: true
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.ing_home_confidence
+        above: 10
+    action:
+      - service: device_tracker.see
+        data:
+          dev_id: iphone8_ing_bt
+          location_name: home
+          source_type: bluetooth
+  - alias: Ing Occupancy Off
+    hide_entity: true
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.ing_home_confidence
+        below: 10
+    action:
+      - service: device_tracker.see
+        data:
+          dev_id: iphone8_ing_bt
+          location_name: not_home
+          source_type: bluetooth
+
+  # if confidence starts to drop in one area, we trigger a arrival scan in the other area 
+  #   (in case of movement inside the house)
+  - alias: Start BT Arrival Scan Ost
+    hide_entity: true
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.max_present_w
+        below: 95
+      - platform: numeric_state
+        entity_id: sensor.ing_present_w
+        below: 95
+    action:
+      - service: mqtt.publish
+        data_template:
+          topic: "monitor/scan/arrive" 
+          payload: '{"data" : "west"}' #this monitor publisher will NOT respond!
+  - alias: Start BT Arrival Scan West
+    hide_entity: true
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.max_present_o
+        below: 95
+      - platform: numeric_state
+        entity_id: sensor.ing_present_o
+        below: 95
+    action:
+      - service: mqtt.publish
+        data_template:
+          topic: "monitor/scan/arrive" 
+          payload: '{"data" : "ost"}' #this monitor publisher will NOT respond!
+
+  # if confidence dropped to 0 in one area, we trigger a departure scan in the other area 
+  #   (to speed things up, in case the 2nd monitor missed the departure)
+  - alias: Start BT Departure Scan Ost
+    hide_entity: true
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.max_present_w
+        below: 10
+        for:
+          seconds: 15
+      - platform: numeric_state
+        entity_id: sensor.ing_present_w
+        below: 10
+        for:
+          seconds: 15
+    action:
+      - service: mqtt.publish
+        data_template:
+          topic: "monitor/scan/depart" 
+          payload: '{"data" : "west"}' #this monitor publisher will NOT respond!
+  - alias: Start BT Departure Scan West
+    hide_entity: true
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.max_present_o
+        below: 10
+        for:
+          seconds: 15
+      - platform: numeric_state
+        entity_id: sensor.ing_present_o
+        below: 10
+        for:
+          seconds: 15
+    action:
+      - service: mqtt.publish
+        data_template:
+          topic: "monitor/scan/depart" 
+          payload: '{"data" : "ost"}' #this monitor publisher will NOT respond!
+
+  # if WiFi detects an arrival, we trigger a BT arrival scan (in case monitor.sh missed that)
+  - alias: Start BT Arrival Scan
+    trigger: 
+      - platform: state
+        entity_id: device_tracker.iphone8_max_wifi 
+        from: 'not_home'
+        to: 'home'
+      - platform: state
+        entity_id: device_tracker.iphone8_ing_wifi 
+        from: 'not_home'
+        to: 'home'
+    condition: []
+    action:
+      - service: mqtt.publish
+        data_template:
+          topic: "monitor/scan/arrive"
+          payload: ''
+
+  # if WiFi detects a departure, we trigger a BT depart scan (in case monitor.sh missed that)
+  - alias: Start BT Departure Scan
+    trigger: 
+      - platform: state
+        entity_id: device_tracker.iphone8_max_wifi 
+        from: 'home'
+        to: 'not_home'
+      - platform: state
+        entity_id: device_tracker.iphone8_ing_wifi 
+        from: 'home'
+        to: 'not_home'
+      - platform: zone
+        entity_id: device_tracker.iphone8_max_wifi #group.phone_max
+        zone: zone.home
+        event: "leave" # Event is either enter or leave
+    condition: []
+    action:
+      - service: mqtt.publish
+        data_template:
+          topic: "monitor/scan/depart"
+          payload: ''
+
+
+  # save the time a status was changed last, because these values will be reset every time HA is rebooted
+  - alias: personstatus_last_changed_date_and_time #Person-Status last changed date and time
     trigger:
       platform: state
       entity_id: input_select.max_status_dropdown, input_select.ing_status_dropdown, input_select.home_status_dropdown
@@ -163,8 +384,24 @@ automation:
         event: start
       - platform: time_pattern
         hours: "2"
+    condition: []
     action:
+      # first update device status from MQTT (BlueTooth monitor.sh) 
+      - service: mqtt.publish
+        data_template:
+          topic: "monitor/scan/restart"
+          payload: ''
       - delay: '00:00:30'
+      - service: mqtt.publish
+        data:
+          topic: "monitor/ost/KNOWN DEVICE STATES"
+          payload: "on"
+      - service: mqtt.publish
+        data:
+          topic: "monitor/west/KNOWN DEVICE STATES"
+          payload: "on"
+      - delay: '00:00:10'
+      # correct person 1
       - service: input_select.select_option
         data_template:
           entity_id: input_select.max_status_dropdown
@@ -191,6 +428,7 @@ automation:
                 Away
               {% endif %}
             {% endif %}
+      # correct person 2
       - service: input_select.select_option
         data_template:
           entity_id: input_select.ing_status_dropdown
@@ -217,17 +455,14 @@ automation:
                 Away
               {% endif %}
             {% endif %}
+      # correct home status
       - service: input_select.select_option
         data_template:
           entity_id: input_select.home_status_dropdown
           option: >
             {% if is_state('input_select.home_status_dropdown','Home') %}
-              Home
-            {% else %} 
               {% if (((as_timestamp(now()) - as_timestamp(states.input_datetime.home_status_dropdown_last_changed.state))/3600) | int >=24) %}
                 Extended Away
-              {% else %}
-                Away
               {% endif %}
             {% endif %}
 
@@ -282,11 +517,11 @@ automation:
   - alias: Mark person as just left
     trigger:
       - platform: state
-        entity_id: group.phone_max #device_tracker.iphone8_max_wifi
+        entity_id: group.phone_max 
         from: 'home'
         to: 'not_home'
       - platform: state
-        entity_id: group.phone_ing #device_tracker.iphone8_ing_wifi
+        entity_id: group.phone_ing 
         from: 'home'
         to: 'not_home'
     action:

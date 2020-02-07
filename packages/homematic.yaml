@@ -1,0 +1,131 @@
+###############################################################################
+#   @author       : Max Reigl
+#   @date         : 29.01.2020
+#   @package      : homematic
+#   @description  : 
+#   @links        : 
+###############################################################################
+
+################################################
+##   Platforms
+################################################
+# Homematic CCU
+homematic:
+  interfaces:
+    hmip:
+      host: !secret homematic_hmip_host
+      port: 2010
+      username: !secret homematic_hmip_adminusername
+      password: !secret homematic_hmip_adminpassword
+      resolvenames: false
+    hmip_groups:
+      host: !secret homematic_hmip_host
+      port: 9292
+      username: !secret homematic_hmip_guestusername
+      password: !secret homematic_hmip_guestpassword
+      path: /groups
+      resolvenames: json
+  hosts:
+    raspi_ccu:
+      host: !secret homematic_hmip_host
+      username: !secret homematic_hmip_adminusername
+      password: !secret homematic_hmip_adminpassword
+
+###############################################################################
+#   Sensors
+###############################################################################
+sensor:
+  # Thermostat Wohnzimmer
+  - platform: template
+    sensors:
+      hm_thermo_wz_current_temp:
+        value_template: '{{state_attr("climate.000c9a499b5808","current_temperature")|float}}'
+        entity_id: climate.000c9a499b5808
+        unit_of_measurement: "°C"
+        friendly_name: 'Wohnzimmer Temperatur'
+      hm_thermo_wz_target_temp:
+        value_template: '{{state_attr("climate.000c9a499b5808","temperature")|float}}'
+        entity_id: climate.000c9a499b5808
+        unit_of_measurement: "°C"
+        friendly_name: 'Wohnzimmer Soll-Temperatur'
+      hm_thermo_wz_actor_state:
+        value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ')}}{% endif %}"
+        icon_template: "mdi:valve"
+        entity_id: homematic.raspi_ccu
+      hm_thermo_wz_window_state:
+        value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ')}}{% endif %}"
+        icon_template: "mdi:window"
+        entity_id: homematic.raspi_ccu
+
+  # CCU
+  - platform: template
+    sensors:
+      hm_ccu_last_reboot:
+        value_template: "{{ state_attr('homematic.raspi_ccu', 'V_Last_Reboot') or '01.01.1970 00:00:00' }}"
+        icon_template: "mdi:clock"
+        entity_id: homematic.raspi_ccu
+      
+binary_sensor:
+  - platform: template
+    sensors:
+      hm_homematic_up:
+        friendly_name: "Homematic is sending updates"
+        entity_id:
+          - sensor.hm_thermo_wz_current_temp
+          - sensor.time
+        value_template: >-
+          {{as_timestamp(now()) - as_timestamp(states.sensor.hm_thermo_wz_current_temp.last_changed) < 3600}}
+
+
+###############################################################################
+#   Automations
+###############################################################################
+automation:
+  # Reconnect to CCU, if sensor has not been updated for over 1 hour or ccu rebooted
+  - alias: Homematic Reconnect
+    trigger:
+    - platform: state
+      entity_id: binary_sensor.hm_homematic_up
+      to: "off"
+    - platform: state
+      entity_id: sensor.hm_ccu_last_reboot
+    action:
+      service: homematic.reconnect  
+
+
+###############################################################################
+# alte Soll Kurve, fix berechnet
+#
+#sensor:
+#  - platform: template
+#    sensors:
+#      requested_temperature_wz:
+#        friendly_name: SOLL temp
+#        value_template: '{% if (now().weekday() in (0,1,2,3,4) and (6<= now().hour < 9 or 17<= now().hour < 22)) or (now().weekday() in (5,6) and (6<= now().hour < 22)) %}21{% else %}17{% endif %}'
+#        unit_of_measurement: "°C"
+#automation:
+#  - alias: 'update_requested_temp'
+#    trigger:
+#      - platform: time_pattern
+#        minutes: '/5'
+#      - platform: time
+#        at: '06:00:00'
+#      - platform: time
+#        at: '09:00:00'
+#      - platform: time
+#        at: '17:00:00'
+#      - platform: time
+#        at: '22:00:00'
+#    action:
+#      - service: homeassistant.update_entity
+#        entity_id: sensor.requested_temperature_wz
+
+################################################
+## Customize
+################################################
+
+###############################################################################
+#                               Variables
+###############################################################################
+
+################################################

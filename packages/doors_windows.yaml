@@ -41,7 +41,7 @@ homeassistant:
       
 group:
   # 'group.all_doors' fasst den Status aller Türen zusammen.
-  #   Ist ein Türesensor 'on'='Offen', dann wird die Gruppe 'on'.
+  #   Ist ein Türsensor 'on'='Offen', dann wird die Gruppe 'on'.
   all_doors:
     name: alle Türen
     icon: mdi:door
@@ -62,7 +62,7 @@ group:
       - binary_sensor.lumi_lumi_sensor_magnet_aq2_c2e41c04_1_6 #13: Gästebad
       #fehlt: SZ, Dachfenster
 
-# value to remember if a alert is active
+# value to remember if an alert is active
 input_boolean:
   open_backdoor_alert:
     name: Balkontür ist offen   #active warning: door is open

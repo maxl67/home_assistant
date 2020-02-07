@@ -106,14 +106,15 @@ unifi:
         - !secret unifi_ssid_private
       dont_track_wired_clients: true
 
-device_tracker:
-  - platform: bluetooth_tracker
-    track_new_devices: no
-    interval_seconds: 5
-    consider_home: 12
-    new_device_defaults:
-      track_new_devices: false
-      hide_if_away: false
+# deactivated, because monitor script is used to update BT-presence via MQTT
+#device_tracker:
+#  - platform: bluetooth_tracker
+#    track_new_devices: no
+#    interval_seconds: 5
+#    consider_home: 12
+#    new_device_defaults:
+#      track_new_devices: false
+#      hide_if_away: false
 
 
 ################################################################
@@ -161,7 +162,7 @@ input_select:
 # https://community.home-assistant.io/t/large-homeassistant-database-files/4201/240
 ################################################################
 recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to be displayed in logbook and/or history
-  purge_keep_days: 7
+  purge_keep_days: 37 #--> 1/10 of a year
   db_url: !secret HistoryDB_connection  # --> 'home-assistant_v2.db' now in MariaDB. Much faster.
   exclude:
     domains:
@@ -197,9 +198,14 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
     # diverse
       - automation.update_battery_status_group_members
       - automation.battery_persistent_notification_clear
+      - automation.battery_persistent_notification
       - sensor.vacuum_battery
       - sensor.osram_plug_01_a1bf020a_3_2820
       #- sensor.lumi_lumi_weather_95154a04_pressure
+      - automation.update_requested_temp
+      - sensor.geocoded_location
+    # HomeMatic
+      - sensor.hm_ccu_last_reboot
 
 logbook: #recorded Entities, that will be displayed in Logbook
   exclude: #!include includes/exclude.yaml
@@ -219,9 +225,11 @@ logbook: #recorded Entities, that will be displayed in Logbook
       - sensor.hera_dsm_avg_processes_15_min
       - sensor.hera_dsm_avg_processes_5_min
       - sensor.geocoded_location
+      - sensor.hm_thermo_wz_actor_state
       - automation.update_requested_temp
       - automation.battery_sensor_from_attributes
       - automation.battery_persistent_notification
+      - automation.personstatus_last_changed_date_and_time
 
 history: #recorded Entities, that will be displayed in History
 #  include: !include includes/include.yaml
@@ -229,8 +237,10 @@ history: #recorded Entities, that will be displayed in History
 
 logger: 
   default: warn #critical,fatal,error,warning,warn,info,debug,notset
-  logs:
-    zha: info
+#  logs:
+#    homeassistant.components.homematic: debug
+#    pyhomematic: debug
+#    zha: info
 #    zigpy: debug
 #    homeassistant.components.vacuum.xiaomi_miio: debug
 #    miio: debug

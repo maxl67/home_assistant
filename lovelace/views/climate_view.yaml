@@ -16,18 +16,31 @@ cards:
             name: Ist temp
             show_state: true
             state_adaptive_color: true
-          - entity: sensor.requested_temperature_wz
-            name: Soll temp
+          - entity: sensor.hm_thermo_wz_current_temp
+            name: Ist HmIP
+            show_state: true
+            show_fill: false
+            #color: "#2b51d9" #dunkles blau
+            color: "#e39a24" #orange
+          - entity: sensor.hm_thermo_wz_target_temp
+            name: Soll HmIP
             show_state: false
-            color: "#4d4d4d" #dark gray , black
+            color: "#3d3d3d" #"#121212" #black
             show_fill: false
             smoothing: false
             show_points: false
+          #- entity: sensor.requested_temperature_wz
+          #  name: Soll temp
+          #  show_state: false
+          #  color: "#3d3d3d" #"#121212" #black
+          #  show_fill: false
+          #  smoothing: false
+          #  show_points: false
           - entity: sensor.sunshine_intensity
             name: Sonne
             y_axis: 'secondary'
             show_state: false
-            color: '#91920e' #gray
+            color: '#91920e' 
             show_points: false
             show_line: false
         #formatting
@@ -48,11 +61,19 @@ cards:
           - value: 19
             color: "#3090C7"
           - value: 21
-            color: green
+            color: "#009A00"
           - value: 23
             color: "#d35400"
 
       # climate sensors
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Heizung
+        open: true
+        entities:
+        - entity: switch.heating_period
+        - entity: switch.enable_automate_heating
       - type: custom:fold-entity-row
         head:
           type: section
@@ -61,7 +82,7 @@ cards:
         entities:
         - entity: sensor.lumi_lumi_weather_95154a04_temperature
           type: custom:multiple-entity-row
-          name: Wohnzimmer
+          name: Wohnzimmer (lumi)
           secondary_info: last-changed
           hide_state: true
           primary:
@@ -73,43 +94,81 @@ cards:
           tertiary:
             entity: sensor.lumi_lumi_weather_95154a04_temperature
             name: Temp
+        - entity: sensor.hm_thermo_wz_current_temp
+          type: custom:multiple-entity-row
+          name: Wohnzimmer (Thermostat)
+          secondary_info: last-changed
+          hide_state: true
+          primary:
+            entity: sensor.000c9a499b5808_humidity
+            name: Feuchte 
+          secondary:
+            entity: sensor.hm_thermo_wz_target_temp
+            name: Soll
+          tertiary:
+            entity: sensor.hm_thermo_wz_current_temp
+            name: Temp
 
-      # humidity 
-      - type: custom:mini-graph-card
+  - type: 'custom:simple-thermostat'
+    entity: climate.000c9a499b5808
+    name: Wohnzimmer Thermostat
+    step_layout: row    
+    label:
+      temperature: Temperatur
+    sensors:
+      - entity: hm_thermo_wz_current_temp
+      - entity: sensor.000c9a499b5808_humidity
         name: Luftfeuchte
-        #range
-        hours_to_show: 24
-        points_per_hour: 12
-        entities: 
-          - entity: sensor.lumi_lumi_weather_95154a04_humidity
-            name: Wohnzimmer
-            show_state: true
-            state_adaptive_color: true
-          - entity: sensor.outside_humidity
-            name: aussen
-            show_state: true
-            color: "#4d4d4d" #dark gray , black
-            show_fill: false
-        #formatting
-        hour24: true
-        height: 100
-        line_width: 2
-        font_size: 70
-        lower_bound: 20
-        upper_bound: 100
-        show:
-          #extrema: true
-          labels: true #or hover (y-axis)
-        color_thresholds_transition: hard
-        color_thresholds:
-          - value: 0
-            color: "#3090C7"
-          - value: 40
-            color: "#009A00"
-          - value: 60
-            color: "#f4ad01"
-          - value: 70
-            color: "#d35400"
+      - entity: sensor.hm_thermo_wz_actor_state
+        name: Heizventile
+      - entity: sensor.hm_thermo_wz_window_state
+        name: Fenster
+    control:
+      - hvac
+      #- preset
+ 
+  # humidity 
+  - type: custom:mini-graph-card
+    name: Luftfeuchte
+    #range
+    hours_to_show: 24
+    points_per_hour: 12
+    entities: 
+      - entity: sensor.lumi_lumi_weather_95154a04_humidity
+        name: Wohnzimmer (lumi)
+        show_state: true
+        state_adaptive_color: true
+      - entity: sensor.000c9a499b5808_humidity
+        name: Wohnzimmer (HmIP)
+        show_state: true
+        state_adaptive_color: true
+      - entity: sensor.outside_humidity
+        name: aussen
+        show_state: true
+        color: "#3d3d3d" #dark gray , black
+        show_fill: false
+        show_points: false
+    #formatting
+    hour24: true
+    height: 100
+    line_width: 2
+    font_size: 70
+    lower_bound: 20
+    upper_bound: 100
+    show:
+      #extrema: true
+      labels: true #or hover (y-axis)
+      icon_adaptive_color: true
+    color_thresholds_transition: hard
+    color_thresholds:
+      - value: 0
+        color: "#3090C7" #blue
+      - value: 40
+        color: "#009A00" #green
+      - value: 60
+        color: "#f4ad01" #orange
+      - value: 70
+        color: "#d35400" #red
 
   - type: custom:vertical-stack-in-card
     cards:
@@ -125,5 +184,7 @@ cards:
         entities:
           - entity: sensor.lumi_lumi_weather_95154a04_temperature
             name: Wohnzimmer (LUMI)
+          - entity: sensor.hm_thermo_wz_current_temp
+            name: Wohnzimmer (HmIP)
           #- entity: sensor.lumi_lumi_weather_95154a04_humidity
           #  name: Feuchte

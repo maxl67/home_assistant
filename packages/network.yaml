@@ -33,6 +33,9 @@ homeassistant:
     sensor.speedtest_download:
       friendly_name: Download Speed
       icon: mdi:cloud-download
+    sensor.raspi1cpuusage:
+      icon: mdi:cpu-64-bit
+
 
     # Network sensors. todo: Not working!
     binary_sensor.hpdrucker:
@@ -52,11 +55,11 @@ homeassistant:
 ################################################
 binary_sensor:
   # Monitor IP-connection to systems state
-  - platform: ping
-    host: !secret DS_IP
-    name: hera
-    scan_interval: 60
-    count: 2
+#  - platform: ping
+#    host: !secret DS_IP
+#    name: hera
+#    scan_interval: 60
+#    count: 2
   - platform: ping
     host: !secret fritz_host_ip
     name: router
@@ -81,6 +84,16 @@ binary_sensor:
     host: !secret radio_bad_ip
     name: radiobad
     scan_interval: 120
+    count: 2
+  - platform: ping
+    host: raspi1
+    name: rpi_ost
+    scan_interval: 60
+    count: 2
+  - platform: ping
+    host: raspi2
+    name: rpi_west
+    scan_interval: 60
     count: 2
 
 sensor:

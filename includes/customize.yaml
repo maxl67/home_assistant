@@ -28,3 +28,9 @@
   vacuum.xiaomi_vacuum_cleaner:
     battery_alert_disabled: true
     battery_sensor_creation_disabled: true
+  climate.000c9a499b5808:
+    battery_alert_disabled: true
+    battery_sensor_creation_disabled: true
+  sensor.000c9a499b5808_humidity:
+    battery_alert_disabled: true
+    battery_sensor_creation_disabled: true

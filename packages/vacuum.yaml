@@ -499,8 +499,8 @@ automation:
       - platform: state
         entity_id: binary_sensor.vacuum_error_alert 
         to: 'off'
-      - platform: homeassistant
-        event: start
+#      - platform: homeassistant
+#        event: start
     condition:
       condition: and
       conditions:

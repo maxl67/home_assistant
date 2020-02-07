@@ -6,27 +6,282 @@
 #   @links        : 
 ###############################################################################
 
-sensor:
-  - platform: template
-    sensors:
-      requested_temperature_wz:
-        friendly_name: SOLL temp
-        value_template: '{% if (now().weekday in (0,1,2,3,4) and (6<= now().hour < 9 or 17<= now().hour < 22)) or (now().weekday in (0,1,2,3,4) and (6<= now().hour < 22)) %}21{% else %}17{% endif %}'
-        unit_of_measurement: "°C"
+group:
+  # 'group.doors_*' fasst den Status der Türen in einem Raum zusammen.
+  #   Ist ein Türsensor 'on'='Offen', dann wird die Gruppe 'on'.
+  # Zustand der Gruppe wird an HomeMatic Thermostate geliefert (window_state)
+  doors_wz:
+    name: Wohnzimmer Türen 
+    icon: mdi:door
+    entities:
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_03139f7b_1_6 #2 Wohnzimmer W
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_9ac61c04_1_6 #3 Wohnzimmer S
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_f2fd4604_1_6 #4 Esszimmer
+      #- binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6 #5 Küche
 
+###############################################################################
+#   Variables
+###############################################################################
+input_boolean:
+  # zum Aktivieren der Heizung allgemein
+  heating_period:
+    name: Heizperiode
+    icon: mdi:radiator
+  # aktiviert die Automatisierung der Heizungssteuerung
+  automate_heating:
+    name: automatische Heizungssteuerung
+    icon: mdi:robot
+
+switch:
+  - platform: template
+    switches: ## are needed in addition to input_booleans to get a dynamic icon
+      heating_period:
+        friendly_name: Heizperiode aktiv #   
+        value_template: "{% if states.input_boolean.heating_period.state %}{{ is_state('input_boolean.heating_period', 'on') }}{% endif %}"
+        turn_on:
+          service: homeassistant.turn_on
+          data:
+            entity_id: input_boolean.heating_period
+        turn_off:
+          service: homeassistant.turn_off
+          data:
+            entity_id: input_boolean.heating_period
+        icon_template: >-
+          {% if is_state('input_boolean.heating_period', 'on') %}
+            mdi:radiator
+          {% else %}
+            mdi:radiator-off
+          {% endif %}
+      enable_automate_heating:
+        friendly_name: Automatische Heizungssteuerung #   
+        value_template: "{% if states.input_boolean.automate_heating.state %}{{ is_state('input_boolean.automate_heating', 'on') }}{% endif %}"
+        turn_on:
+          service: homeassistant.turn_on
+          data:
+            entity_id: input_boolean.automate_heating
+        turn_off:
+          service: homeassistant.turn_off
+          data:
+            entity_id: input_boolean.automate_heating
+        icon_template: >-
+          {% if is_state('input_boolean.automate_heating', 'off') %}
+            mdi:ghost-off 
+          {% else %}
+            mdi:ghost
+          {% endif %}
+
+
+###############################################################################
+#   Automations
+###############################################################################
 automation:
-  - alias: 'update_requested_temp'
+  # anderes Heizprofil für Gäste
+  - id: activate_guest_heating
+    alias: Change to guest heating profile
     trigger:
-#      - platform: time_pattern
-#        minutes: '/5'
-      - platform: time
-        at: '06:00:00'
-      - platform: time
-        at: '09:00:00'
-      - platform: time
-        at: '17:00:00'
-      - platform: time
-        at: '22:00:00'
+      - platform: state
+        entity_id: input_boolean.guests
+        to: "on"
+    condition:
+      # nur bei aktiver Heizperiode und aktiver Automatisierung
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.heating_period
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.automate_heating
+        state: 'on'
     action:
-      - service: homeassistant.update_entity
-        entity_id: sensor.requested_temperature_wz
+      # Automatik-Modus
+      - service: climate.set_hvac_mode
+        data:
+          entity_id: climate.000c9a499b5808
+          hvac_mode: auto
+      # Wochenprofil 1
+      - service: homematic.set_device_value
+        data:
+          address: "000C9A499B5808"
+          channel: 1
+          param: "ACTIVE_PROFILE"
+          interface: "hmip"
+          value: 3
+  # anderes Heizprofil für Gäste
+  - id: restore_family_heating
+    alias: Change to normal heating profile
+    trigger:
+      - platform: state
+        entity_id: input_boolean.guests
+        to: "off"
+    condition:
+      # nur bei aktiver Heizperiode und aktiver Automatisierung
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.heating_period
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.automate_heating
+        state: 'on'
+    action:
+      - service: homematic.set_device_value
+        data:
+          address: "000C9A499B5808"
+          channel: 1
+          param: "ACTIVE_PROFILE"
+          interface: "hmip"
+          value: 1
+
+  # Offene Fenster-Erkennung WOHNZIMMER
+  # mindestens eine Tür im WZ offen --> Fensterstatus im Thermostat auf 1 setzen.
+  - id: windows_wz_opened
+    alias:  Set window state WZ open
+    trigger:
+      - platform: state
+        entity_id: group.doors_wz
+        to: "on"
+    condition:
+      # nur bei aktiver Heizperiode und aktiver Automatisierung
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.heating_period
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.automate_heating
+        state: 'on'
+    action:
+      - service: homematic.set_device_value
+        data:
+          address: "000C9A499B5808"
+          channel: 1
+          param: "WINDOW_STATE"
+          interface: "hmip"
+          value: 1 # =offen
+  # alle Türen im WZ zu --> Fensterstatus im Thermostat auf 0 setzen.
+  - id: windows_wz_closed
+    alias:  Set window state WZ closed
+    trigger:
+      - platform: state
+        entity_id: group.doors_wz
+        to: "off"
+    condition:
+      # nur bei aktiver Heizperiode (Fenster-Status wieder 'zu' auch ohne aktive Automatisierung)
+      - condition: state
+        entity_id: input_boolean.heating_period
+        state: 'on'
+    action:
+      - service: homematic.set_device_value
+        data:
+          address: "000C9A499B5808"
+          channel: 1
+          param: "WINDOW_STATE"
+          interface: "hmip"
+          value: 0 # =zu
+
+  # Start and End of heating period: 
+  #   start: turn on automatic mode
+  #   end:   set manuell mode to temp=6°C
+  - id: stop_heating
+    alias: Stop Heating
+    trigger:
+      - platform: state
+        entity_id: input_boolean.heating_period
+        to: "off"    
+    action:
+      # Manuell-Modus ('Aus' geht nicht) und...
+      - service: climate.set_hvac_mode
+        data:
+          entity_id: climate.000c9a499b5808
+          hvac_mode: heat
+      # ...Ziel-Temperatur 'sehr gering'
+      - service: climate.set_temperature
+        data:
+          entity_id: climate.000c9a499b5808
+          temperature: 6
+          hvac_mode: heat #'off' does not work
+
+  - id: start_heating
+    alias: Start Heating
+    trigger:
+    - platform: state
+      entity_id: input_boolean.heating_period
+      to: "on"
+    action:
+      # Automatik-Modus
+      - service: climate.set_hvac_mode
+        data:
+          entity_id: climate.000c9a499b5808
+          hvac_mode: auto
+      # Wochenprofil 1
+      - service: homematic.set_device_value
+        data:
+          address: "000C9A499B5808"
+          channel: 1
+          param: "ACTIVE_PROFILE"
+          interface: "hmip"
+          value: 1
+      # Fensterstatus auf 'zu' setzen (falls noch offen)
+      - service: homematic.set_device_value
+        data:
+          address: "000C9A499B5808"
+          channel: 1
+          param: "WINDOW_STATE"
+          interface: "hmip"
+          value: 0
+
+  # pause & resume heating when leaving and returning home
+  - id: pause_heating_when_leaving
+    alias: Pause Heating if leaving
+    trigger:
+      - platform: state
+        entity_id: sensor.home_status
+        from: 'Home'
+        to: 'Away'
+        for:
+          minutes: 5
+    condition:
+      condition: and
+      conditions:
+      # nur bei aktiver Heizperiode und aktiver Automatisierung
+      - condition: state
+        entity_id: input_boolean.automate_heating
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.heating_period
+        state: 'on'
+    action:
+      # Manuell-Modus
+      - service: climate.set_hvac_mode
+        data:
+          entity_id: climate.000c9a499b5808
+          hvac_mode: heat
+      # Ziel-Themperatur auf Energiespar-Wert
+      - service: climate.set_temperature
+        data:
+          entity_id: climate.000c9a499b5808
+          temperature: 17 #todo: wert evtl aus Thermostat auslesen
+          hvac_mode: heat #'off' does not work
+
+  - id: restart_heating_when_arriving
+    alias: Pause Heating when arriving
+    trigger:
+      - platform: state
+        entity_id: sensor.home_status
+        to: 'Home'
+    condition:
+      # nur bei aktiver Heizperiode und aktiver Automatisierung
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.automate_heating
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.heating_period
+        state: 'on'
+    action:
+      # Automatik-Modus
+      - service: climate.set_hvac_mode
+        data:
+          entity_id: climate.000c9a499b5808
+          hvac_mode: auto

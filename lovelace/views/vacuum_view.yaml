@@ -299,6 +299,7 @@ cards:
 
     # options for room cleaning and automation (always displayed)
     - type: entities
+      state_color: true
       entities:
       - entity: input_select.vacuum_room
       - type: section
@@ -317,6 +318,7 @@ cards:
         type: entities
         #title: automatisches Saugen
         show_header_toggle: false
+        state_color: true
         entities:
           #presense status
           - type: section
