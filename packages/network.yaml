@@ -6,9 +6,84 @@
 #   @links        : 
 ###############################################################################
 
+################################################
+##  Customize
+################################################
+homeassistant:
+  customize:
+  # definitions
+    package.node_anchors:
+      common: &common
+        package: "network"
+  # sensors
+    # system monitor
+    sensor.memory_free:
+      <<: *common
+    sensor.disk_use_percent:
+      <<: *common
+    sensor.processor_use:
+      <<: *common
+    sensor.network_in_eth0:
+      <<: *common
+    sensor.network_out_eth0:
+      <<: *common
+    sensor.last_boot:
+      <<: *common
+    # HA
+    sensor.historydb_size:
+      <<: *common
+    sensor.current_version:
+      <<: *common
+    sensor.latest_version:
+      <<: *common
+    # Speedtest.net Sensors 
+    sensor.speedtest_ping:
+      <<: *common
+      friendly_name: Ping
+    sensor.speedtest_upload:
+      <<: *common
+      friendly_name: Upload Speed
+      icon: mdi:cloud-upload
+    sensor.speedtest_download:
+      <<: *common
+      friendly_name: Download Speed
+      icon: mdi:cloud-download
+    # Raspberries
+    sensor.raspi1cpuusage:
+      <<: *common
+      icon: mdi:cpu-64-bit
+    binary_sensor.rpi_ost:
+      <<: *common
+    binary_sensor.rpi_west:
+      <<: *common
+    # other devices
+    binary_sensor.hpdrucker:
+      <<: *common
+    binary_sensor.smarttv:
+      <<: *common
+    binary_sensor.roborock:
+      <<: *common
+    binary_sensor.radiobad:
+      <<: *common
+    binary_sensor.router:
+      <<: *common
+
+# Network sensors. todo: Not working!
+#    binary_sensor.hpdrucker:
+#      templates:
+#        icon: >
+#          {% if is_state('binary_sensor.hpdrucker', 'on') %}
+#            mdi:printer
+#          {% else %}
+#            mdi:printer-off
+#          {% endif %}
+#        icon_color: >
+#          if (is_state('binary_sensor.hpdrucker', 'off')) return 'rgb(251, 210, 41)'; 
+#          else return 'rgb(54, 95, 140)';
+
 
 ################################################
-## Platforms
+##   Platforms
 ################################################
 # uses the Speedtest.net web service to measure network bandwidth performance
 speedtestdotnet:
@@ -19,40 +94,36 @@ speedtestdotnet:
     - download
     - upload
 
-################################################
-## Customize
-################################################
-homeassistant:
-  customize:
-    # Speedtest.net Sensors 
-    sensor.speedtest_ping:
-      friendly_name: Ping
-    sensor.speedtest_upload:
-      friendly_name: Upload Speed
-      icon: mdi:cloud-upload
-    sensor.speedtest_download:
-      friendly_name: Download Speed
-      icon: mdi:cloud-download
-    sensor.raspi1cpuusage:
-      icon: mdi:cpu-64-bit
+sensor:
+  # monitor Home Assistant system state
+  - platform: systemmonitor
+    resources:
+    - type: disk_use_percent
+      arg: /
+    - type: memory_free
+    - type: processor_use
+    - type: network_in
+      arg: eth0
+    - type: network_out
+      arg: eth0
+    - type: last_boot
+  # monitor Home Assistant database size
+  - platform: sql
+    db_url: !secret HistoryDB_connection
+    queries:
+    - name: historydb_size
+      query: 'SELECT table_schema "database", Round(Sum(data_length + index_length) / 1048576, 1) "value" FROM information_schema.tables WHERE table_schema="HAhistory" GROUP BY table_schema'
+      column: 'value'
+      unit_of_measurement: MB
+  # check on the version of Home Assistant
+  - platform: version
+    source: local
+  - platform: version
+    source: docker
 
-
-    # Network sensors. todo: Not working!
-    binary_sensor.hpdrucker:
-      templates:
-        icon: >
-          {% if is_state('binary_sensor.hpdrucker', 'on') %}
-            mdi:printer
-          {% else %}
-            mdi:printer-off
-          {% endif %}
-        icon_color: >
-          if (is_state('binary_sensor.hpdrucker', 'off')) return 'rgb(251, 210, 41)'; 
-          else return 'rgb(54, 95, 140)';
-
-################################################
-## Sensors
-################################################
+###############################################################################
+##  Sensors
+###############################################################################
 binary_sensor:
   # Monitor IP-connection to systems state
 #  - platform: ping
@@ -95,30 +166,3 @@ binary_sensor:
     name: rpi_west
     scan_interval: 60
     count: 2
-
-sensor:
-  # monitor Home Assistant system state
-  - platform: systemmonitor
-    resources:
-    - type: disk_use_percent
-      arg: /
-    - type: memory_free
-    - type: processor_use
-    - type: network_in
-      arg: eth0
-    - type: network_out
-      arg: eth0
-    - type: last_boot
-  # monitor Home Assistant database size
-  - platform: sql
-    db_url: !secret HistoryDB_connection
-    queries:
-    - name: historydb_size
-      query: 'SELECT table_schema "database", Round(Sum(data_length + index_length) / 1048576, 1) "value" FROM information_schema.tables WHERE table_schema="HAhistory" GROUP BY table_schema'
-      column: 'value'
-      unit_of_measurement: MB
-  # check on the version of Home Assistant
-  - platform: version
-    source: local
-  - platform: version
-    source: docker

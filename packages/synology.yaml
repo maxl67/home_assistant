@@ -6,12 +6,35 @@
 #   @links        : https://www.home-assistant.io/integrations/synologydsm/
 ###############################################################################
 
+################################################
+##  Customize
+################################################
 homeassistant:
   customize:
+  # definitions
+    package.node_anchors:
+      common: &common
+        package: "synology"
+  # sensors
+    sensor.lets_encrypt_cert:
+      <<: *common
     sensor.last_boot:
+      <<: *common
       friendly_name: Last Boot
       device_class: timestamp
+    sensor.maximum_disk_temp_volume_1:
+      <<: *common
+    sensor.hera_dsm_avg_processes_5_min:
+      <<: *common
+    sensor.hera_dsm_avg_processes_15_min:
+      <<: *common
+  # automations
+    automation.update_cert_expiry_on_reboot:
+      <<: *common
 
+################################################
+##   Platforms
+################################################
 sensor:
   # Synology DSM Sensor
   - platform: synologydsm
@@ -34,6 +57,16 @@ sensor:
       - volume_percentage_used
       - volume_disk_temp_max  # val=0, does not change. not used. min_max calculated separately.
       #- volume_disk_temp_avg # does not work.
+
+  # Let's Encryt Certificate
+  - platform: cert_expiry
+    host: !secret ssl_cert_name
+    port: 443
+    name: lets_encrypt_cert
+
+###############################################################################
+##  Sensors
+###############################################################################
   - platform: template
     sensors:
       # we have to define 2 new sensors, because the value has to be divided
@@ -45,6 +78,7 @@ sensor:
         friendly_name: Hera DSM Process Load (avg. 15min)
         value_template: "{{ states('sensor.hera_dsm_cpu_load_15_min')| float / 100 }}"
         icon_template: mdi:layers
+  # calc max temperature of all discs
   - platform: min_max
     name: maximum_disk_temp_volume_1
     type: max
@@ -53,11 +87,9 @@ sensor:
       - sensor.hera_dsm_temperature_sdb
       - sensor.hera_dsm_temperature_sdc
 
-  - platform: cert_expiry
-    host: !secret ssl_cert_name
-    port: 443
-    name: lets_encrypt_cert
-
+###############################################################################
+##  Automations
+###############################################################################
 automation:
   - alias: update_cert_expiry_on_reboot
     trigger:

@@ -10,48 +10,108 @@
 # Group als trigger: https://community.home-assistant.io/t/automation-trigger-on-any-member-of-a-group-is-it-possible/55795
 ###############################################################################
 
-# pictures for persons and new icons for device entities
+################################################
+##  Customize
+################################################
 homeassistant:
-  customize: 
+  customize:
+  # definitions
+    package.node_anchors:
+      common: &common
+        package: "presence_detection"
+      device_wifi: &device_wifi
+        icon: mdi:cellphone-wireless
+        <<: *common
+      device_bluetooth: &device_bt
+        icon: mdi:bluetooth-audio
+        <<: *common
+  # sensors
+    # pictures for persons and new icons for device entities
     sensor.max_status:
       entity_picture: /local/max.jpg # /local/* --> ./config/www/*
+      <<: *common
     sensor.ing_status:
       entity_picture: /local/ing.jpg
+      <<: *common
     device_tracker.iphone8_max_wifi:
-      icon: mdi:cellphone-wireless
+      <<: *device_wifi
     device_tracker.iphone8_ing_wifi:
-      icon: mdi:cellphone-wireless
+      <<: *device_wifi
     device_tracker.iphone8_max_bt:
-      icon: mdi:bluetooth-audio
+      <<: *device_bt
     device_tracker.iphone8_ing_bt:
-      icon: mdi:bluetooth-audio
+      <<: *device_bt
+    sensor.max_present_e:
+      <<: *common
+    sensor.max_present_w:
+      <<: *common
+    sensor.max_home_confidence:
+      <<: *common
+    sensor.ing_present_e:
+      <<: *common
+    sensor.ing_present_w:
+      <<: *common
+    sensor.ing_home_confidence:
+      <<: *common
+    sensor.n_people_home:
+      <<: *common
+    sensor.home_status:
+      <<: *common
+  # groups, variables
+    group.family_status:
+      <<: *common
+    group.phone_max:
+      <<: *common
+    group.phone_ing:
+      <<: *common
+    input_select.max_status_dropdown:
+      <<: *common
+    input_select.ing_status_dropdown:
+      <<: *common
+    input_select.home_status_dropdown:
+      <<: *common
+    input_datetime.max_status_dropdown_last_changed:
+      <<: *common
+    input_datetime.ing_status_dropdown_last_changed:
+      <<: *common
+    input_datetime.home_status_dropdown_last_changed:
+      <<: *common
+    input_boolean.guests:
+      <<: *common
+  # automations
+#todo: alle 20 einzeln:
+#    automation.__:
+#      <<: *common
 
+###############################################################################
+##  Groups
+###############################################################################
 group:
   # 'group.family_status' wird durch eine group-card im UI angezeigt. 
   family_status:
     name: Family Status
-    control: hidden
     entities:
       - sensor.max_status
       - sensor.ing_status
       - input_boolean.guests
-      # - sensor.n_people_home
+    # - sensor.n_people_home
       - sensor.home_status
   # group.phone_* dient zum zentralen Setzen des aktuell zu prüfenden Devices pro Person.
   #   Werden mehrere Geräte angegeben, dann ist Gruppe 'on'='anwesend' wenn mindestens ein Gerät 'on' ist.
   phone_max:
     name: Phone Max
-    control: hidden
     entities:
-     #- device_tracker.iphone8_max_wifi
+    # - device_tracker.iphone8_max_wifi
       - device_tracker.iphone8_max_bt
   phone_ing:
     name: Phone Ingrid
-    control: hidden
     entities:
-      - device_tracker.iphone8_ing_wifi #todo
+    # - device_tracker.iphone8_ing_wifi
       - device_tracker.iphone8_ing_bt
  
+###############################################################################
+##  Variables
+###############################################################################
 # mögliche Statuswerte für Personen und den Gesamtstatus 'sensor.home_status'
 input_select:
   max_status_dropdown:
@@ -97,8 +157,11 @@ input_boolean:
   guests:
     name: Wir haben Gäste #We have guests
     icon: mdi:account-multiple
-    
 
+
+###############################################################################
+##  Sensors
+###############################################################################
 sensor:
   # reading the MQTT messages from BlueTooth monitor.sh into confidence sensors for separate areas 
   # Person 1
@@ -128,7 +191,7 @@ sensor:
     entity_ids:
       - sensor.max_present_e
       - sensor.max_present_w
-  # person 2
+  # Person 2
   - platform: mqtt
     state_topic: 'monitor/ost/iphone_ing_bt'
     value_template: '{{ value_json.confidence }}'
@@ -198,12 +261,14 @@ sensor:
           #account-supervisor-circle oder account-search
 
 
+###############################################################################
+##  Automations
+###############################################################################
 automation:
   # update device_tracker bluetooth states from the confidence values derived from BlueTooth monitor.sh 
   # we stick to the device_tracker sensors because they were already in use...input_boolean would be fine too...
   # ...and I like the idea, that the monitor.sh scripts are just a better source for the intended bluetooth device_trackers.
   - alias: Max Occupancy On
-    hide_entity: true
     trigger:
       - platform: numeric_state
         entity_id: sensor.max_home_confidence
@@ -215,7 +280,6 @@ automation:
           location_name: home
           source_type: bluetooth
   - alias: Max Occupancy Off
-    hide_entity: true
     trigger:
       - platform: numeric_state
         entity_id: sensor.max_home_confidence
@@ -228,7 +292,6 @@ automation:
           source_type: bluetooth
 
   - alias: Ing Occupancy On
-    hide_entity: true
     trigger:
       - platform: numeric_state
         entity_id: sensor.ing_home_confidence
@@ -240,7 +303,6 @@ automation:
           location_name: home
           source_type: bluetooth
   - alias: Ing Occupancy Off
-    hide_entity: true
     trigger:
       - platform: numeric_state
         entity_id: sensor.ing_home_confidence
@@ -255,7 +317,6 @@ automation:
   # if confidence starts to drop in one area, we trigger a arrival scan in the other area 
   #   (in case of movement inside the house)
   - alias: Start BT Arrival Scan Ost
-    hide_entity: true
     trigger:
       - platform: numeric_state
         entity_id: sensor.max_present_w
@@ -269,7 +330,6 @@ automation:
           topic: "monitor/scan/arrive" 
           payload: '{"data" : "west"}' #this monitor publisher will NOT respond!
   - alias: Start BT Arrival Scan West
-    hide_entity: true
     trigger:
       - platform: numeric_state
         entity_id: sensor.max_present_o
@@ -286,7 +346,6 @@ automation:
   # if confidence dropped to 0 in one area, we trigger a departure scan in the other area 
   #   (to speed things up, in case the 2nd monitor missed the departure)
   - alias: Start BT Departure Scan Ost
-    hide_entity: true
     trigger:
       - platform: numeric_state
         entity_id: sensor.max_present_w
@@ -304,7 +363,6 @@ automation:
           topic: "monitor/scan/depart" 
           payload: '{"data" : "west"}' #this monitor publisher will NOT respond!
   - alias: Start BT Departure Scan West
-    hide_entity: true
     trigger:
       - platform: numeric_state
         entity_id: sensor.max_present_o
@@ -323,6 +381,7 @@ automation:
           payload: '{"data" : "ost"}' #this monitor publisher will NOT respond!
 
   # if WiFi detects an arrival, we trigger a BT arrival scan (in case monitor.sh missed that)
+  # if frontdoor opens too.
   - alias: Start BT Arrival Scan
     trigger: 
       - platform: state
@@ -333,6 +392,11 @@ automation:
         entity_id: device_tracker.iphone8_ing_wifi 
         from: 'not_home'
         to: 'home'
+      - platform: state
+        entity_id: group.entrance_door 
+        to: 'on' #offen
+        for:
+          seconds: 1
     condition: []
     action:
       - service: mqtt.publish
@@ -341,6 +405,8 @@ automation:
           payload: ''
 
   # if WiFi detects a departure, we trigger a BT depart scan (in case monitor.sh missed that)
+  # if frontdoor is closed (and stays closed for some time) too.
+  # we do a depart scan 20secs, 1min and 2 min after frontdoor is closed.
   - alias: Start BT Departure Scan
     trigger: 
       - platform: state
@@ -355,8 +421,23 @@ automation:
         entity_id: device_tracker.iphone8_max_wifi #group.phone_max
         zone: zone.home
         event: "leave" # Event is either enter or leave
+      - platform: state
+        entity_id: group.entrance_door 
+        to: 'off' #closed
+        for:
+          seconds: 20
     condition: []
     action:
+      - service: mqtt.publish
+        data_template:
+          topic: "monitor/scan/depart"
+          payload: ''
+      - delay: '00:00:40'
+      - service: mqtt.publish
+        data_template:
+          topic: "monitor/scan/depart"
+          payload: ''
+      - delay: '00:01:00'
       - service: mqtt.publish
         data_template:
           topic: "monitor/scan/depart"
@@ -364,7 +445,7 @@ automation:
 
 
   # save the time a status was changed last, because these values will be reset every time HA is rebooted
-  - alias: personstatus_last_changed_date_and_time #Person-Status last changed date and time
+  - alias: personstatus_last_changed_date_and_time #Person-Status and home-status last changed date and time
     trigger:
       platform: state
       entity_id: input_select.max_status_dropdown, input_select.ing_status_dropdown, input_select.home_status_dropdown
@@ -377,7 +458,7 @@ automation:
 
 # if a device_tracker changed while HA was offline, we have to correct the input_select.*_status_dropdown after restart.
 # We also do that once a day (02:00 at night) in case a trigger was missed.
-# Becasue *.last_changed value is reset to boot time, we use a persistent variable 'input_datetime.*_status_dropdown_last_changed'.
+# Becasue *.last_changed value is reset at boot time, we use a persistent variable 'input_datetime.*_status_dropdown_last_changed'.
   - alias: Person- and Home-Status correction
     trigger: 
       - platform: homeassistant

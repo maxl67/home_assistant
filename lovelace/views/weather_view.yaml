@@ -23,120 +23,109 @@ cards:
               type: custom:multiple-entity-row
               name: DWD Meldungen aktuell
               secondary_info: last-changed
-              primary:
-            #    entity: sensor.dwd_advance_warn_count
-            #    name: bald
-            #  secondary:
-                entity: sensor.dwd_current_warn_level
+              entities:
+              - entity: sensor.dwd_current_warn_level
                 name: DWD lvl
-              secondary:
-                entity: sensor.dwd_max_warn_level
+              - entity: sensor.dwd_max_warn_level
                 name: max lvl
             - entity: sensor.dwd_current_warn_gewitter 
               type: custom:multiple-entity-row
               name: Gewitter-Warnung
               icon: mdi:weather-lightning-rainy
-              primary:
-                entity: sensor.dwd_current_warn_level_gewitter
+              entities:
+              - entity: sensor.dwd_current_warn_level_gewitter
                 name: Level
             - entity: sensor.dwd_current_warn_sturm 
               type: custom:multiple-entity-row
               name: Sturm-Warnung
               icon: mdi:weather-windy
-              primary:
-                entity: sensor.dwd_current_warn_level_sturm
+              entities:
+              - entity: sensor.dwd_current_warn_level_sturm
                 name: Level
             - entity: sensor.dwd_current_warn_regen
               type: custom:multiple-entity-row
               name: Regen-Warnung
               icon: mdi:weather-pouring
-              primary:
-                entity: sensor.dwd_current_warn_level_regen
+              entities:
+              - entity: sensor.dwd_current_warn_level_regen
                 name: Level
             - entity: sensor.dwd_current_warn_schnee
               type: custom:multiple-entity-row
               name: Schnee-Warnung
               icon: mdi:weather-snowy-heavy
-              primary:
-                entity: sensor.dwd_current_warn_level_schnee
+              entities:
+              - entity: sensor.dwd_current_warn_level_schnee
                 name: Level
             - entity: sensor.dwd_current_warn_frost
               type: custom:multiple-entity-row
               name: Frost-Warnung
               icon: mdi:thermometer-alert
-              primary:
-                entity: sensor.dwd_current_warn_level_frost
+              entities:
+              - entity: sensor.dwd_current_warn_level_frost
                 name: Level
             - entity: sensor.dwd_current_warn_glaette
               type: custom:multiple-entity-row
               name: Glatteis-Warnung
               icon: mdi:snowflake-alert
-              primary:
-                entity: sensor.dwd_current_warn_level_glaette
+              entities:
+              - entity: sensor.dwd_current_warn_level_glaette
                 name: Level
             - entity: input_boolean.dwd_weather_alert
               type: custom:multiple-entity-row
               name: Wetter Alarm
               secondary_info: last-changed
-              primary:
-                entity: sensor.count_notification_alerts
+              entities:
+              - entity: sensor.count_notification_alerts
                 name: Anz. Alarme
 
         # show the text of all DWD warnings
         - type: divider
         - type: markdown
+          style: |
+            ha-card {
+              border: 0px solid green;
+            }
           content: >
               <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.region_name }}</h3>
-              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_headline is defined %}
-                <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_headline }}</h3>
-                Warnstufe: {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_level }}
-                <br>
-                Von: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_start) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
-                <br>
-                Bis: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_end) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
-                <br>
-                {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_description }}
-                <br>
-                <br>
+              Aktuell 
+              {% if states.sensor.dwd_current_warn_count.state|int == 1 %}
+                besteht {{states.sensor.dwd_current_warn_count.state}} Warnung 
+              {% else %}
+                bestehen {{states.sensor.dwd_current_warn_count.state}} Warnungen 
               {% endif %}
-              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_headline is defined %}
-                <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_headline }}</h3>
-                Warnstufe: {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_level }}
+              mit der maximalen Stufe {{states.sensor.dwd_max_warn_level.state}}.
+              {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
+                {%- set type_attr=  "warning_"+loop.index|string + "_type" -%}
+                {%- set lvl_attr=   "warning_"+loop.index|string + "_level" -%}
+                {%- set head_attr=  "warning_"+loop.index|string + "_headline" -%}
+                {%- set start_attr= "warning_"+loop.index|string + "_start" -%}
+                {%- set end_attr=   "warning_"+loop.index|string + "_end" -%}
+                {%- set desc_attr=  "warning_"+loop.index|string + "_description" -%}
+                <hr/>
+                <em>
+                {%- set start_time= states.sensor.dwd_weather_warnings_current_warning_level.attributes[start_attr] -%}
+                {%- set days = (start_time.strftime('%j') | int) - (now().strftime('%j')) | int  -%}
+                {% if as_timestamp(start_time) <= as_timestamp(now()) %}
+                jetzt
+                {% elif days==0 %}
+                heute
+                {% elif days==1 %}
+                morgen
+                {% else %}
+                in {{days}} Tagen
+                {% endif %}
+                </em>
+                <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes[head_attr] }}</h3>
+                <em>Warnstufe:</em> <strong>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr] }}</strong>
                 <br>
-                Von: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_start) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <em>Von:</em> {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes[start_attr]) | timestamp_custom("%a %d.%m %H:%M",true) }}
                 <br>
-                Bis: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_end) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <em>Bis:</em> {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes[end_attr]) | timestamp_custom("%a %d.%m %H:%M",true) }}
                 <br>
-                {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_description }}
-                <br>
-                <br>
-              {% endif %}
-              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_headline is defined %}
-                <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_headline }}</h3>
-                Warnstufe: {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_level }}
-                <br>
-                Von: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_start) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
-                <br>
-                Bis: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_end) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
-                <br>
-                {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_description }}
-                <br>
-                <br>
-              {% endif %}
-              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_headline is defined %}
-                <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_headline }}</h3>
-                Warnstufe: {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_level }}
-                <br>
-                Von: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_start) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
-                <br>
-                Bis: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_end) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
-                <br>
-                {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_description }}
+                {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes[desc_attr] }}
                 <br>
                 <br>
-              {% endif %}
-              <a href="http://www.dwd.de/DWD/warnungen/warnapp_gemeinden/json/warnungen_gemeinde_map_baw.png">Aktuelle Warnkarte</a>
-              <br>
+              {%- endfor -%}
 
   # current weather info and forcast
   - type: custom:weather-card-chart

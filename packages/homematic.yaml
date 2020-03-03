@@ -5,6 +5,89 @@
 #   @description  : 
 #   @links        : 
 ###############################################################################
+# Parameter Wandthermostat WZ
+#  ch 0: 
+#    Zyklische Statusmeldung: true
+#    Anzahl der auszulassenden Statusmeldungen: 1
+#    Anzahl der auszulassenden unveränderten Statusmeldungen: 1
+#  ch 1:
+#    Minimale Temperatur: AUS
+#    Maximale Temperatur: EIN
+#    Temperatur-Offset: -0.5
+#  ch 5:
+#    Art der Zweipunktregelung: Heizen
+#    Hysterese: 0.40
+#  ch 8:
+#    Kühlen im Kühlmode: Nicht aktiv
+#    Heizen im Heizmode: Aktiv
+#    Art/Typ der Anlage: Radiator
+#    Art des Raumes: Standard Raum
+#    Ventiltyp: NC
+#    Intervall der Entkalkungsfahrt bei Nichtbenutzung: 14 Tage
+
+################################################
+##  Customize
+################################################
+homeassistant:
+  customize:
+  # definitions
+    package.node_anchors:
+      common: &common
+        package: "homematic"
+      temperature: &temperature
+        unit_of_measurement: "°C"
+        <<: *common
+      actor: &actor
+        <<: *common
+      valve: &valve
+        unit_of_measurement: "%"
+        <<: *common
+        #icon_template: "mdi:valve"  #geht nicht
+  # sensors
+    sensor.hm_thermo_wz_current_temp:
+      <<: *temperature
+    sensor.hm_thermo_wz_target_temp:
+      <<: *temperature
+    sensor.hm_thermo_wz_actor_state:
+      <<: *actor
+    sensor.hm_thermo_wz_actor_value:
+      <<: *actor
+    sensor.hm_thermo_wz_window_state:
+      <<: *common
+
+    sensor.hm_thermo_ku_current_temp:
+      <<: *temperature
+    sensor.hm_thermo_ku_target_temp:
+      <<: *temperature
+    sensor.hm_thermo_ku_valve_status:
+      <<: *actor
+    sensor.hm_thermo_ku_actor_value:
+      <<: *valve
+    sensor.hm_thermo_ku_actor_display:
+      <<: *valve
+    sensor.hm_thermo_ku_window_state:
+      <<: *common
+
+    sensor.hm_thermo_gz_current_temp:
+      <<: *temperature
+    sensor.hm_thermo_gz_target_temp:
+      <<: *temperature
+    sensor.hm_thermo_gz_valve_status:
+      <<: *actor
+    sensor.hm_thermo_gz_actor_value:
+      <<: *valve
+    sensor.hm_thermo_gz_actor_display:
+      <<: *valve
+    sensor.hm_thermo_gz_window_state:
+      <<: *common
+
+    sensor.hm_ccu_last_reboot:
+      <<: *common
+    binary_sensor.hm_homematic_up:
+      <<: *common
+  # automations
+    automation.homematic_reconnect:
+      <<: *common
 
 ################################################
 ##   Platforms
@@ -18,13 +101,15 @@ homematic:
       username: !secret homematic_hmip_adminusername
       password: !secret homematic_hmip_adminpassword
       resolvenames: false
-    hmip_groups:
-      host: !secret homematic_hmip_host
-      port: 9292
-      username: !secret homematic_hmip_guestusername
-      password: !secret homematic_hmip_guestpassword
-      path: /groups
-      resolvenames: json
+#deactivated until at least one group is defined. 
+#Otherwise '[pyhomematic._hm] Failed to initialize proxy' error shows up in log.
+#    hmip_groups:
+#      host: !secret homematic_hmip_host
+#      port: 9292 # 39292 mit SSL?
+#      username: !secret homematic_hmip_guestusername
+#      password: !secret homematic_hmip_guestpassword
+#      path: /groups
+#      resolvenames: json
   hosts:
     raspi_ccu:
       host: !secret homematic_hmip_host
@@ -32,31 +117,107 @@ homematic:
       password: !secret homematic_hmip_adminpassword
 
 ###############################################################################
-#   Sensors
+##  Sensors
 ###############################################################################
 sensor:
   # Thermostat Wohnzimmer
   - platform: template
     sensors:
+    # Wohnzimmer
       hm_thermo_wz_current_temp:
         value_template: '{{state_attr("climate.000c9a499b5808","current_temperature")|float}}'
         entity_id: climate.000c9a499b5808
-        unit_of_measurement: "°C"
-        friendly_name: 'Wohnzimmer Temperatur'
+        friendly_name: 'Wohnzimmer Ist-Temperatur'
       hm_thermo_wz_target_temp:
         value_template: '{{state_attr("climate.000c9a499b5808","temperature")|float}}'
         entity_id: climate.000c9a499b5808
-        unit_of_measurement: "°C"
         friendly_name: 'Wohnzimmer Soll-Temperatur'
       hm_thermo_wz_actor_state:
         value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ')}}{% endif %}"
-        icon_template: "mdi:valve"
         entity_id: homematic.raspi_ccu
+        friendly_name: 'Wohnzimmer Heizungsventile'
+        icon_template: "mdi:valve"
+      hm_thermo_wz_actor_value: #for mini-graph
+        friendly_name: 'Wohnzimmer Heizventile'
+        value_template: >-
+          {%if state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == False %}
+            {%if is_state('input_boolean.heating_period','on') %}
+          0
+            {% else %}
+          -20
+            {% endif %}
+          {% elif state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == True %}
+          20
+          {% endif %}
+        icon_template: "mdi:valve"
+        entity_id: 
+          - homematic.raspi_ccu
+          - input_boolean.heating_period
       hm_thermo_wz_window_state:
         value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ')}}{% endif %}"
-        icon_template: "mdi:window"
+        icon_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == False %} mdi:window-closed-variant {% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == True %} mdi:window-open-variant {% endif %}"
         entity_id: homematic.raspi_ccu
-
+        friendly_name: 'Fensterstatus Wohnzimmerthermostat'
+      # Küche
+      hm_thermo_ku_current_temp:
+        value_template: '{{state_attr("climate.000a1a49a10ba3","current_temperature")|float}}'
+        entity_id: climate.000a1a49a10ba3
+        friendly_name: 'Küche Ist-Temperatur'
+      hm_thermo_ku_target_temp:
+        value_template: '{{state_attr("climate.000a1a49a10ba3","temperature")|float}}'
+        entity_id: climate.000a1a49a10ba3
+        friendly_name: 'Küche Soll-Temperatur'
+      hm_thermo_ku_valve_status:
+        #Status Adaptierfahrt. 4=ADAPTION_DONE
+        value_template: '{{state_attr("climate.000a1a49a10ba3","valve")|int}}'
+        entity_id: climate.000a1a49a10ba3
+        friendly_name: 'Küche Ventilstatus'
+        icon_template: "mdi:valve"
+      hm_thermo_ku_actor_value:
+        value_template: '{{(state_attr("climate.000a1a49a10ba3","level")|float*100)|int}}'
+        entity_id: climate.000a1a49a10ba3
+        friendly_name: 'Küche Ventilöffnung'
+        icon_template: "mdi:valve"
+      hm_thermo_ku_actor_display:  #for mini-graph
+        value_template: '{{state_attr("climate.000a1a49a10ba3","level")|float*20}}'
+        entity_id: climate.000a1a49a10ba3
+        friendly_name: 'Küche Ventilöffnung'
+        icon_template: "mdi:valve"
+      hm_thermo_ku_window_state:
+        value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU')}}{% endif %}"
+        icon_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU') == False %} mdi:window-closed-variant {% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU') == True %} mdi:window-open-variant {% endif %}"
+        entity_id: homematic.raspi_ccu
+        friendly_name: 'Fensterstatus Küchenthermostat'
+      # Gästezimmer
+      hm_thermo_gz_current_temp:
+        value_template: '{{state_attr("climate.000a1a49a107b5","current_temperature")|float}}'
+        entity_id: climate.000a1a49a107b5
+        friendly_name: 'Gästezimmer Ist-Temperatur'
+      hm_thermo_gz_target_temp:
+        value_template: '{{state_attr("climate.000a1a49a107b5","temperature")|float}}'
+        entity_id: climate.000a1a49a107b5
+        friendly_name: 'Gästezimmer Soll-Temperatur'
+      hm_thermo_gz_valve_status:
+        #Status Adaptierfahrt. 4=ADAPTION_DONE
+        value_template: '{{state_attr("climate.000a1a49a107b5","valve")|int}}'
+        entity_id: climate.000a1a49a107b5
+        friendly_name: 'Gästezimmer Ventilstatus'
+        icon_template: "mdi:valve"
+      hm_thermo_gz_actor_value:
+        value_template: '{{(state_attr("climate.000a1a49a107b5","level")|float*100)|int}}'
+        entity_id: climate.000a1a49a107b5
+        friendly_name: 'Gästezimmer Ventilöffnung'
+        icon_template: "mdi:valve"
+      hm_thermo_gz_actor_display:  #for mini-graph
+        value_template: '{{state_attr("climate.000a1a49a107b5","level")|float*20}}'
+        entity_id: climate.000a1a49a107b5
+        friendly_name: 'Gästezimmer Ventilöffnung'
+        icon_template: "mdi:valve"
+      hm_thermo_gz_window_state:
+        value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_GZ') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_GZ') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Fensteroffen_GZ')}}{% endif %}"
+        icon_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_GZ') == False %} mdi:window-closed-variant {% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_GZ') == True %} mdi:window-open-variant {% endif %}"
+        entity_id: homematic.raspi_ccu
+        friendly_name: 'Fensterstatus Gästethermostat'
   # CCU
   - platform: template
     sensors:
@@ -78,7 +239,7 @@ binary_sensor:
 
 
 ###############################################################################
-#   Automations
+##  Automations
 ###############################################################################
 automation:
   # Reconnect to CCU, if sensor has not been updated for over 1 hour or ccu rebooted
@@ -119,13 +280,3 @@ automation:
 #    action:
 #      - service: homeassistant.update_entity
 #        entity_id: sensor.requested_temperature_wz
-
-################################################
-## Customize
-################################################
-
-###############################################################################
-#                               Variables
-###############################################################################
-
-################################################

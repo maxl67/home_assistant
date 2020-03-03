@@ -78,7 +78,6 @@ group:
  
   Timer Light:
     name: Timer Light
-    control: hidden
     entities:
     - automation.auto_light_off
     - automation.auto_light_on

@@ -305,7 +305,6 @@ cards:
       - type: section
         label: automatisches Saugen #automatic cleanup
       - entity: switch.disable_automatic_vacuum
-        type: custom:multiple-entity-row
         toggle: true
         name: Automatisches Saugen deaktivieren #Disable Daily Cleanup
 
@@ -326,8 +325,8 @@ cards:
           - entity: input_boolean.automatic_vacuum_when_home
             type: custom:multiple-entity-row
             toggle: true
-            primary:
-              entity: sensor.home_status
+            entities:
+            - entity: sensor.home_status
               name: Home Status
           # Notifications
           - type: section
@@ -338,14 +337,14 @@ cards:
             name: Staubbehälter leeren
             type: custom:multiple-entity-row
             toggle: true
-            primary:
-              entity: input_boolean.dustbin_full_alert
+            entities:
+            - entity: input_boolean.dustbin_full_alert
               name: Alarm
           - entity: binary_sensor.vacuum_error_alert
             name: Sauger Störung
             type: custom:multiple-entity-row
-            primary:
-              entity: vacuum.xiaomi_vacuum_cleaner
+            entities:
+            - entity: vacuum.xiaomi_vacuum_cleaner
               name: Status
           #History
           - type: section
@@ -354,8 +353,9 @@ cards:
             type: custom:multiple-entity-row
             #toggle: true
             name: heute schon gereinigt?
-            primary:
-              entity: sensor.vacuum_cleaned_room
+            state_color: false
+            entities:
+            - entity: sensor.vacuum_cleaned_room
               name: Bereich
 
   # DEBUG: show some additional infos (while implementing)
@@ -379,15 +379,15 @@ cards:
               - entity: vacuum.xiaomi_vacuum_cleaner
                 name: Sauger Status
                 type: custom:multiple-entity-row
-                primary:
-                  entity: binary_sensor.vacuum_error_alert
+                entities:
+                - entity: binary_sensor.vacuum_error_alert
                   name: Alarm
               - entity: input_boolean.automatic_vacuum_first_run
                 name: Staubbehälter leeren
                 type: custom:multiple-entity-row
                 toggle: true
-                primary:
-                  entity: input_boolean.dustbin_full_alert
+                entities:
+                - entity: input_boolean.dustbin_full_alert
                   name: Alarm
               - entity: sensor.count_notification_alerts
                 name: Anz. aktiver Alarme

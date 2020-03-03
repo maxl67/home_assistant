@@ -7,7 +7,7 @@ homeassistant:
   # Location required to calculate the time the sun rises and sets
   latitude: !secret home_latitude
   longitude: !secret home_longitude
-  elevation: 405
+  elevation: !secret home_elevation
   unit_system: metric
   time_zone: Europe/Berlin
   # Customization file
@@ -67,6 +67,7 @@ zha:
 ################################################################
 # MQTT-Broker. Mosquitto-Docker MUSS vor HA gestartet werden. Todo: depend-on in Docker Config setzen
 # wird benötigt für Battery Status Automation (siehe Package 'battery_alert')
+# und BT-Monitor (Package 'presence_detection')
 mqtt:
   broker: !secret DS_IP
 #  password: !secret mqtt_broker_password
@@ -145,16 +146,18 @@ input_select:
       - all
     initial: none
 
-#calendar:
-#  - platform: caldav
-#    username: !secret caldav_user
-#    password: !secret caldav_pwd
-#    url: !secret caldav_url 
-#    url: https://p09-caldav.icloud.com/178482217/principal/calendars/CF16BBAC-3CC4-43A8-9DA2-B41A48B8C209
-#    calendars:
-#      - 'Privat Max'
-#      - name: 'gelber Sack'
-#        calendar: Ingrid
+calendar:
+  - platform: caldav
+    username: !secret caldav_user
+    password: !secret caldav_pwd
+    url: !secret caldav_url
+    calendars:
+    - Home
+    - Ingrid
+    - Privat Max
+#    custom_calendars:
+#      - name: 'gelber_Sack'
+#        calendar: 'Ingrid'
 #        search: 'Gelber Sack'
 
 ################################################################
@@ -170,6 +173,7 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - updater
       - input_select
       - camera
+      - calendar
     entities:
       - sun.sun # Don't record sun data
       - sensor.date
@@ -184,7 +188,7 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.fritzbox
       #- sensor.fritz_rate_down
       #- sensor.fritz_rate_up
-    # network diveces
+    # network devices
       - binary_sensor.router
       - binary_sensor.hera
       - binary_sensor.roborock
@@ -206,6 +210,11 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.geocoded_location
     # HomeMatic
       - sensor.hm_ccu_last_reboot
+    # iOS
+      - sensor.last_update_trigger
+      - sensor.bssid
+      - sensor.connection_type
+      
 
 logbook: #recorded Entities, that will be displayed in Logbook
   exclude: #!include includes/exclude.yaml
@@ -238,6 +247,7 @@ history: #recorded Entities, that will be displayed in History
 logger: 
   default: warn #critical,fatal,error,warning,warn,info,debug,notset
 #  logs:
+#    custom_components.samsungtv_custom.media_player: debug
 #    homeassistant.components.homematic: debug
 #    pyhomematic: debug
 #    zha: info

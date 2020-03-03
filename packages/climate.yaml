@@ -1,26 +1,89 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 17.01.2020
+#   @date         : 12.02.2020
 #   @package      : climate
 #   @description  : heating, temperature, humidity
-#   @links        : 
+#   @links        : https://github.com/thomasloven/hass-config/wiki/Misc-tricks#cardelemententity-row-triality
+# 
+# remarks:
+# - contains example of how to pass params from automation to script.
 ###############################################################################
 
+#todo: alarm
+# feuchte > 60: warnung > 70 alarm
+# draussen zu warm und heizen > alarm
+# heizperiode an und april..oktober
+
+#todo: cleanup
+#https://community.home-assistant.io/t/how-do-you-use-service-template-when-different-services-use-different-attributes-solved/52314/15
+
+################################################
+##  Customize
+################################################
+homeassistant:
+  customize:
+  # definitions
+    package.node_anchors:
+      common: &common
+        package: "climate"
+      door: &door
+        <<: *common
+        icon: mdi:door-open
+  # constants 
+      hm_energy_saving_temp: &energy_saving_temp 17 #todo: wert evtl aus Thermostat auslesen
+      hm_heating_off_temp: &heating_off_temp 4.5
+      hm_default_profile: &default_profile 1
+      hm_home_profile: &home_profile 2 #not used yet
+      hm_guest_profile: &guest_profile 3
+      thermostat_id_wz: &thermostat_id_wz 000C9A499B5808
+      thermostat_entityid_wz: &thermostat_entityid_wz climate.000C9A499B5808
+      thermostat_id_ku: &thermostat_id_ku 000A1A49A10BA3
+      thermostat_entityid_ku: &thermostat_entityid_ku climate.000A1A49A10BA3
+      thermostat_id_gz: &thermostat_id_gz 000a1a49a107b5
+      thermostat_entityid_gz: &thermostat_entityid_gz climate.000a1a49a107b5
+      # ...add new Thermostats here.
+  # groups, variables
+    group.doors_wz:
+      <<: *door
+    group.doors_kitchen_office:
+      <<: *door
+    input_boolean.heating_period:
+      <<: *common
+    input_boolean.automate_heating:
+      <<: *common
+    switch.heating_period:
+      <<: *common
+    switch.enable_automate_heating:
+      <<: *common
+  # automations
+    automation.activate_guest_heating:
+      <<: *common
+    #todo: rest...
+
+###############################################################################
+##  Groups
+###############################################################################
 group:
   # 'group.doors_*' fasst den Status der Türen in einem Raum zusammen.
   #   Ist ein Türsensor 'on'='Offen', dann wird die Gruppe 'on'.
   # Zustand der Gruppe wird an HomeMatic Thermostate geliefert (window_state)
   doors_wz:
     name: Wohnzimmer Türen 
-    icon: mdi:door
     entities:
       - binary_sensor.lumi_lumi_sensor_magnet_aq2_03139f7b_1_6 #2 Wohnzimmer W
       - binary_sensor.lumi_lumi_sensor_magnet_aq2_9ac61c04_1_6 #3 Wohnzimmer S
       - binary_sensor.lumi_lumi_sensor_magnet_aq2_f2fd4604_1_6 #4 Esszimmer
       #- binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6 #5 Küche
+  doors_kitchen_office:
+    name: Türen Küche/Büro
+    entities:
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6 #5 Küche
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_0aa90a04_on_off #6 Arbeitszimmer S
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_0ee51c04_1_6 #7 Arbeitszimmer
+
 
 ###############################################################################
-#   Variables
+##  Variables
 ###############################################################################
 input_boolean:
   # zum Aktivieren der Heizung allgemein
@@ -29,7 +92,7 @@ input_boolean:
     icon: mdi:radiator
   # aktiviert die Automatisierung der Heizungssteuerung
   automate_heating:
-    name: automatische Heizungssteuerung
+    name: automatische Heizsteuerung
     icon: mdi:robot
 
 switch:
@@ -53,7 +116,7 @@ switch:
             mdi:radiator-off
           {% endif %}
       enable_automate_heating:
-        friendly_name: Automatische Heizungssteuerung #   
+        friendly_name: Automatische Heizsteuerung #   
         value_template: "{% if states.input_boolean.automate_heating.state %}{{ is_state('input_boolean.automate_heating', 'on') }}{% endif %}"
         turn_on:
           service: homeassistant.turn_on
@@ -70,11 +133,112 @@ switch:
             mdi:ghost
           {% endif %}
 
-
 ###############################################################################
-#   Automations
+##  Scripts
+###############################################################################
+
+script:
+  set_mode_all:
+    # Sets mode <my_hvac_mode> for all themostats.
+    #   my_entity_id: climate.<id>
+    #   my_hvac_mode: {auto|heat} #"off" does not work
+    sequence:
+      # Wohnzimmer
+      - service: script.set_mode_thermostat
+        data_template:
+          my_entity_id: *thermostat_entityid_wz
+          my_hvac_mode: "{{ my_hvac_mode }}"
+      # Küche
+      - service: script.set_mode_thermostat
+        data_template:
+          my_entity_id: *thermostat_entityid_ku
+          my_hvac_mode: "{{ my_hvac_mode }}"
+      # Gästezimmer
+      - service: script.set_mode_thermostat
+        data_template:
+          my_entity_id: *thermostat_entityid_gz
+          my_hvac_mode: "{{ my_hvac_mode }}"
+  set_mode_thermostat:
+    # Sets mode <my_hvac_mode> for the themostat <my_entity_id>.
+    #   my_entity_id: climate.<id>
+    #   my_hvac_mode: {auto|heat} #"off" does not work
+    sequence:
+      # Wohnzimmer
+      - service: climate.set_hvac_mode
+        data_template:
+          entity_id: "{{ my_entity_id }}"
+          hvac_mode: "{{ my_hvac_mode }}"
+
+  set_profile_all:
+    sequence:
+      # Wohnzimmer
+      - service_template: >-
+          {% if my_profile_no == 3 %}
+            script.set_profile3_thermostat
+          {% elif my_profile_no == 2 %}
+            script.set_profile2_thermostat
+          {% else %}
+            script.set_profile1_thermostat
+          {% endif %}
+        data_template:
+          my_thermostat_id: *thermostat_id_wz
+          #my_profile_no: {{my_profile_no}}
+      # Küche
+      - service_template: >-
+          {% if my_profile_no == 3 %}
+            script.set_profile3_thermostat
+          {% elif my_profile_no == 2 %}
+            script.set_profile2_thermostat
+          {% else %}
+            script.set_profile1_thermostat
+          {% endif %}
+        data_template:
+          my_thermostat_id: *thermostat_id_ku
+      # Gästezimmer
+      - service_template: >-
+          {% if my_profile_no == 3 %}
+            script.set_profile3_thermostat
+          {% elif my_profile_no == 2 %}
+            script.set_profile2_thermostat
+          {% else %}
+            script.set_profile1_thermostat
+          {% endif %}
+        data_template:
+          my_thermostat_id: *thermostat_id_gz
+  set_profile1_thermostat:
+    sequence:
+      - service_template: homematic.set_device_value
+        data_template:
+          address: "{{ my_thermostat_id }}" #"000C9A499B5808"
+        #  value: {{ my_thermostat_profile_no | int }} #unfortunately, template always returns a string. int is expected.
+          value: *default_profile
+          channel: 1
+          param: "ACTIVE_PROFILE"
+          interface: "hmip"
+  set_profile2_thermostat:
+    sequence:
+      - service_template: homematic.set_device_value
+        data_template:
+          address: "{{ my_thermostat_id }}" 
+          value: *home_profile
+          channel: 1
+          param: "ACTIVE_PROFILE"
+          interface: "hmip"
+  set_profile3_thermostat:
+    sequence:
+      - service_template: homematic.set_device_value
+        data_template:
+          address: "{{ my_thermostat_id }}" 
+          value: *guest_profile
+          channel: 1
+          param: "ACTIVE_PROFILE"
+          interface: "hmip"
+          
+###############################################################################
+##  Automations
 ###############################################################################
 automation:
+  #-----------------------------
   # anderes Heizprofil für Gäste
   - id: activate_guest_heating
     alias: Change to guest heating profile
@@ -83,7 +247,7 @@ automation:
         entity_id: input_boolean.guests
         to: "on"
     condition:
-      # nur bei aktiver Heizperiode und aktiver Automatisierung
+      # nur bei aktiver Heizperiode UND aktiver Automatisierung
       condition: and
       conditions:
       - condition: state
@@ -94,19 +258,13 @@ automation:
         state: 'on'
     action:
       # Automatik-Modus
-      - service: climate.set_hvac_mode
+      - service: script.set_mode_all
         data:
-          entity_id: climate.000c9a499b5808
-          hvac_mode: auto
-      # Wochenprofil 1
-      - service: homematic.set_device_value
+          my_hvac_mode: auto
+      # Wochenprofil 3
+      - service: script.set_profile_all
         data:
-          address: "000C9A499B5808"
-          channel: 1
-          param: "ACTIVE_PROFILE"
-          interface: "hmip"
-          value: 3
-  # anderes Heizprofil für Gäste
+          my_profile_no: *guest_profile
   - id: restore_family_heating
     alias: Change to normal heating profile
     trigger:
@@ -124,14 +282,12 @@ automation:
         entity_id: input_boolean.automate_heating
         state: 'on'
     action:
-      - service: homematic.set_device_value
+      # Wochenprofil 1
+      - service: script.set_profile_all
         data:
-          address: "000C9A499B5808"
-          channel: 1
-          param: "ACTIVE_PROFILE"
-          interface: "hmip"
-          value: 1
+          my_profile_no: *default_profile
 
+  #------------------------------------
   # Offene Fenster-Erkennung WOHNZIMMER
   # mindestens eine Tür im WZ offen --> Fensterstatus im Thermostat auf 1 setzen.
   - id: windows_wz_opened
@@ -153,7 +309,7 @@ automation:
     action:
       - service: homematic.set_device_value
         data:
-          address: "000C9A499B5808"
+          address: *thermostat_id_wz
           channel: 1
           param: "WINDOW_STATE"
           interface: "hmip"
@@ -173,66 +329,110 @@ automation:
     action:
       - service: homematic.set_device_value
         data:
-          address: "000C9A499B5808"
+          address: *thermostat_id_wz
           channel: 1
           param: "WINDOW_STATE"
           interface: "hmip"
-          value: 0 # =zu
+          value: 0 # =geschlossen
 
-  # Start and End of heating period: 
-  #   start: turn on automatic mode
-  #   end:   set manuell mode to temp=6°C
-  - id: stop_heating
-    alias: Stop Heating
+  # Offene Fenster-Erkennung KÜCHE
+  # mindestens eine Tür in Küche/Büro offen --> Fensterstatus im Thermostat auf 1 setzen.
+  - id: windows_ku_opened
+    alias:  Set window state KU open
     trigger:
       - platform: state
+        entity_id: group.doors_kitchen_office
+        to: "on"
+    condition:
+      # nur bei aktiver Heizperiode und aktiver Automatisierung
+      condition: and
+      conditions:
+      - condition: state
         entity_id: input_boolean.heating_period
-        to: "off"    
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.automate_heating
+        state: 'on'
     action:
-      # Manuell-Modus ('Aus' geht nicht) und...
-      - service: climate.set_hvac_mode
-        data:
-          entity_id: climate.000c9a499b5808
-          hvac_mode: heat
-      # ...Ziel-Temperatur 'sehr gering'
-      - service: climate.set_temperature
-        data:
-          entity_id: climate.000c9a499b5808
-          temperature: 6
-          hvac_mode: heat #'off' does not work
-
-  - id: start_heating
-    alias: Start Heating
-    trigger:
-    - platform: state
-      entity_id: input_boolean.heating_period
-      to: "on"
-    action:
-      # Automatik-Modus
-      - service: climate.set_hvac_mode
-        data:
-          entity_id: climate.000c9a499b5808
-          hvac_mode: auto
-      # Wochenprofil 1
       - service: homematic.set_device_value
         data:
-          address: "000C9A499B5808"
-          channel: 1
-          param: "ACTIVE_PROFILE"
-          interface: "hmip"
-          value: 1
-      # Fensterstatus auf 'zu' setzen (falls noch offen)
-      - service: homematic.set_device_value
-        data:
-          address: "000C9A499B5808"
+          address: *thermostat_id_ku
           channel: 1
           param: "WINDOW_STATE"
           interface: "hmip"
-          value: 0
+          value: 1 # =offen
+  # alle Türen in Küche/Büro zu --> Fensterstatus im Thermostat auf 0 setzen.
+  - id: windows_ku_closed
+    alias:  Set window state KU closed
+    trigger:
+      - platform: state
+        entity_id: group.doors_kitchen_office
+        to: "off"
+    condition:
+      # nur bei aktiver Heizperiode (Fenster-Status wieder 'zu' auch ohne aktive Automatisierung)
+      - condition: state
+        entity_id: input_boolean.heating_period
+        state: 'on'
+    action:
+      - service: homematic.set_device_value
+        data:
+          address: *thermostat_id_ku
+          channel: 1
+          param: "WINDOW_STATE"
+          interface: "hmip"
+          value: 0 # =geschlossen
 
+  # Offene Fenster-Erkennung GÄSTEZIMMER
+  # Tür im Gästezimmer offen --> Fensterstatus im Thermostat auf 1 setzen.
+  - id: window_gz_opened
+    alias: Set window state GZ open
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.lumi_lumi_sensor_magnet_aq2_031b3225_1_6
+        to: "on"
+    condition:
+      # nur bei aktiver Heizperiode und aktiver Automatisierung
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.heating_period
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.automate_heating
+        state: 'on'
+    action:
+      - service: homematic.set_device_value
+        data:
+          address: *thermostat_id_gz
+          channel: 1
+          param: "WINDOW_STATE"
+          interface: "hmip"
+          value: 1 # =offen
+  # Tür in Gästezimmer zu --> Fensterstatus im Thermostat auf 0 setzen.
+  - id: window_gz_closed
+    alias:  Set window state KU closed
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.lumi_lumi_sensor_magnet_aq2_031b3225_1_6
+        to: "off"
+    condition:
+      # nur bei aktiver Heizperiode (Fenster-Status wieder 'zu' auch ohne aktive Automatisierung)
+      - condition: state
+        entity_id: input_boolean.heating_period
+        state: 'on'
+    action:
+      - service: homematic.set_device_value
+        data:
+          address: *thermostat_id_gz
+          channel: 1
+          param: "WINDOW_STATE"
+          interface: "hmip"
+          value: 0 # =geschlossen
+
+  #-------------------------------------------------------
   # pause & resume heating when leaving and returning home
   - id: pause_heating_when_leaving
-    alias: Pause Heating if leaving
+    alias: Pause heating if leaving
     trigger:
       - platform: state
         entity_id: sensor.home_status
@@ -245,26 +445,51 @@ automation:
       conditions:
       # nur bei aktiver Heizperiode und aktiver Automatisierung
       - condition: state
-        entity_id: input_boolean.automate_heating
-        state: 'on'
-      - condition: state
         entity_id: input_boolean.heating_period
         state: 'on'
+      - condition: state
+        entity_id: input_boolean.automate_heating
+        state: 'on'
     action:
+    # Wohnzimmer
       # Manuell-Modus
       - service: climate.set_hvac_mode
         data:
-          entity_id: climate.000c9a499b5808
+          entity_id: *thermostat_entityid_wz
           hvac_mode: heat
       # Ziel-Themperatur auf Energiespar-Wert
       - service: climate.set_temperature
         data:
-          entity_id: climate.000c9a499b5808
-          temperature: 17 #todo: wert evtl aus Thermostat auslesen
+          entity_id: *thermostat_entityid_wz
+          temperature: *energy_saving_temp
+          hvac_mode: heat #'off' does not work
+    # Küche
+      # Manuell-Modus
+      - service: climate.set_hvac_mode
+        data:
+          entity_id: *thermostat_entityid_ku
+          hvac_mode: heat
+      # Ziel-Themperatur auf Energiespar-Wert
+      - service: climate.set_temperature
+        data:
+          entity_id: *thermostat_entityid_ku
+          temperature: *energy_saving_temp
+          hvac_mode: heat #'off' does not work
+    # Gästezimmer
+      # Manuell-Modus
+      - service: climate.set_hvac_mode
+        data:
+          entity_id: *thermostat_entityid_gz
+          hvac_mode: heat
+      # Ziel-Themperatur auf Energiespar-Wert
+      - service: climate.set_temperature
+        data:
+          entity_id: *thermostat_entityid_gz
+          temperature: *energy_saving_temp
           hvac_mode: heat #'off' does not work
 
-  - id: restart_heating_when_arriving
-    alias: Pause Heating when arriving
+  - id: resume_heating_when_arriving
+    alias: Resume heating when arriving
     trigger:
       - platform: state
         entity_id: sensor.home_status
@@ -274,14 +499,167 @@ automation:
       condition: and
       conditions:
       - condition: state
-        entity_id: input_boolean.automate_heating
-        state: 'on'
-      - condition: state
         entity_id: input_boolean.heating_period
         state: 'on'
+      - condition: state
+        entity_id: input_boolean.automate_heating
+        state: 'on'
     action:
+    # Wohnzimmer
       # Automatik-Modus
       - service: climate.set_hvac_mode
         data:
-          entity_id: climate.000c9a499b5808
+          entity_id: *thermostat_entityid_wz
           hvac_mode: auto
+    # Küche
+      # Automatik-Modus
+      - service: climate.set_hvac_mode
+        data:
+          entity_id: *thermostat_entityid_ku
+          hvac_mode: auto
+    # Gästezimmer
+      # Automatik-Modus
+      - service: climate.set_hvac_mode
+        data:
+          entity_id: *thermostat_entityid_gz
+          hvac_mode: auto
+
+  #----------------------------------------
+  # Start and End of heating period: 
+  #   start: turn on automatic mode
+  #   end:   set manuell mode to temp=4.5°C
+  - id: stop_heating
+    alias: Stop Heating
+    trigger:
+      - platform: state
+        entity_id: input_boolean.heating_period
+        to: "off"    
+    action:
+    # Wohnzimmer
+      # Manuell-Modus ('Aus' geht nicht) und...
+      - service: climate.set_hvac_mode
+        data:
+          entity_id: *thermostat_entityid_wz
+          hvac_mode: heat
+      # ...Ziel-Temperatur 'sehr gering'
+      - service: climate.set_temperature
+        data:
+          entity_id: *thermostat_entityid_wz
+          temperature: *heating_off_temp
+          hvac_mode: heat #'off' does not work
+    # Küche
+      # Manuell-Modus ('Aus' geht nicht) und...
+      - service: climate.set_hvac_mode
+        data:
+          entity_id: *thermostat_entityid_ku
+          hvac_mode: heat
+      # ...Ziel-Temperatur 'sehr gering'
+      - service: climate.set_temperature
+        data:
+          entity_id: *thermostat_entityid_ku
+          temperature: *heating_off_temp
+          hvac_mode: heat #'off' does not work
+    # Gästezimmer
+      # Manuell-Modus ('Aus' geht nicht) und...
+      - service: climate.set_hvac_mode
+        data:
+          entity_id: *thermostat_entityid_gz
+          hvac_mode: heat
+      # ...Ziel-Temperatur 'sehr gering'
+      - service: climate.set_temperature
+        data:
+          entity_id: *thermostat_entityid_gz
+          temperature: *heating_off_temp
+          hvac_mode: heat #'off' does not work
+
+  - id: start_heating
+    alias: Start Heating
+    trigger:
+    - platform: state
+      entity_id: input_boolean.heating_period
+      to: "on"
+    action:
+    # Wohnzimmer
+      # Voreinstellung für 'heat'-Modus
+      - service: climate.set_temperature
+        data:
+          entity_id: *thermostat_entityid_wz
+          temperature: 20
+          hvac_mode: heat #'off' does not work
+      # Automatik-Modus
+      - service: climate.set_hvac_mode
+        data:
+          entity_id: *thermostat_entityid_wz
+          hvac_mode: auto
+      # Wochenprofil 1
+      - service: homematic.set_device_value
+        data:
+          address: *thermostat_id_wz
+          channel: 1
+          param: "ACTIVE_PROFILE"
+          interface: "hmip"
+          value: *default_profile
+      # Fensterstatus auf 'zu' setzen (falls noch offen)
+      - service: homematic.set_device_value
+        data:
+          address: *thermostat_id_wz
+          channel: 1
+          param: "WINDOW_STATE"
+          interface: "hmip"
+          value: 0 # =geschlossen
+    # Küche
+      # Voreinstellung für 'heat'-Modus
+      - service: climate.set_temperature
+        data:
+          entity_id: *thermostat_entityid_ku
+          temperature: 20
+          hvac_mode: heat #'off' does not work
+      # Automatik-Modus
+      - service: climate.set_hvac_mode
+        data:
+          entity_id: *thermostat_entityid_ku
+          hvac_mode: auto
+      # Wochenprofil 1
+      - service: homematic.set_device_value
+        data:
+          address: *thermostat_id_ku
+          channel: 1
+          param: "ACTIVE_PROFILE"
+          interface: "hmip"
+          value: *default_profile
+      # Fensterstatus auf 'zu' setzen (falls noch offen)
+      - service: homematic.set_device_value
+        data:
+          address: *thermostat_id_ku
+          channel: 1
+          param: "WINDOW_STATE"
+          interface: "hmip"
+          value: 0 # =geschlossen
+    # Gästezimmer
+      # Voreinstellung für 'heat'-Modus
+      - service: climate.set_temperature
+        data:
+          entity_id: *thermostat_entityid_gz
+          temperature: 20
+          hvac_mode: heat #'off' does not work
+      # Automatik-Modus
+      - service: climate.set_hvac_mode
+        data:
+          entity_id: *thermostat_entityid_gz
+          hvac_mode: auto
+      # Wochenprofil 1
+      - service: homematic.set_device_value
+        data:
+          address: *thermostat_id_gz
+          channel: 1
+          param: "ACTIVE_PROFILE"
+          interface: "hmip"
+          value: *default_profile
+      # Fensterstatus auf 'zu' setzen (falls noch offen)
+      - service: homematic.set_device_value
+        data:
+          address: *thermostat_id_gz
+          channel: 1
+          param: "WINDOW_STATE"
+          interface: "hmip"
+          value: 0 # =geschlossen

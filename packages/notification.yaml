@@ -6,6 +6,41 @@
 #   @links        : 
 ###############################################################################
 
+#todo
+ios:
+  push:
+    categories:
+      - name: YesNo
+        identifier: yesno
+        actions:
+          - identifier: 'YES'
+            title: 'Ja'
+          - identifier: 'NO'
+            title: 'Nein'
+      - name: YesLater
+        identifier: yeslater
+        actions:
+          - identifier: 'YES'
+            title: 'Done'
+          - identifier: 'LATER'
+            title: 'Später'
+
+################################################
+##  Customize
+################################################
+homeassistant:
+  customize:
+  # definitions
+    package.node_anchors:
+      common: &common
+        package: "notification"
+  # sensors
+    sensor.count_notification_alerts:
+      <<: *common
+
+################################################
+##   Platforms
+################################################
 notify:
 # Definition der Gruppe von Geräten, die benachrichtigt werden sollen,
   - name: family_main_devices
@@ -55,6 +90,9 @@ notify:
     sender_name: My Home Assistant
 
 
+###############################################################################
+##  Sensors
+###############################################################################
 # sensor counts all active alerts for numbering the badge
 #   more alerts can be integrated!
 sensor:

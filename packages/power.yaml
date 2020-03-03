@@ -7,12 +7,26 @@
 ###############################################################################
 
 ################################################
-## Platforms
+##  Customize
 ################################################
-
-################################################
-## Customize
-################################################
+homeassistant:
+  customize:
+  # definitions
+    package.node_anchors:
+      common: &common
+        package: "power"
+  # groups, variables
+    input_boolean.disable_power_automation:
+      <<: *common
+  # automations
+    #automation.power_down_mediarack:
+    #  <<: *common
+    #automation.power_up_mediarack:
+    #  <<: *common
+    automation.switch_off_lights:
+      <<: *common
+    automation.switch_on_lights:
+      <<: *common
 
 ###############################################################################
 #                               Variables
@@ -20,17 +34,24 @@
 input_boolean:
   disable_power_automation:
     name: Stromabschaltung deaktivieren
-#    initial: on #default: Auto aus, da Plug sonst scheinbar das ZigBee Routing stoppt.
+    icon: mdi:robot
 
-################################################
+    #initial: on #default: Auto aus, da Plug sonst scheinbar das ZigBee Routing stoppt.
 
 ###############################################################################
 #                               Automations
 ###############################################################################
+#alt:
+#  - id: power_down_mediarack
+#    alias: switch off media rack
+#  - id: power_up_mediarack
+#    alias: switch on media rack
+
 automation:
-  - id: power_down_mediarack
-    alias: switch off media rack
-    trigger:
+  # Ausschalten von ___ wenn wir für 10min weg sind oder nachts um 00:00
+  - id: switch_off_lights
+    alias: switch off welcome light
+    trigger: 
     - platform: state
       entity_id: sensor.home_status
       from: 'Home'
@@ -40,14 +61,22 @@ automation:
     - platform: state
       entity_id: input_boolean.disable_power_automation
       to: 'off'
+    - platform: time 
+      at: '00:05:00'
     - platform: homeassistant
       event: start
     condition:
+      # 'power_automation' aktiv UND (Home status away ODER nach 0:00)
       condition: and
       conditions:
-      - condition: state
-        entity_id: sensor.home_status
-        state: 'Away'
+      - condition: or
+        conditions:
+        - condition: state
+          entity_id: sensor.home_status
+          state: 'Away'
+        - condition: time
+          after: '00:00:00'
+          before: '06:00:00'
       - condition: state
         entity_id: input_boolean.disable_power_automation
         state: 'off'
@@ -55,8 +84,8 @@ automation:
     - service: switch.turn_off
       entity_id: switch.osram_plug_01_a1bf020a_3
 
-  - id: power_up_mediarack
-    alias: switch on media rack
+  - id: switch_on_lights
+    alias: switch on welcome light
     trigger:
       - platform: state
         entity_id: sensor.home_status

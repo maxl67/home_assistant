@@ -1,5 +1,96 @@
-# https://github.com/kalkih/mini-graph-card
-# https://www.home-assistant.io/lovelace/entities/
+anchors:
+  colours:
+    #dark_gray: &dark_gray "#3d3d3d"
+    #dark_yellow: &dark_yellow "#91920e"
+    #dark_blue: &dark_blue "#0d0099"
+    blue: &blue "#3090C7" #oder "#2980b9"
+    green: &green "#009A00"
+    #yellow: &yellow "#f0e91f"
+    light_orange: &light_orange "#f4ad01"
+    orange: &orange "#e39a24" #oder "#f39c12" 
+    dark_orange: &dark_orange "#d35400"
+    dark_red: &dark_red "#c0392b"
+
+  #https://github.com/kalkih/mini-graph-card
+  graphs_range: &graphs_range
+    #range
+    hours_to_show: 24 #<=168
+  graphs_format: &graphs_format
+    hour24: true
+    line_width: 2
+    font_size: 65
+
+  graph_bandwidth: &graph_bandwidth
+    <<: *graphs_range
+    points_per_hour: 2
+    #formatting
+    <<: *graphs_format
+    group: false
+    show:
+      state: true
+      labels: true
+    #  extrema: true
+      icon_adaptive_color: true
+
+  graph_rpi_cpu: &graph_rpi_cpu
+    <<: *graphs_range
+    points_per_hour: 12
+    #formatting
+    <<: *graphs_format
+    group: false
+    show:
+      state: true
+      labels: true
+      icon_adaptive_color: true
+    show_points: false
+    decimals: 0
+    color_thresholds:
+      - value: 0
+        color: *green
+      - value: 40
+        color: *orange 
+      - value: 60
+        color: *dark_orange
+      - value: 80
+        color: *dark_red
+
+  graph_rpi_temp: &graph_rpi_temp
+    <<: *graphs_range
+    points_per_hour: 4
+    #formatting
+    <<: *graphs_format
+    group: false
+    show:
+      state: true
+      labels: true
+      icon_adaptive_color: true
+    show_points: false
+    decimals: 0
+    color_thresholds:
+      - value: 0
+        color: *green
+      - value: 60
+        color: *orange 
+      - value: 65
+        color: *dark_orange
+      - value: 70
+        color: *dark_red
+
+  dataset_internet_ping: &dataset_internet_ping
+    name: ping
+    y_axis: secondary
+    color: gray
+    show_points: false
+    show_line: false
+
+  style_entitycard_header: &style_header
+    style: |
+      .card-header {
+        font-size: 20px;
+        padding: 10px 16px;
+      }
+
+#---------------------------------
 id: network
 title: Netzwerk
 path: network
@@ -9,6 +100,7 @@ cards:
   - type: custom:vertical-stack-in-card
     cards:
       - type: entities
+        <<: *style_header
         title: FritzBox (6490)
         show_header_toggle: false
         entities:
@@ -16,27 +108,24 @@ cards:
             head:
               type: section
               label: Provider
+            padding: 0 px
             open: false
             entities:
             - entity: sensor.fritz_last_boot
               type: custom:multiple-entity-row
               name: letzter Connect
-              primary:
-                entity: sensor.fritz_uptime
+              entities:
+              - entity: sensor.fritz_uptime
                 name: uptime 
             - entity: sensor.fritzbox #fritz_is_linked
-              type: custom:multiple-entity-row
               name: Verbindung
               icon: mdi:wan
-              primary:
-                entity: sensor.fritz_wan_access_type
-                name: type 
             - entity: sensor.fritz_external_ip
               type: custom:multiple-entity-row
               name: IPv4
               secondary_info: last-changed
-              primary:
-                entity: sensor.fritz_is_connected
+              entities:
+              - entity: sensor.fritz_is_connected
                 name: internet
           - type: section
             #- entity: sensor.fritz_rate_up
@@ -48,81 +137,52 @@ cards:
           - type: custom:mini-graph-card
             name: Download
             icon: mdi:transfer-down
-            decimals: 0
-            group: false
-            show:
-              state: true
-              labels: true
-            #  extrema: true
-              icon_adaptive_color: true
-            points_per_hour: 2 #0.5
-            hours_to_show: 24
-            hour24: true
-            lower_bound: 0
-            upper_bound: 160
-            font_size: 65
-            color_thresholds:
-              - value: 0
-                color: "#c0392b" #red
-              - value: 100
-                color: "#d35400" #dark orange
-              - value: 120
-                color: "#f39c12" #dark yellow
-              - value: 140
-                color: green
             entities:
               - entity: sensor.speedtest_download
                 name: bandw #idth
               - entity: sensor.fritz_rate_down
                 name: rate
-                color: '#3090C7'
-            #  - entity: sensor.fritz_rate_down_max
-            #    name: rate max
+                color: *blue
               - entity: sensor.speedtest_ping
-                name: ping
-                y_axis: secondary
-                color: gray
-                show_points: false
-                show_line: false
+                <<: *dataset_internet_ping
+            <<: *graph_bandwidth
+            decimals: 0
+            lower_bound: 0
+            upper_bound: 160
+            color_thresholds:
+              - value: 0
+                color: *dark_red
+              - value: 100
+                color: *dark_orange
+              - value: 120
+                color: *light_orange
+              - value: 140
+                color: *green
+
           - type: custom:mini-graph-card
             name: Upload
             icon: mdi:transfer-up
-            decimals: 1
-            group: false
-            show:
-              state: true
-              labels: true
-            #  extrema: true
-              icon_adaptive_color: true
-            points_per_hour: 2 #0.5
-            hours_to_show: 24
-            hour24: true
-            lower_bound: 0
-            upper_bound: 12
-            font_size: 65
-            color_thresholds:
-              - value: 0
-                color: "#c0392b" #red
-              - value: 8
-                color: "#d35400" #dark orange
-              - value: 8.75
-                color: "#f39c12" #dark yellow
-              - value: 9.5
-                color: green
             entities:
               - entity: sensor.speedtest_upload
                 name: bandw #idth
               - entity: sensor.fritz_rate_up
                 name: rate
-                color: '#3090C7'
-            #  - entity: sensor.fritz_rate_up_max
-            #    name: rate max
+                color: *blue
               - entity: sensor.speedtest_ping
-                name: ping
-                y_axis: secondary
-                color: gray
-                show_points: false
-                show_line: false
+                <<: *dataset_internet_ping
+            <<: *graph_bandwidth
+            decimals: 1
+            lower_bound: 0
+            upper_bound: 12
+            color_thresholds:
+              - value: 0
+                color: *dark_red
+              - value: 8
+                color: *dark_orange
+              - value: 8.75
+                color: *light_orange #"#f39c12" #dark yellow
+              - value: 9.5
+                color: *green
 
 #      - type: entities
 #        title: Speedtest.Net
@@ -135,6 +195,7 @@ cards:
   # ========== DISK STATION ==============
   - type: entities
     title: Hera (DS916+)
+    <<: *style_header
     show_header_toggle: false
     entities:
       - type: custom:fold-entity-row
@@ -142,6 +203,7 @@ cards:
           type: section
           label: System
         open: true
+        padding: 0 px
         entities:
         - entity: sensor.last_boot
           name: letzter Systemstart
@@ -153,48 +215,45 @@ cards:
           type: custom:multiple-entity-row
           name: CPU Load
           secondary_info: last-changed
-          primary:
-#            entity: sensor.hera_dsm_avg_processes_5_min
-#            name: proc load 5' 
-#          secondary:
-            entity: sensor.hera_dsm_avg_processes_15_min
+          entities:
+          #- entity: sensor.hera_dsm_avg_processes_5_min
+          #  name: proc load 5' 
+          - entity: sensor.hera_dsm_avg_processes_15_min
             name: proc load 15' 
         - entity: sensor.hera_dsm_memory_usage_real
           name: Memory Usage
           secondary_info: last-changed
           type: custom:multiple-entity-row
-          primary:
-            entity: sensor.memory_free
+          entities:
+          - entity: sensor.memory_free
             name: free
-#        - type: section
-#          label: Volume 1
       - type: custom:fold-entity-row
         head:
           type: section
           label: Volume 1
         open: true
+        padding: 0 px
         entities:
         - entity: sensor.hera_dsm_status_volume_1
           name: Status Volume 1
           icon: mdi:database-check
           type: custom:multiple-entity-row
           secondary_info: last-changed
-          primary:
-#              entity: sensor.hera_dsm_maximum_disk_temp_volume_1 # shows always 0° 
-            entity: sensor.maximum_disk_temp_volume_1 #own calculated max sensor.
+          state_header: state
+          entities:
+          #- entity: sensor.hera_dsm_maximum_disk_temp_volume_1 # shows always 0° 
+          - entity: sensor.maximum_disk_temp_volume_1 #own calculated max sensor.
             name: max temp
-          #secondary:
-          #  entity: sensor.hera_dsm_average_disk_temp_volume_1
+          #- entity: sensor.hera_dsm_average_disk_temp_volume_1
           #  name: avg temp
         - entity: sensor.hera_dsm_volume_used_volume_1
           type: custom:multiple-entity-row
           name: Usage Volume 1
           icon: mdi:chart-pie
-          primary:
-            entity: sensor.hera_dsm_used_space_volume_1
+          entities:
+          - entity: sensor.hera_dsm_used_space_volume_1
             name: Used
-          secondary:
-            entity: sensor.hera_dsm_total_size_volume_1
+          - entity: sensor.hera_dsm_total_size_volume_1
             name: Size
       # List of Disks
       - type: custom:fold-entity-row
@@ -202,32 +261,34 @@ cards:
           type: section
           label: Disks
         open: false
+        padding: 0 px
         entities:
-#        - type: section
-#          label: Disks 
         - entity: sensor.hera_dsm_status_sda
           type: custom:multiple-entity-row
           icon: mdi:harddisk
           name: Disk1 (sda)
           secondary_info: last-changed
-          primary:
-            entity: sensor.hera_dsm_temperature_sdb
+          state_header: state
+          entities:
+          - entity: sensor.hera_dsm_temperature_sdb
             name: temp
         - entity: sensor.hera_dsm_status_sda
           type: custom:multiple-entity-row
           icon: mdi:harddisk
           name: Disk2 (sdb)
           secondary_info: last-changed
-          primary:
-            entity: sensor.hera_dsm_temperature_sdb
+          state_header: state
+          entities:
+          - entity: sensor.hera_dsm_temperature_sdb
             name: temp
         - entity: sensor.hera_dsm_status_sdc
           type: custom:multiple-entity-row
           icon: mdi:harddisk
           name: Disk3 (sdc)
           secondary_info: last-changed
-          primary:
-            entity: sensor.hera_dsm_temperature_sdc
+          state_header: state
+          entities:
+          - entity: sensor.hera_dsm_temperature_sdc
             name: temp
 
   # ========== Home Assistant ==============
@@ -239,8 +300,9 @@ cards:
         type: custom:multiple-entity-row
         name: Aktuelle Version
         icon: mdi:home-assistant
-        primary:
-          entity: sensor.latest_version
+        state_header: current
+        entities:
+        - entity: sensor.latest_version
           name: latest
       - entity: sensor.hacs
         name: HACS updates
@@ -252,12 +314,26 @@ cards:
   - type: entities
     title: Login
     show_header_toggle: false
+    style: 
+      .: |
+        ha-card {
+          border-radius: 0px;
+          border: solid 1px rgba(255, 255, 255, 0.15);
+        }
+      "#states > div:nth-child(1) > fold-entity-row":
+        $:
+         "#head > entity-row-maker > hui-section-row":
+           $: |
+             div.divider {
+               height: 0px;
+             }
     entities:
       - type: custom:fold-entity-row
         head:
           type: section
           label: intern
         open: false
+        padding: 0 px
         entities:
           - type: weblink
             url: https://fritz.box
@@ -282,6 +358,7 @@ cards:
           type: section
           label: extern
         open: false
+        padding: 0 px
         entities:
           - type: weblink
             url: https://wkj60fbqxmykyvov.myfritz.net:8441/
@@ -295,7 +372,6 @@ cards:
             url: https://unifi.maxing.myds.me
             icon: mdi:access-point-network
             name: Unifi Controller (ext)
-
 
   # ========== Devices ==============
   - type: glance
@@ -318,7 +394,6 @@ cards:
 #      - entity: binary_sensor.radiobad
 #        name: Bad-Radio
 
-
   # ========== Raspberry Pi's ==============
   # ---- Raspi 1 ----
   - type: conditional
@@ -326,7 +401,7 @@ cards:
       - entity: binary_sensor.rpi_ost
         state: "on"
     card:
-      type: 'custom:vertical-stack-in-card'
+      type: custom:vertical-stack-in-card
       cards:
         - type: entities
           title: Raspi1 (RPi 4b)
@@ -337,6 +412,7 @@ cards:
               type: section
               label: System
             open: false
+            padding: 0 px
             entities:
             - entity: sensor.raspi1lastboot
               name: letzter Systemstart
@@ -352,54 +428,12 @@ cards:
                 - sensor.raspi1cpuusage
               name: CPU
               icon: mdi:cpu-64-bit
-              line_color: '#2980b9'
-              line_width: 2
-              hours_to_show: 24
-              points_per_hour: 12
-              show_points: false
-              decimals: 0
-              group: false
-              show:
-                state: true
-                labels: true
-                icon_adaptive_color: true
-              hour24: true
-              font_size: 65
-              color_thresholds:
-                - value: 0
-                  color: "#008000" #green
-                - value: 40
-                  color: "#f39c12" #dark yellow
-                - value: 60
-                  color: "#d35400" #dark orange
-                - value: 80
-                  color: "#c0392b" #red
+              <<: *graph_rpi_cpu
             - type: custom:mini-graph-card
               entities:
                 - sensor.raspi1temperature
               name: Temp
-              line_color: '#e39a24'
-              line_width: 2
-              hours_to_show: 24
-              points_per_hour: 4
-              show_points: false
-              decimals: 0
-              group: false
-              show:
-                state: true
-                icon_adaptive_color: true
-                labels: true
-              hour24: true
-              font_size: 65
-              color_thresholds:
-                - value: 0
-                  color: "#008000" #green
-                - value: 60
-                  color: "#f39c12" #dark yellow
-                - value: 65
-                  color: "#d35400" #dark orange
-                - value: 70
-                  color: "#c0392b" #red
+              <<: *graph_rpi_temp
         - type: custom:bar-card
           entities:
             - entity: sensor.raspi1memoryuse
@@ -408,7 +442,7 @@ cards:
               show_icon: true
             - entity: sensor.raspi1diskuse
               title: HDD
-              color: '#2980b9'
+              color: *blue
               icon: mdi:sd
               show_icon: true
           align: split
@@ -430,7 +464,7 @@ cards:
       - entity: binary_sensor.rpi_west
         state: "on"
     card:
-      type: 'custom:vertical-stack-in-card'
+      type: custom:vertical-stack-in-card
       cards:
         - type: entities
           title: Raspi2 (RPi 3b+)
@@ -441,6 +475,7 @@ cards:
               type: section
               label: System
             open: false
+            padding: 0 px
             entities:
             - entity: sensor.raspi2lastboot
               name: letzter Systemstart
@@ -453,6 +488,7 @@ cards:
               type: section
               label: HomeMatic piVCCU 
             open: false
+            padding: 0 px
             entities:
             - entity: sensor.hm_ccu_last_reboot
               name: letzter Reboot
@@ -470,54 +506,12 @@ cards:
                 - sensor.raspi2cpuusage
               name: CPU
               icon: mdi:cpu-64-bit
-              line_color: '#2980b9'
-              line_width: 2
-              hours_to_show: 24
-              points_per_hour: 12
-              show_points: false
-              decimals: 0
-              group: false
-              show:
-                state: true
-                labels: true
-                icon_adaptive_color: true
-              hour24: true
-              font_size: 65
-              color_thresholds:
-                - value: 0
-                  color: "#008000" #green
-                - value: 40
-                  color: "#f39c12" #dark yellow
-                - value: 60
-                  color: "#d35400" #dark orange
-                - value: 80
-                  color: "#c0392b" #red
+              <<: *graph_rpi_cpu
             - type: custom:mini-graph-card
               entities:
                 - sensor.raspi2temperature
               name: Temp
-              line_color: '#e39a24'
-              line_width: 2
-              hours_to_show: 24
-              points_per_hour: 4
-              show_points: false
-              decimals: 0
-              group: false
-              show:
-                state: true
-                labels: true
-                icon_adaptive_color: true
-              hour24: true
-              font_size: 65
-              color_thresholds:
-                - value: 0
-                  color: "#008000" #green
-                - value: 50
-                  color: "#f39c12" #dark yellow
-                - value: 60
-                  color: "#d35400" #dark orange
-                - value: 70
-                  color: "#c0392b" #red
+              <<: *graph_rpi_temp
         - type: custom:bar-card
           entities:
             - entity: sensor.raspi2memoryuse
@@ -526,7 +520,7 @@ cards:
               show_icon: true
             - entity: sensor.raspi2diskuse
               title: HDD
-              color: '#2980b9'
+              color: *blue
               icon: mdi:sd
               show_icon: true
           align: split

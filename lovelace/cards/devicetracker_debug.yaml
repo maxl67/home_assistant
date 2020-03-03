@@ -1,0 +1,28 @@
+type: glance
+title: Device Tracker
+entities:
+  - entity: device_tracker.iphone8_max_wifi
+    name: Max [WiFi]
+  - entity: device_tracker.iphone8_max_bt
+    name: Max [BT]
+  - entity: sensor.max_present_e
+    name: Max [O-Mon]
+    icon: mdi:set-left
+  - entity: sensor.max_present_w
+    name: Max [W-Mon]
+    icon: mdi:set-right
+  - entity: sensor.max_home_confidence
+    name: Max [Monitor]
+    #icon: mdi:set-left-right
+  - entity: device_tracker.iphone8_ing_wifi
+    name: Ing [WiFi]
+  - entity: device_tracker.iphone8_ing_bt
+    name: Ing [BT]
+  - entity: sensor.ing_present_e
+    name: Ing [O-Mon]
+    icon: mdi:set-left
+  - entity: sensor.ing_present_w
+    name: Ing [W-Mon]
+    icon: mdi:set-right
+  - entity: sensor.ing_home_confidence
+    name: Ing [Monitor]

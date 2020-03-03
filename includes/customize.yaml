@@ -34,3 +34,18 @@
   sensor.000c9a499b5808_humidity:
     battery_alert_disabled: true
     battery_sensor_creation_disabled: true
+  binary_sensor.000c9a499b5808_low_bat:
+    battery_alert_disabled: true
+    battery_sensor_creation_disabled: true
+  climate.000a1a49a107b5:
+    battery_alert_disabled: true
+    battery_sensor_creation_disabled: true
+  binary_sensor.000a1a49a107b5_low_bat:
+    battery_alert_disabled: true
+    battery_sensor_creation_disabled: true
+  climate.000a1a49a10ba3:
+    battery_alert_disabled: true
+    battery_sensor_creation_disabled: true
+  binary_sensor.000a1a49a10ba3_low_bat:
+    battery_alert_disabled: true
+    battery_sensor_creation_disabled: true

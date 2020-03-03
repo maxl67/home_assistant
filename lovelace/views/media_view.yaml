@@ -3,16 +3,11 @@ title: Media
 path: media
 icon: mdi:library-movie
 cards:
-  - type: entities
-    title: Media Rack
-    show_header_toggle: false
-    entities:
-      - entity: switch.osram_plug_01_a1bf020a_3
-        name: Gesamtschalter
-      - entity: sensor.osram_plug_01_a1bf020a_3_2820
-
   - type: media-control
     entity: media_player.samsungtv
 
-  - type: media-control
-    entity: media_player.frontier_silicon
+#  - type: media-control
+#    entity: media_player.samsungtv_2
+
+#  - type: media-control
+#    entity: media_player.frontier_silicon

@@ -4,7 +4,7 @@ path: zha_table
 icon: mdi:zigbee
 panel: true
 cards:
-  - type: 'custom:zha-network-card'
+  - type: custom:zha-network-card
     clickable: true
     columns:
       - name: Name

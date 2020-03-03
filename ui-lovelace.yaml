@@ -1,6 +1,10 @@
 # General information
 #   https://github.com/thomasloven/hass-config/wiki/Misc-tricks#cardelemententity-row-triality
 #   http://thomasloven.com/blog/2018/08/YAML-For-Nonprogrammers/
+#   https://github.com/thomasloven/hass-config/wiki
+#
+# aufteilung und wiederholung
+# https://community.home-assistant.io/t/card-mod-add-css-styles-to-any-lovelace-card/120744/341
 ##
 title: Home Max&Ing
 resources:
@@ -29,6 +33,10 @@ resources:
     type: module
   - url: /community_plugin/bar-card/bar-card.js
     type: js
+  - url: /community_plugin/calendar-card/calendar-card.js
+    type: js
+  - url: /community_plugin/lovelace-card-mod/card-mod.js
+    type: module
   # Repo: https://github.com/sgttrs/lovelace-weather-card-chart
   - url: /community_plugin/lovelace-weather-card-chart/weather-card-chart.js
     type: module

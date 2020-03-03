@@ -12,12 +12,46 @@
 # https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/objekteinbindung.html
 ###############################################################################
 
+################################################
+##  Customize
+################################################
 homeassistant:
-  customize: 
+  customize:
+  # definitions
+    package.node_anchors:
+      common: &common
+        package: "weather"
     sun.sun:
       friendly_name: Sonnenstand
+      <<: *common
+  # groups, variables
+    input_select.type_of_satelite:
+      <<: *common
+    input_boolean.dwd_weather_alert:
+      <<: *common
+  # sensors
+    sensor.outside_temperature:
+      <<: *common
+    sensor.outside_humidity:
+      <<: *common
+    sensor.sun_is_shining:
+      <<: *common
+    sensor.sunshine_intensity:
+      <<: *common
+    #sensor.dwd*
+  # automations
+    automation.send_dwd_warning:
+      <<: *common
+    automation.reset_dwd_warning:
+      <<: *common
+    script.send_dwd_warn_mail:
+      <<: *common
+    shell_command.get_warn_image:
+      <<: *common
 
-# Weather platforms
+################################################
+##   Platforms
+################################################
 sun: 
 weather:
   - platform: darksky
@@ -31,6 +65,32 @@ weather:
 #    scan_interval: 60
 #    name: dark_sky_hourly
 
+# get live satelite pictures
+camera:
+  #- platform: template
+  #  name: selected_satelite
+  #  still_image_url: >
+  #    {{ {
+  #        'Regen' : 'https://api.sat24.com/animated/EU/visual/1/W_dot_%20Europe%20Standard%20Time/2937470',
+  #        'Bewölkung' : 'https://api.sat24.com/animated/ALPS/rainTMC/1/W_dot_%20Europe%20Standard%20Time/3381693',
+  #        'Schnee' : 'https://api.sat24.com/animated/ALPS/snow/1/W_dot_%20Europe%20Standard%20Time/8170881'
+  #       } [input_select.type_of_satelite] }}
+  - platform: generic
+  #  still_image_url: http://api.sat24.com/animated/DE/visual/2/W_dot_%20Europe%20Standard%20Time/5053188
+    still_image_url: https://api.sat24.com/animated/EU/visual/1/W_dot_%20Europe%20Standard%20Time/2937470
+    name: satelite_clouds
+  - platform: generic
+  #  still_image_url: http://api.sat24.com/animated/DE/rainTMC/2/W_dot_%20Europe%20Standard%20Time/220026
+    still_image_url: https://api.sat24.com/animated/ALPS/rainTMC/1/W_dot_%20Europe%20Standard%20Time/3381693
+    name: satelite_rain
+  - platform: generic
+    still_image_url: https://api.sat24.com/animated/ALPS/snow/1/W_dot_%20Europe%20Standard%20Time/8170881
+    name: satelite_snow
+
+
+###############################################################################
+##  Variables
+###############################################################################
 input_select:
   # selection of which satelite picture to show
   type_of_satelite:
@@ -47,14 +107,17 @@ input_boolean:
     name: DWD Warnung   #active weather warning
     icon: mdi:weather-cloudy-alert
 
+###############################################################################
+##  Sensors
+###############################################################################
 sensor:
   - platform: dwd_weather_warnings
     region_name: !secret dwd_region_name
     # Typen der Warnungen
     # 0: Gewitter, Starkes Gewitter
-    # 1: Windböen, Sturmböen
+    # 1: Windböen, Sturmböen, schwere Sturmböen
     # 2: Dauerregen
-    # 3: Schneefall
+    # 3: Schneefall (leichten, )
     # 4: Nebel
     # 5: Frost
     # 6: Glätte, Glatteis
@@ -89,6 +152,7 @@ sensor:
         value_template: '{{ states.sensor.dwd_weather_warnings_current_warning_level.state }}'
       dwd_advance_warn_count:
         value_template: '{{ states.sensor.dwd_weather_warnings_advance_warning_level.attributes.warning_count }}'
+      # maximaler Level der aktuellen Warnungen
       dwd_max_warn_level:
         value_template: >
           {%- set ns = namespace(level=0) -%}
@@ -225,28 +289,10 @@ sensor:
           {%- endfor -%}
           {{ns.level}}
 
-# get live satelite pictures
-camera:
-  #- platform: template
-  #  name: selected_satelite
-  #  still_image_url: >
-  #    {{ {
-  #        'Regen' : 'https://api.sat24.com/animated/EU/visual/1/W_dot_%20Europe%20Standard%20Time/2937470',
-  #        'Bewölkung' : 'https://api.sat24.com/animated/ALPS/rainTMC/1/W_dot_%20Europe%20Standard%20Time/3381693',
-  #        'Schnee' : 'https://api.sat24.com/animated/ALPS/snow/1/W_dot_%20Europe%20Standard%20Time/8170881'
-  #       } [input_select.type_of_satelite] }}
-  - platform: generic
-  #  still_image_url: http://api.sat24.com/animated/DE/visual/2/W_dot_%20Europe%20Standard%20Time/5053188
-    still_image_url: https://api.sat24.com/animated/EU/visual/1/W_dot_%20Europe%20Standard%20Time/2937470
-    name: satelite_clouds
-  - platform: generic
-  #  still_image_url: http://api.sat24.com/animated/DE/rainTMC/2/W_dot_%20Europe%20Standard%20Time/220026
-    still_image_url: https://api.sat24.com/animated/ALPS/rainTMC/1/W_dot_%20Europe%20Standard%20Time/3381693
-    name: satelite_rain
-  - platform: generic
-    still_image_url: https://api.sat24.com/animated/ALPS/snow/1/W_dot_%20Europe%20Standard%20Time/8170881
-    name: satelite_snow
 
+###############################################################################
+##  Automations
+###############################################################################
 automation:
   - alias: send_dwd_warning
     initial_state: True
@@ -282,7 +328,7 @@ automation:
   
   - alias: reset_dwd_warning
     trigger:
-      # jemand zuhause oder alle Türen zu 
+      # keine DWD Warnungen mehr und Wetter-Alarm=an
       platform: template
       value_template: "{{ states.sensor.dwd_current_warn_count.state == '0'   
                           and is_state('input_boolean.dwd_weather_alert', 'on') }}"
@@ -299,7 +345,13 @@ automation:
             push:
               badge: "{{ states.sensor.count_notification_alerts.state|int }}"
 
+
+###############################################################################
+##  Scripts & Shell Commands
+###############################################################################
 script:
+  # Notification auf des Telefon und
+  # versenden einer E-Mail mit der Liste aller DWD-Warnungen
   send_dwd_warn_mail:
     sequence:
       - delay:
@@ -309,12 +361,10 @@ script:
           title: "DWD Wetterwarnung!"
           message: "Aktuelle Warnung kommt per Mail."
           data:
-            subtitle: "Warnstufe: {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_level }}"
-            push:
-              badge: "{{ states.sensor.count_notification_alerts.state|int }}"
-#      - service: shell_command.get_warn_image
-#      - delay:
- #         minutes: 1
+            subtitle: "{{states.sensor.dwd_current_warn_count.state}} {% if states.sensor.dwd_current_warn_count.state|int == 1 %}Warnung{% else %}Warnungen {% endif %} mit max. Stufe {{states.sensor.dwd_max_warn_level.state}}."
+      #- service: shell_command.get_warn_image
+      #- delay:
+      #    minutes: 1
       - service: notify.gmx_smtp
         data_template:
           title: 'DWD Wetterwarnung!'
@@ -325,58 +375,56 @@ script:
             html: >
               <!DOCTYPE html><html><head><style>a, h3, h4 {font-family: arial;}</style></head><body>
               <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.region_name }}</h3>
-              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_headline is defined %}
-                <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_headline }}</h3>
-                Warnstufe: {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_level }}
-                <br>
-                Von: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_start) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
-                <br>
-                Bis: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_end) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
-                <br>
-                {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_1_description }}
-                <br>
-                <br>
+              Aktuell 
+              {% if states.sensor.dwd_current_warn_count.state|int == 1 %}
+                besteht {{states.sensor.dwd_current_warn_count.state}} Warnung 
+              {% else %}
+                bestehen {{states.sensor.dwd_current_warn_count.state}} Warnungen 
               {% endif %}
-              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_headline is defined %}
-                <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_headline }}</h3>
-                Warnstufe: {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_level }}
+              mit der maximalen Stufe {{states.sensor.dwd_max_warn_level.state}}.
+              {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
+                {%- set type_attr=  "warning_"+loop.index|string + "_type" -%}
+                {%- set lvl_attr=   "warning_"+loop.index|string + "_level" -%}
+                {%- set head_attr=  "warning_"+loop.index|string + "_headline" -%}
+                {%- set start_attr= "warning_"+loop.index|string + "_start" -%}
+                {%- set end_attr=   "warning_"+loop.index|string + "_end" -%}
+                {%- set desc_attr=  "warning_"+loop.index|string + "_description" -%}
+                <hr/>
+                <em>
+                {%- set start_time= states.sensor.dwd_weather_warnings_current_warning_level.attributes[start_attr] -%}
+                {%- set days = (start_time.strftime('%j') | int) - (now().strftime('%j')) | int  -%}
+                {% if as_timestamp(start_time) <= as_timestamp(now()) %}
+                jetzt
+                {% elif days==0 %}
+                heute
+                {% elif days==1 %}
+                morgen
+                {% else %}
+                in {{days}} Tagen
+                {% endif %}
+                </em>
+                <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes[head_attr] }}</h3>
+                <em>Warnstufe:</em> <strong>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr] }}</strong>
                 <br>
-                Von: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_start) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <em>Von:</em> {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes[start_attr]) | timestamp_custom("%a %d.%m %H:%M",true) }}
                 <br>
-                Bis: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_end) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
+                <em>Bis:</em> {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes[end_attr]) | timestamp_custom("%a %d.%m %H:%M",true) }}
                 <br>
-                {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_2_description }}
-                <br>
-                <br>
-              {% endif %}
-              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_headline is defined %}
-                <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_headline }}</h3>
-                Warnstufe: {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_level }}
-                <br>
-                Von: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_start) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
-                <br>
-                Bis: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_end) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
-                <br>
-                {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_3_description }}
-                <br>
-                <br>
-              {% endif %}
-              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_headline is defined %}
-                <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_headline }}</h3>
-                Warnstufe: {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_level }}
-                <br>
-                Von: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_start) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
-                <br>
-                Bis: {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_end) | timestamp_custom("%a %d.%m.%Y %H:%M",true) }}
-                <br>
-                {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_4_description }}
+                {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes[desc_attr] }}
                 <br>
                 <br>
-              {% endif %}
+              {%- endfor -%}
               <a href="http://www.dwd.de/DWD/warnungen/warnapp_gemeinden/json/warnungen_gemeinde_map_baw.png">Aktuelle Warnkarte</a>
               <br>
               <img class="rounded" alt="Warnkarte" src="cid:warnungen_gemeinde_map_baw.png" /></body></html>
 
 #todo: geht noch nicht. Pfade? ohne geht nicht, mit auch nicht. Return Code 1.
+# Debug:
+# ssh <user>@<dsm>
+# sudo docker exec -it Home-Assistant bash
+# /usr/bin/wget https://www.dwd.de/DWD/warnungen/warnapp_gemeinden/json/warnungen_gemeinde_map_baw.png -q -O /data/warnungen_gemeinde_map_baw.png
+# --> wget: error getting response: Connection reset by peer
+# Aufruf geht in DSM-Shell
 shell_command:
   get_warn_image: '/usr/bin/wget http://www.dwd.de/DWD/warnungen/warnapp_gemeinden/json/warnungen_gemeinde_map_baw.png -q -O /data/warnungen_gemeinde_map_baw.png'
+  
