@@ -62,7 +62,7 @@ sensor:
   - platform: cert_expiry
     host: !secret ssl_cert_name
     port: 443
-    name: lets_encrypt_cert
+#    name: lets_encrypt_cert
 
 ###############################################################################
 ##  Sensors

@@ -58,6 +58,7 @@ zha:
   #usb_path: /zigbeestick #naming of USB device does not work anymore since v0.99
   usb_path: /dev/ttyUSB1
   database_path: /data/zigbee.db
+
 #zwave:
 #  usb_path: /zwaveusbstick
 #  network_key: <your secret key here>
@@ -123,6 +124,7 @@ unifi:
 ################################################################
 lovelace:
   mode: yaml
+
 frontend:
   themes: !include includes/themes.yaml
   javascript_version: latest
@@ -134,7 +136,9 @@ frontend:
 # HA Community Store
 hacs:
   token: !secret hacs_token
-  
+
+breaking_changes:
+  scan_interval: 600 #sec. default 60.
 ################################################################
 ## Test / Development
 ################################################################
@@ -246,11 +250,16 @@ history: #recorded Entities, that will be displayed in History
 
 logger: 
   default: warn #critical,fatal,error,warning,warn,info,debug,notset
-#  logs:
+  #  logs:
 #    custom_components.samsungtv_custom.media_player: debug
+
 #    homeassistant.components.homematic: debug
 #    pyhomematic: debug
-#    zha: info
+
+#    asyncio: debug
+#    homeassistant.components.zha: debug
 #    zigpy: debug
+#    zigpy_zigate: debug
+
 #    homeassistant.components.vacuum.xiaomi_miio: debug
 #    miio: debug

@@ -11,12 +11,14 @@ cards:
         entity: sensor.button_lastwatered_mandarinenbaum
         title: Mandarinenbaum
         severity:
-        - value: 5 minutes
-          hue: '120'
-        - value: 10 minutes
-          hue: '40'
-        - value: 20 minutes
-          hue: '0'
+        - value: 1 day
+          color: Blue
+        - value: 3 days
+          color: Red
+        - value: 5 days
+          color: Purple
+        - value: 10 days
+          color: Yellow
       - type: custom:check-button-card
         title: Orchideen
         entity: sensor.button_lastwatered_orchideen

@@ -306,6 +306,12 @@ cards:
           name: latest
       - entity: sensor.hacs
         name: HACS updates
+#todo: gesehen bei knapoc https://community.home-assistant.io/t/stack-in-card-drop-in-replacement-for-vertical-stack-in-card/180072
+      - entity: sensor.potential_breaking_changes
+        type: custom:multiple-entity-row
+        name: Breaking changes
+        secondary_info: last-changed
+        icon: mdi:alert-circle
       - entity: sensor.historydb_size
         name: Recorder Database
         icon: mdi:database

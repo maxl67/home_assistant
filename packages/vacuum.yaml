@@ -564,6 +564,7 @@ automation:
         before: '17:00:00'
         weekday:
           - mon
+          - tue
       - condition: or
         conditions:
         - condition: state
@@ -620,6 +621,7 @@ automation:
         before: '17:00:00'
         weekday:
           - thu
+          - fri
       - condition: or
         conditions:
         - condition: state
@@ -646,7 +648,17 @@ automation:
     alias: Reset Vacuum First Run state at midnight #(only one automatic run per day)
     trigger:
     - platform: time
-      at: '0:00:00'
+      at: '1:00:00'
+    condition:
+    - condition: time
+      weekday:
+        - mon
+        #- tue
+        - wed
+        - thu
+        #- fri
+        - sat
+        - sun
     action:
     - service: homeassistant.turn_off
       entity_id: input_boolean.automatic_vacuum_first_run

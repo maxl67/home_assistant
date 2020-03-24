@@ -48,7 +48,7 @@ input_boolean:
 #    alias: switch on media rack
 
 automation:
-  # Ausschalten von ___ wenn wir für 10min weg sind oder nachts um 00:00
+  # Ausschalten von ente-Lich wenn wir für 10min weg sind oder nachts um 00:00
   - id: switch_off_lights
     alias: switch off welcome light
     trigger: 
@@ -62,7 +62,7 @@ automation:
       entity_id: input_boolean.disable_power_automation
       to: 'off'
     - platform: time 
-      at: '00:05:00'
+      at: '00:01:00'
     - platform: homeassistant
       event: start
     condition:
@@ -84,20 +84,28 @@ automation:
     - service: switch.turn_off
       entity_id: switch.osram_plug_01_a1bf020a_3
 
+  # Einschalten von Ambiente-Licht wenn wir nach hause kommen ODER bei Sonnenuntergang
   - id: switch_on_lights
     alias: switch on welcome light
     trigger:
       - platform: state
         entity_id: sensor.home_status
         to: 'Home'
+      - platform: sun
+        event: sunset
+        offset: "+00:10:00" # Optional time offset. 
       - platform: state
         entity_id: input_boolean.disable_power_automation
-        to: 'off'
+        to: 'on'
       - platform: homeassistant
         event: start
     condition:
+      # 'power_automation' aktiv UND Home status 'Home' UND Sonne untergegangen
       condition: and
       conditions:
+      - condition: state
+        entity_id: input_boolean.disable_power_automation
+        state: 'off'
       - condition: state
         entity_id: sensor.home_status
         state: 'Home'
