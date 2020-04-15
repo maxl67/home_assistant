@@ -65,7 +65,7 @@ cards:
     progressBar: false
     timeFormat: "H:mm"
     highlightToday: true
-    numberOfDays: 5
+    numberOfDays: 3
     fullDayEventText: "ganztägig"
     entities:
       - calendar.home

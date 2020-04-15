@@ -648,7 +648,7 @@ automation:
     alias: Reset Vacuum First Run state at midnight #(only one automatic run per day)
     trigger:
     - platform: time
-      at: '1:00:00'
+      at: '00:30:00'
     condition:
     - condition: time
       weekday:

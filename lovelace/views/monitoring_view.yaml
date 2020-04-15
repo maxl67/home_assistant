@@ -76,6 +76,26 @@ anchors:
       - value: 70
         color: *dark_red
 
+  bar_rpi_ram_hdd: &bar_rpi_ram_hdd
+    stack: horizontal
+    positions:
+      - icon: 'off'
+      - title: inside
+    severity:
+      - color: Green
+        from: 0
+        to: 30
+      - color: Blue
+        from: 30
+        to: 50
+      - color: Orange
+        from: 50
+        to: 75
+      - color: Red
+        from: 75
+        to: 100
+
+
   dataset_internet_ping: &dataset_internet_ping
     name: ping
     y_axis: secondary
@@ -294,6 +314,7 @@ cards:
   # ========== Home Assistant ==============
   - type: entities
     title: Home Assistant
+    <<: *style_header
     show_header_toggle: false
     entities:
       - entity: sensor.current_version
@@ -382,6 +403,7 @@ cards:
   # ========== Devices ==============
   - type: glance
     title: Geräte
+    <<: *style_header
     entities:
 #      - entity: binary_sensor.router
 #        name: Modem
@@ -411,6 +433,7 @@ cards:
       cards:
         - type: entities
           title: Raspi1 (RPi 4b)
+          <<: *style_header
           show_header_toggle: false
           entities:
           - type: custom:fold-entity-row
@@ -443,17 +466,12 @@ cards:
         - type: custom:bar-card
           entities:
             - entity: sensor.raspi1memoryuse
-              title: RAM
+              name: RAM
               icon: mdi:memory
-              show_icon: true
             - entity: sensor.raspi1diskuse
-              title: HDD
-              color: *blue
+              name: SD-Card
               icon: mdi:sd
-              show_icon: true
-          align: split
-          columns: 2
-          title_position: inside
+          <<: *bar_rpi_ram_hdd
   - type: conditional
     conditions:
       - entity: binary_sensor.rpi_ost
@@ -474,6 +492,7 @@ cards:
       cards:
         - type: entities
           title: Raspi2 (RPi 3b+)
+          <<: *style_header
           show_header_toggle: false
           entities:
           - type: custom:fold-entity-row
@@ -521,17 +540,12 @@ cards:
         - type: custom:bar-card
           entities:
             - entity: sensor.raspi2memoryuse
-              title: RAM
+              name: RAM
               icon: mdi:memory
-              show_icon: true
             - entity: sensor.raspi2diskuse
-              title: HDD
-              color: *blue
+              name: SD-Card
               icon: mdi:sd
-              show_icon: true
-          align: split
-          columns: 2
-          title_position: inside
+          <<: *bar_rpi_ram_hdd
   - type: conditional
     conditions:
       - entity: binary_sensor.rpi_west

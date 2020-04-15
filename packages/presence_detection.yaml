@@ -463,8 +463,8 @@ automation:
     trigger: 
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        hours: "2"
+      - platform: time
+        at: '00:45:00'
     condition: []
     action:
       # first update device status from MQTT (BlueTooth monitor.sh) 
@@ -541,7 +541,7 @@ automation:
         data_template:
           entity_id: input_select.home_status_dropdown
           option: >
-            {% if is_state('input_select.home_status_dropdown','Home') %}
+            {% if is_state('input_select.home_status_dropdown','Away') %}
               {% if (((as_timestamp(now()) - as_timestamp(states.input_datetime.home_status_dropdown_last_changed.state))/3600) | int >=24) %}
                 Extended Away
               {% endif %}

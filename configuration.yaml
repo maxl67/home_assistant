@@ -99,14 +99,15 @@ discovery:
 #    - samsung_tv
 #  enable:
 #    - dlna_dmr
-  
-unifi:
-  controllers:
-    - host: !secret unifi_host
-      site: home
-      ssid_filter:
-        - !secret unifi_ssid_private
-      dont_track_wired_clients: true
+
+#deprecated in v0.109
+#unifi:
+#  controllers:
+#    - host: !secret unifi_host
+#      site: home
+#      ssid_filter:
+#        - !secret unifi_ssid_private
+#      dont_track_wired_clients: true
 
 # deactivated, because monitor script is used to update BT-presence via MQTT
 #device_tracker:
@@ -124,6 +125,39 @@ unifi:
 ################################################################
 lovelace:
   mode: yaml
+  resources:
+    # Community Repo
+    - url: /hacsfiles/custom-header/custom-header.js
+      type: module
+    - url: /hacsfiles/lovelace-auto-entities/auto-entities.js
+      type: module
+    - url: /hacsfiles/lovelace-multiple-entity-row/multiple-entity-row.js
+      type: module #js
+    - url: /hacsfiles/lovelace-fold-entity-row/fold-entity-row.js
+      type: module    
+    - url: /hacsfiles/lovelace-swipe-navigation/swipe-navigation.js
+      type: js 
+    - url: /hacsfiles/vertical-stack-in-card/vertical-stack-in-card.js
+      type: module
+    - url: /hacsfiles/group-card/group-card.js
+      type: module
+    - url: /hacsfiles/mini-graph-card/mini-graph-card-bundle.js
+      type: module
+    - url: /hacsfiles/zha-network-card/zha-network-card.js
+      type: js
+    - url: /hacsfiles/check-button-card/check-button-card.js
+      type: js #module
+    - url: /hacsfiles/simple-thermostat/simple-thermostat.js
+      type: module
+    - url: /hacsfiles/bar-card/bar-card.js
+      type: js #module
+    - url: /hacsfiles/calendar-card/calendar-card.js
+      type: js #module
+    - url: /hacsfiles/lovelace-card-mod/card-mod.js
+      type: module
+    # Repo: https://github.com/sgttrs/lovelace-weather-card-chart
+    - url: /hacsfiles/lovelace-weather-card-chart/weather-card-chart.js
+      type: module
 
 frontend:
   themes: !include includes/themes.yaml
@@ -169,7 +203,7 @@ calendar:
 # https://community.home-assistant.io/t/large-homeassistant-database-files/4201/240
 ################################################################
 recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to be displayed in logbook and/or history
-  purge_keep_days: 37 #--> 1/10 of a year
+  purge_keep_days: 7 #--> 37=1/10 of a year
   db_url: !secret HistoryDB_connection  # --> 'home-assistant_v2.db' now in MariaDB. Much faster.
   exclude:
     domains:
@@ -199,6 +233,12 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - binary_sensor.hpdrucker
       #- binary_sensor.smarttv
       - binary_sensor.radiobad
+      - binary_sensor.rpi_west
+      - binary_sensor.rpi_ost
+      - sensor.raspi1memoryuse
+      - sensor.raspi2memoryuse
+      - sensor.raspi1DiskUse
+      - sensor.raspi2DiskUse
     # Home Assistant
       - sensor.latest_version
       - sensor.hacs
@@ -213,7 +253,9 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - automation.update_requested_temp
       - sensor.geocoded_location
     # HomeMatic
+      - homematic.raspi_ccu
       - sensor.hm_ccu_last_reboot
+      - binary_sensor.000c9a499b5808_low_bat
     # iOS
       - sensor.last_update_trigger
       - sensor.bssid

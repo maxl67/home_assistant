@@ -52,6 +52,9 @@ homeassistant:
     sensor.raspi1cpuusage:
       <<: *common
       icon: mdi:cpu-64-bit
+    sensor.raspi2cpuusage:
+      <<: *common
+      icon: mdi:cpu-64-bit
     binary_sensor.rpi_ost:
       <<: *common
     binary_sensor.rpi_west:
@@ -95,6 +98,8 @@ speedtestdotnet:
     - upload
 
 sensor:
+  # raspi1Sensors, raspi2Sensors: 
+    # werden automatisch erzeugt (MQTT)
   # monitor Home Assistant system state
   - platform: systemmonitor
     resources:
