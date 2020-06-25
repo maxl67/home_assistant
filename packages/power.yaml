@@ -15,18 +15,52 @@ homeassistant:
     package.node_anchors:
       common: &common
         package: "power"
+  # entities
+    switch.osram_plug_01_a1bf020a_3:
+      icon: mdi:power-socket-de
+    light.0008da499c8dbd:
+      icon: mdi:ceiling-light
   # groups, variables
     input_boolean.disable_power_automation:
       <<: *common
   # automations
-    #automation.power_down_mediarack:
-    #  <<: *common
-    #automation.power_up_mediarack:
-    #  <<: *common
+    automation.power_down_mediarack:
+      <<: *common
+    automation.power_up_mediarack:
+      <<: *common
     automation.switch_off_lights:
       <<: *common
     automation.switch_on_lights:
       <<: *common
+
+################################################
+##   Platforms
+################################################
+#wake_on_lan:
+#
+#switch:
+#  - platform: wake_on_lan
+#    name: raspi1_power
+#    host: 192.168.2.15
+#    mac: dc:a6:32:5b:e1:fd
+#    turn_off:
+#      service: shell_command.turn_off_raspi1 
+
+#shell_command:
+#  turn_off_raspi1: 'ssh pi@192.168.2.15 sudo shutdown -h now'
+
+scene:
+  - name: Welcome
+    icon: "mdi:flower-tulip"
+    entities:
+      light.0008da499c8dbd:
+        state: on
+        brightness: 250 #-->.brightness=249
+  - name: Movies
+    entities:
+      light.0008da499c8dbd:
+        state: on
+        brightness: 125 #-->.brightness=124
 
 ###############################################################################
 #                               Variables
@@ -41,13 +75,38 @@ input_boolean:
 ###############################################################################
 #                               Automations
 ###############################################################################
-#alt:
-#  - id: power_down_mediarack
-#    alias: switch off media rack
-#  - id: power_up_mediarack
-#    alias: switch on media rack
-
 automation:
+  - id: set_scene_movies
+    alias: Scene 'Movies' 
+    trigger:
+    - platform: state
+      entity_id: binary_sensor.smarttv
+      to: 'on'
+      for: 
+        seconds: 4
+    - platform: state
+      entity_id: light.0008da499c8dbd
+      to: 'on'
+    condition:
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: binary_sensor.smarttv
+        state: 'on'
+      - condition: state
+        entity_id: light.0008da499c8dbd
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.disable_power_automation
+        state: 'off'
+    action:
+    - service: scene.turn_on
+      data:
+        entity_id: scene.movies
+        transition: 2 #[sec] langsamer Übergang
+
+#    - service: scene.turn_on
+#      entity_id: scene.media_paused
   # Ausschalten von Welcome-Licht, wenn wir für 10min weg sind oder nachts um 00:00
   - id: switch_off_lights
     alias: switch off welcome light
@@ -81,8 +140,8 @@ automation:
         entity_id: input_boolean.disable_power_automation
         state: 'off'
     action:
-    - service: switch.turn_off
-      entity_id: switch.osram_plug_01_a1bf020a_3
+      - service: light.turn_off
+        entity_id: light.0008da499c8dbd
 
   # Einschalten von Welcome-Licht, wenn wir nach Hause kommen ODER bei Sonnenuntergang
   - id: switch_on_lights
@@ -93,12 +152,13 @@ automation:
         to: 'Home'
       - platform: sun
         event: sunset
-        offset: "+00:25:00" # Optional time offset. 
+        offset: "+00:15:00" # Optional time offset. 
       - platform: state
         entity_id: input_boolean.disable_power_automation
-        to: 'on'
-      - platform: homeassistant
-        event: start
+        to: 'off'
+#schaltet bei Update von HA Nachts das Licht an.
+#      - platform: homeassistant
+#        event: start
     condition:
       # 'power_automation' aktiv UND Home status 'Home' UND Sonne untergegangen
       condition: and
@@ -112,6 +172,63 @@ automation:
       - condition: state  # from sunset until sunrise
         entity_id: sun.sun
         state: 'below_horizon'
+    action:
+      - service: scene.turn_on
+        data:
+          entity_id: scene.welcome
+          transition: 2 #[sec] langsamer Übergang
+      #- service: light.turn_on
+      #  entity_id: light.0008da499c8dbd
+
+  # Ausschalten des Media Racks, wenn wir für 10min weg sind
+  - id: power_down_mediarack
+    alias: switch off media rack
+    trigger: 
+    - platform: state
+      entity_id: sensor.home_status
+      from: 'Home'
+      to: 'Away'
+      for:
+        minutes: 10
+    - platform: state
+      entity_id: input_boolean.disable_power_automation
+      to: 'off'
+    - platform: homeassistant
+      event: start
+    condition:
+      # 'power_automation' aktiv UND Home status 'Away'
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: sensor.home_status
+        state: 'Away'
+      - condition: state
+        entity_id: input_boolean.disable_power_automation
+        state: 'off'
+    action:
+      - service: switch.turn_off
+        entity_id: switch.osram_plug_01_a1bf020a_3
+
+  # Einschalten des Media Racks, wenn wir nach Hause kommen
+  - id: power_up_mediarack
+    alias: switch on media rack
+    trigger:
+      - platform: state
+        entity_id: sensor.home_status
+        to: 'Home'
+      - platform: state
+        entity_id: input_boolean.disable_power_automation
+        to: 'off'
+    condition:
+      # 'power_automation' aktiv UND Home status 'Home'
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.disable_power_automation
+        state: 'off'
+      - condition: state
+        entity_id: sensor.home_status
+        state: 'Home'
     action:
       - service: switch.turn_on
         entity_id: switch.osram_plug_01_a1bf020a_3

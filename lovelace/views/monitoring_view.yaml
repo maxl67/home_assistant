@@ -231,7 +231,7 @@ cards:
         - entity: sensor.lets_encrypt_cert
           name: Ablaufdatum Zertifikat
           icon: mdi:certificate
-        - entity: sensor.hera_dsm_cpu_load_total
+        - entity: sensor.hera_cpu_load_total
           type: custom:multiple-entity-row
           name: CPU Load
           secondary_info: last-changed
@@ -240,7 +240,7 @@ cards:
           #  name: proc load 5' 
           - entity: sensor.hera_dsm_avg_processes_15_min
             name: proc load 15' 
-        - entity: sensor.hera_dsm_memory_usage_real
+        - entity: sensor.hera_memory_usage_real
           name: Memory Usage
           secondary_info: last-changed
           type: custom:multiple-entity-row
@@ -254,27 +254,26 @@ cards:
         open: true
         padding: 0 px
         entities:
-        - entity: sensor.hera_dsm_status_volume_1
+        - entity: sensor.hera_volume_1_status
           name: Status Volume 1
           icon: mdi:database-check
           type: custom:multiple-entity-row
           secondary_info: last-changed
           state_header: state
           entities:
-          #- entity: sensor.hera_dsm_maximum_disk_temp_volume_1 # shows always 0° 
-          - entity: sensor.maximum_disk_temp_volume_1 #own calculated max sensor.
+          - entity: sensor.hera_volume_1_max_disk_temp #own calculated max sensor.
             name: max temp
-          #- entity: sensor.hera_dsm_average_disk_temp_volume_1
+          #- entity: sensor.hera_volume_1_average_disk_temp
           #  name: avg temp
-        - entity: sensor.hera_dsm_volume_used_volume_1
+        - entity: sensor.hera_volume_1_volume_used
           type: custom:multiple-entity-row
           name: Usage Volume 1
           icon: mdi:chart-pie
           entities:
-          - entity: sensor.hera_dsm_used_space_volume_1
+          - entity: sensor.hera_volume_1_used_space
             name: Used
-          - entity: sensor.hera_dsm_total_size_volume_1
-            name: Size
+          #- entity: sensor.hera_volume_1_total_size
+          #  name: Size
       # List of Disks
       - type: custom:fold-entity-row
         head:
@@ -283,32 +282,32 @@ cards:
         open: false
         padding: 0 px
         entities:
-        - entity: sensor.hera_dsm_status_sda
+        - entity: sensor.hera_drive_1_status
           type: custom:multiple-entity-row
           icon: mdi:harddisk
           name: Disk1 (sda)
           secondary_info: last-changed
           state_header: state
           entities:
-          - entity: sensor.hera_dsm_temperature_sdb
+          - entity: sensor.hera_drive_1_temperature
             name: temp
-        - entity: sensor.hera_dsm_status_sda
+        - entity: sensor.hera_drive_2_status
           type: custom:multiple-entity-row
           icon: mdi:harddisk
           name: Disk2 (sdb)
           secondary_info: last-changed
           state_header: state
           entities:
-          - entity: sensor.hera_dsm_temperature_sdb
+          - entity: sensor.hera_drive_2_temperature
             name: temp
-        - entity: sensor.hera_dsm_status_sdc
+        - entity: sensor.hera_drive_3_status
           type: custom:multiple-entity-row
           icon: mdi:harddisk
           name: Disk3 (sdc)
           secondary_info: last-changed
           state_header: state
           entities:
-          - entity: sensor.hera_dsm_temperature_sdc
+          - entity: sensor.hera_drive_3_temperature
             name: temp
 
   # ========== Home Assistant ==============

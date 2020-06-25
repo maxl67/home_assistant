@@ -7,12 +7,14 @@
 # https://community.home-assistant.io/t/card-mod-add-css-styles-to-any-lovelace-card/120744/341
 ##
 title: Home Max&Ing
+background: var(--background-image)
 
 # old: compact-custom-header
 #   https://maykar.github.io/compact-custom-header/
 # Custom Header (Nachfolger von compact-custom-header)
 #   https://maykar.github.io/custom-header/#configuration/main
 custom_header:
+#  background: 'rgba(155, 155, 155, 0.25)'
   compact_mode: true
   menu_hide: false
   voice_hide: true
@@ -43,8 +45,7 @@ custom_header:
       config:
         menu_hide: false
         disabled_mode: false
-        show_tabs: "0 to 2, 4, 5, 6"
-#        hide_tabs: "plants,climate,zha_table,maintenance"
+        hide_tabs: "plants,media,maintenance"
         hide_help: true
         hide_config: true
         hide_unused: false
@@ -59,30 +60,31 @@ swipe_nav:
   swipe_amount: 35
 
 views:
-  # main view containing presence status and all important/urgent items
+  # 1: main view containing presence status and all important/urgent items
   - !include lovelace/views/home_view.yaml
 
-  # show local weather conditions and forecast
+  # 2: show local weather conditions and forecast
   - !include lovelace/views/weather_view.yaml
   
-  # view to operate the vacuum cleaner and all related params
+  # 3: view to operate the vacuum cleaner and all related params
   - !include lovelace/views/vacuum_view.yaml
 
-  # view for plant sensors and care taking
-  - !include lovelace/views/plants_view.yaml
-
-  # view for room climate control
+  # 4: view for room climate control
   - !include lovelace/views/climate_view.yaml
 
-  # view to operate TV (doesn't work yet)
+  # 5: view for plant sensors and care taking
+#  - !include lovelace/views/plants_view.yaml
+
+  # 6:view to operate TV (doesn't work yet)
 #  - !include lovelace/views/media_view.yaml
 
-  # view to monitor internet-connection, network, network devices
+  # 7: view to monitor internet-connection, network, network devices
   - !include lovelace/views/monitoring_view.yaml
 
-  # table with zigbee devices and network params
+  # 8: table with zigbee devices and network params
   - !include lovelace/views/zigbee_view.yaml
 
+  # 9: HA-Administration
   - title: Wartung
     icon: mdi:tools
     path: maintenance

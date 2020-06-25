@@ -81,11 +81,19 @@ cards:
   - type: entities
     title: Power
     show_header_toggle: false
+    state_color: true
     entities:
       - entity: input_boolean.disable_power_automation
       - entity: switch.osram_plug_01_a1bf020a_3
         name: Media Rack
+      - type: custom:slider-entity-row
+        entity: light.0008da499c8dbd
+        name: Ambiente-Licht
         toggle: true
+        hide_when_off: true
+#  - type: light
+#    entity: light.0008da499c8dbd
+#    name: Ambiente-Licht
 
   # device tracking status (for testing)
   - !include ../cards/devicetracker_debug.yaml

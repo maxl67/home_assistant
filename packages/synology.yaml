@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 28.10.2019
+#   @date         : 25.06.2020
 #   @package      : synology
 #   @description  : Sensors for Synology NAS
 #   @links        : https://www.home-assistant.io/integrations/synologydsm/
@@ -22,7 +22,7 @@ homeassistant:
       <<: *common
       friendly_name: Last Boot
       device_class: timestamp
-    sensor.maximum_disk_temp_volume_1:
+    sensor.hera_volume_1_max_disk_temp:
       <<: *common
     sensor.hera_dsm_avg_processes_5_min:
       <<: *common
@@ -35,29 +35,28 @@ homeassistant:
 ################################################
 ##   Platforms
 ################################################
-sensor:
-  # Synology DSM Sensor
-  - platform: synologydsm
-    name: Hera DSM # --> sensor.hera_dsm_*
-    host: !secret DS_local_IP
-    port: !secret DSM_port
-    ssl: true
-    username: !secret DSM_sensor_username
-    password: !secret DSM_sensor_password
-    monitored_conditions:
-      - cpu_total_load
-      - cpu_5min_load  # Leistung: avg. # of processes + length queue (not %)
-      - cpu_15min_load # Leistung: avg. # of processes + length queue
-      - memory_real_usage
-      - disk_status
-      - disk_temp
-      - volume_status
-      - volume_size_used
-      - volume_size_total
-      - volume_percentage_used
-      - volume_disk_temp_max  # val=0, does not change. not used. min_max calculated separately.
-      #- volume_disk_temp_avg # does not work.
+  # Synology DSM integration
+synology_dsm:
+  host: !secret DS_local_IP
+  port: !secret DSM_port
+  ssl: true
+  username: !secret DSM_sensor_username
+  password: !secret DSM_sensor_password
+#  monitored_conditions:
+#    - cpu_total_load
+#    - cpu_5min_load  # Leistung: avg. # of processes + length queue (not %)
+#    - cpu_15min_load # Leistung: avg. # of processes + length queue
+#    - memory_real_usage
+#    - disk_status
+#    - disk_temp
+#    - volume_status
+#    - volume_size_used
+#    - volume_size_total
+#    - volume_percentage_used
+#    - volume_disk_temp_max  # val=0, does not change. not used. min_max calculated separately.
+#    #- volume_disk_temp_avg # does not work.
 
+sensor:
   # Let's Encryt Certificate
   - platform: cert_expiry
     host: !secret ssl_cert_name
@@ -72,20 +71,20 @@ sensor:
       # we have to define 2 new sensors, because the value has to be divided
       hera_dsm_avg_processes_5_min:
         friendly_name: Hera DSM Process Load (avg. 5min)
-        value_template: "{{ states('sensor.hera_dsm_cpu_load_5_min')| float / 100 }}"
+        value_template: "{{ states('sensor.hera_cpu_load_5_min')| float / 100 }}"
         icon_template: mdi:layers
       hera_dsm_avg_processes_15_min:
         friendly_name: Hera DSM Process Load (avg. 15min)
-        value_template: "{{ states('sensor.hera_dsm_cpu_load_15_min')| float / 100 }}"
+        value_template: "{{ states('sensor.hera_cpu_load_15_min')| float / 100 }}"
         icon_template: mdi:layers
   # calc max temperature of all discs
   - platform: min_max
-    name: maximum_disk_temp_volume_1
+    name: hera_volume_1_max_disk_temp
     type: max
     entity_ids:
-      - sensor.hera_dsm_temperature_sda
-      - sensor.hera_dsm_temperature_sdb
-      - sensor.hera_dsm_temperature_sdc
+      - sensor.hera_drive_1_temperature
+      - sensor.hera_drive_2_temperature
+      - sensor.hera_drive_3_temperature
 
 ###############################################################################
 ##  Automations
