@@ -26,7 +26,7 @@ custom_header:
     weather: '{% if is_state("input_boolean.dwd_weather_alert", "on") %}{% if is_state("sensor.dwd_current_warn_gewitter", "True") %}mdi:weather-lightning-rainy{% elif is_state("sensor.dwd_current_warn_sturm", "True") %}mdi:weather-windy{% elif is_state("sensor.dwd_current_warn_level_glaette", "True") %}mdi:snowflake-alert{% elif is_state("sensor.dwd_current_warn_frost", "True") %}mdi:thermometer-alert{% else %}mdi:weather-lightning{% endif %}{% endif %}'
   tabs_color:
     home: '{% if is_state("input_boolean.open_backdoor_alert", "on") %}red{% elif is_state("input_boolean.open_window_alert", "on") %}yellow{% endif %}'
-    weather: '{% if states.sensor.dwd_max_warn_level.state|int >= 3 %}red{% elif states.sensor.dwd_max_warn_level.state|int >= 2 %}yellow{% endif %}'
+    weather: '{% if states.sensor.dwd_max_warn_level.state|int >= 3 and states.sensor.dwd_max_warn_level.state|int <10 %}red{% elif states.sensor.dwd_max_warn_level.state|int >= 2 %}yellow{% endif %}'
     vacuum: '{% if is_state("binary_sensor.vacuum_error_alert", "on") %}red{% elif is_state("input_boolean.dustbin_full_alert", "on") %}yellow{% elif states.vacuum.xiaomi_vacuum_cleaner.state.startswith("cleaning") %}green{% elif is_state("input_boolean.disable_automatic_vacuum", "on") %}gray{% endif %}'
   exceptions:
     - conditions:

@@ -46,7 +46,7 @@ notify:
   - name: family_main_devices
     platform: group
     services:
-      - service: ios_iphonemax8
+      - service: mobile_app_iphonemax8 #ios_iphonemax8
 #hack: voruebergehend deaktiviert
 #      - service: ios_iphone8_ing 
   - name: max

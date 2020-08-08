@@ -121,7 +121,7 @@ sensor:
     # 4: Nebel
     # 5: Frost
     # 6: Glätte, Glatteis
-    # 8: Hitze (always level 10)
+    # 8: Hitze (always level 50)
     # 9: UV-Index (always level 20)
 
   - platform: template

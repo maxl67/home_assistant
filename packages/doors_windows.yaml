@@ -147,6 +147,15 @@ automation:
             push:
               badge: "{{states.sensor.count_notification_alerts.state|int}}"
               #sound: "US-EN-Daisy-Back-Door-Open.wav"
+              sound:
+                name: default
+                critical: 1
+                volume: 1.0
+              thread-id: "doorswindows-notification-group"
+            apns_headers:
+              'apns-collapse-id': 'open-doors-detected'
+            clickAction: '/lovelace/home'
+
   - alias: Notify all - Open Windows
     trigger:
       # niemand zuhause und mindestens ein Fenster offen 
@@ -166,8 +175,16 @@ automation:
             subtitle: "Fenster offen!"
             push:
               badge: "{{states.sensor.count_notification_alerts.state|int}}"
-              #sound: "US-EN-Daisy-Back-Door-Open.wav"
-
+              #sound: "US-EN-Daisy-Front-Window-Open.wav"
+              sound:
+                name: default
+                critical: 1
+                volume: 0.8
+              thread-id: "doorswindows-notification-group"
+            apns_headers:
+              'apns-collapse-id': 'open-windows-detected'
+            clickAction: '/lovelace/home'
+  
   - alias: Reset alert - Open Doors
     trigger:
       # jemand zuhause oder alle Türen zu 
@@ -187,6 +204,10 @@ automation:
           data:
             push:
               badge: "{{states.sensor.count_notification_alerts.state|int}}"
+              thread-id: "doorswindows-notification-group"
+            apns_headers:
+              'apns-collapse-id': 'open-doors-detected'
+            clickAction: '/lovelace/home'
   - alias: Reset alert - Open Windows
     trigger:
       # jemand zuhause oder alle Fenster zu 
@@ -206,6 +227,10 @@ automation:
           data:
             push:
               badge: "{{states.sensor.count_notification_alerts.state|int}}"
+              thread-id: "doorswindows-notification-group"
+            apns_headers:
+              'apns-collapse-id': 'open-windows-detected'
+            clickAction: '/lovelace/home'
 
   - alias: Test Zone Notify
     trigger:

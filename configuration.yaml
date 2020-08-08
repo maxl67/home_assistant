@@ -166,7 +166,6 @@ lovelace:
       type: module
 
 frontend:
-#  themes: !include includes/themes.yaml
   themes: !include_dir_merge_named themes
   javascript_version: latest
 #map:
@@ -310,7 +309,7 @@ history: #recorded Entities, that will be displayed in History
 
 logger: 
   default: warn #critical,fatal,error,warning,warn,info,debug,notset
-  #  logs:
+#  logs:
 #    custom_components.samsungtv_custom.media_player: debug
 
 #    homeassistant.components.homematic: debug

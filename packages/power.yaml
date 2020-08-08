@@ -55,12 +55,14 @@ scene:
     entities:
       light.0008da499c8dbd:
         state: on
-        brightness: 250 #-->.brightness=249
+        #brightness: 250 #-->.brightness=249
+        brightness: 170 #-->.brightness=
   - name: Movies
     entities:
       light.0008da499c8dbd:
         state: on
-        brightness: 125 #-->.brightness=124
+        #brightness: 125 #-->.brightness=124
+        brightness: 85 #-->.brightness=
 
 ###############################################################################
 #                               Variables
@@ -76,6 +78,32 @@ input_boolean:
 #                               Automations
 ###############################################################################
 automation:
+  # https://community.home-assistant.io/t/new-automation-not-loading-random-switching-of-lights-when-away-on-holiday/211414/14
+  - id: random_lights_during_vacation
+    alias: zufälliges Urlaubslicht
+    trigger:
+      - platform: sun
+        event: sunset
+      - platform: time
+        at: '23:00:00'
+    condition:
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.disable_power_automation
+        state: 'off'
+      - condition: state
+        entity_id: sensor.home_status
+        state: 'Extended Away'
+    action:
+      - delay:
+          minutes: "{{ range(5, 25 if trigger.platform == 'sun' else 90) | random }}"
+#      - service_template: "homeassistant.turn_{{ 'on' if trigger.platform == 'sun' else 'off' }}"
+#        entity_id: group.holiday_lights
+      - service_template: "light.turn_{{ 'on' if trigger.platform == 'sun' else 'off' }}"
+        entity_id: light.0008da499c8dbd
+
+
   - id: set_scene_movies
     alias: Scene 'Movies' 
     trigger:
@@ -100,13 +128,11 @@ automation:
         entity_id: input_boolean.disable_power_automation
         state: 'off'
     action:
-    - service: scene.turn_on
-      data:
-        entity_id: scene.movies
-        transition: 2 #[sec] langsamer Übergang
-
 #    - service: scene.turn_on
-#      entity_id: scene.media_paused
+#      data:
+#        entity_id: scene.movies
+#        transition: 2 #[sec] langsamer Übergang
+
   # Ausschalten von Welcome-Licht, wenn wir für 10min weg sind oder nachts um 00:00
   - id: switch_off_lights
     alias: switch off welcome light

@@ -332,6 +332,9 @@ cards:
         name: Breaking changes
         secondary_info: last-changed
         icon: mdi:alert-circle
+        tap_action: 
+          action: url
+          url_path: https://www.home-assistant.io/blog/categories/release-notes/
       - entity: sensor.historydb_size
         name: Recorder Database
         icon: mdi:database
@@ -340,19 +343,7 @@ cards:
   - type: entities
     title: Login
     show_header_toggle: false
-    style: 
-      .: |
-        ha-card {
-          border-radius: 0px;
-          border: solid 1px rgba(255, 255, 255, 0.15);
-        }
-      "#states > div:nth-child(1) > fold-entity-row":
-        $:
-         "#head > entity-row-maker > hui-section-row":
-           $: |
-             div.divider {
-               height: 0px;
-             }
+    <<: *style_header
     entities:
       - type: custom:fold-entity-row
         head:
