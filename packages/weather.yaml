@@ -340,11 +340,13 @@ automation:
       - service: notify.max
         data_template:
           title: "Smart Home ..."
-          message: "DWD Wetterwarnung aufgehoben."
+          message: delete_alert #"DWD Wetterwarnung aufgehoben."
           data:
             push:
-              badge: "{{ states.sensor.count_notification_alerts.state|int }}"
-
+              badge: "{{states.sensor.count_notification_alerts.state|int}}"
+              thread-id: "wather-notification-group"
+            apns_headers:
+              'apns-collapse-id': 'dwd-weather-warning'
 
 ###############################################################################
 ##  Scripts & Shell Commands
@@ -362,7 +364,13 @@ script:
           message: "Aktuelle Warnung kommt per Mail."
           data:
             subtitle: "{{states.sensor.dwd_current_warn_count.state}} {% if states.sensor.dwd_current_warn_count.state|int == 1 %}Warnung{% else %}Warnungen {% endif %} mit max. Stufe {{states.sensor.dwd_max_warn_level.state}}."
-      #- service: shell_command.get_warn_image
+            push:
+              badge: "{{states.sensor.count_notification_alerts.state|int}}"
+              thread-id: "wather-notification-group"
+            apns_headers:
+              'apns-collapse-id': 'dwd-weather-warning'
+              url: /lovelace/weather
+    #- service: shell_command.get_warn_image
       #- delay:
       #    minutes: 1
       - service: notify.gmx_smtp

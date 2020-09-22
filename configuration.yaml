@@ -78,12 +78,13 @@ mqtt:
   discovery_prefix: homeassistant
 
 # Support for iOS app
-ios:
 mobile_app:
+discovery:
+#ios: #nur noch notwendig für actionable notificatios
 # iOS notification
-notify:
-  - platform: ios
-    name: ios_app
+#notify:
+#  - platform: ios
+#    name: ios_app
   #  target: !secret ios_token
 
 # Text to speech
@@ -180,6 +181,7 @@ hacs:
 
 breaking_changes:
   scan_interval: 600 #sec. default 60.
+
 ################################################################
 ## Test / Development
 ################################################################

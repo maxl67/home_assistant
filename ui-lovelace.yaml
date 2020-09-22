@@ -23,7 +23,7 @@ custom_header:
   tab_icons:
     #NOTE: only in one line, no multiple lines with '>'!!
     home: '{% if is_state("input_boolean.open_backdoor_alert", "on") or is_state("input_boolean.open_window_alert", "on") %}mdi:home-alert{% endif %}'
-    weather: '{% if is_state("input_boolean.dwd_weather_alert", "on") %}{% if is_state("sensor.dwd_current_warn_gewitter", "True") %}mdi:weather-lightning-rainy{% elif is_state("sensor.dwd_current_warn_sturm", "True") %}mdi:weather-windy{% elif is_state("sensor.dwd_current_warn_level_glaette", "True") %}mdi:snowflake-alert{% elif is_state("sensor.dwd_current_warn_frost", "True") %}mdi:thermometer-alert{% else %}mdi:weather-lightning{% endif %}{% endif %}'
+    weather: '{% if is_state("input_boolean.dwd_weather_alert", "on") %}{% if is_state("sensor.dwd_current_warn_gewitter", "True") %}mdi:weather-lightning-rainy{% elif is_state("sensor.dwd_current_warn_sturm", "True") %}mdi:weather-windy{% elif is_state("sensor.dwd_current_warn_level_glaette", "True") %}mdi:snowflake-alert{% elif is_state("sensor.dwd_current_warn_frost", "True") or states.sensor.dwd_max_warn_level.state|int > 10 %}mdi:thermometer-alert{% else %}mdi:weather-lightning{% endif %}{% endif %}'
   tabs_color:
     home: '{% if is_state("input_boolean.open_backdoor_alert", "on") %}red{% elif is_state("input_boolean.open_window_alert", "on") %}yellow{% endif %}'
     weather: '{% if states.sensor.dwd_max_warn_level.state|int >= 3 and states.sensor.dwd_max_warn_level.state|int <10 %}red{% elif states.sensor.dwd_max_warn_level.state|int >= 2 %}yellow{% endif %}'

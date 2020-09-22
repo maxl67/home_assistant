@@ -158,21 +158,21 @@ input_boolean:
 #####################################################################################################################
 ## Structure of sensors/automations
 #
-# 1) monitor.sh is running on 2 raspi (east, west) and scanning the known devices using bluetooth.
+# 1) monitor.sh is running on 2 raspi (east, west) and scanning for known devices using bluetooth.
 #    Each area script is sending for each device a confidence value [0..100] via MQTT.
 # 2) For each device 2 MQTT sensors are listening to these confidence values (sensor '<person> present {E|W}')
 # 3) The 2 sensors are combined (max function) and a confidence for the device being present is calculated
 #    (sensor '<person> Home Confidence'). Range [0..100].
 # 4) 2 automations will set the device_tracker for the BT-device to 'home' or 'not_home'.
 #    (automation '<person> Occupancy On', '<person> Occupancy Off')
-# 5) The BT-device is part of the group 'phone_<person>' which could contain other devices.
+# 5) The BT-device is part of the group 'phone_<person>' which could contain other devices_trackers.
 #    The group is turned 'on', if at least one device in the group is 'home'.
 # From this point on only the group is used in status automation triggers to be independent of devices.
 # 6) 2 automations are triggered by 'group.phone_<person>' and set the 'input_select.<person>_status_dropdown' to 
 #    [Just Left, Just Arrived, Home].
 #    3 time triggered automations switch the status value to [Home, Away, Extended Away].
 #    automations: 'Mark person as <...>'
-# 7) The value of the 'input_select.<person>_status_dropdown' variables are reflected in a sensor '<person>_status'.
+# 7) The value of the 'input_select.<person>_status_dropdown' variable is reflected in a sensor '<person>_status'.
 # HOME status
 # 8) Sensor 'n_people_home' counts the persons with at least 1 device 'home' in the divice-group of this person.
 #    In addition the 'input_boolean.guests' is counted with 1, if 'true'.

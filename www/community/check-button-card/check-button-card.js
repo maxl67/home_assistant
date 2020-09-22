@@ -1,4 +1,4 @@
-console.info(`%cCHECK-BUTTON-CARD\n%cVersion: 1.1.1`, 'color: green; font-weight: bold;', '');
+console.info(`%cCHECK-BUTTON-CARD\n%cVersion: 1.2.0`, 'color: green; font-weight: bold;', '');
 class CheckButtonCard extends HTMLElement {
     constructor() {
         super();
@@ -55,7 +55,8 @@ class CheckButtonCard extends HTMLElement {
                 over_by: 'over by'
             },
             display_limit: null,
-            due: false
+            due: false,
+            locale: 'en-us'
         };
         config.text = Object.assign(defaultConfig.text, config.text);
         config = Object.assign(defaultConfig, config);
@@ -561,6 +562,7 @@ class CheckButtonCard extends HTMLElement {
         const config = this._config;
         let payload = {};
         payload.timestamp = timestamp;
+        payload.timestamp_friendly = new Date(timestamp * 1000).toLocaleString(config.locale);
         payload.timeout = config.timeout;
         if (config.timeout) {
             payload.timeout_timestamp = this._convertToSeconds(config.timeout) + Number(timestamp);
@@ -734,3 +736,4 @@ class CheckButtonCard extends HTMLElement {
     }
 }
 customElements.define('check-button-card', CheckButtonCard);
+export {};

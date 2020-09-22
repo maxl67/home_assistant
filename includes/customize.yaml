@@ -3,11 +3,13 @@
 ## https://raw.githubusercontent.com/notoriousbdg/Home-AssistantConfig/master/packages/battery_alert.yaml
 ################################################################
 # disable alerts for a specific entity
-  sensor.ipad_von_max_reigl_battery_level:
-    battery_alert_disabled: false
-  sensor.iphone8_max_battery:
+  sensor.ipad_max_battery_level:
+    battery_alert_disabled: true
+  sensor.ipad_ing_battery_level:
     battery_alert_disabled: true
   sensor.iphonemax8_battery_level:
+    battery_alert_disabled: true
+  sensor.iphoneing_battery_level:
     battery_alert_disabled: true
   sensor.vacuum_battery:
     battery_alert_disabled: true    
@@ -20,7 +22,7 @@
     battery_sensor_creation_disabled: true
   device_tracker.iphonemax8:
     battery_sensor_creation_disabled: true
-  device_tracker.iphoneing8:
+  device_tracker.iphoneing:
     battery_sensor_creation_disabled: true
   sensor.vacuum_status:
     battery_sensor_creation_disabled: true

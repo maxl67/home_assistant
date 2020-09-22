@@ -6,25 +6,6 @@
 #   @links        : 
 ###############################################################################
 
-#todo
-ios:
-  push:
-    categories:
-      - name: YesNo
-        identifier: yesno
-        actions:
-          - identifier: 'YES'
-            title: 'Ja'
-          - identifier: 'NO'
-            title: 'Nein'
-      - name: YesLater
-        identifier: yeslater
-        actions:
-          - identifier: 'YES'
-            title: 'Done'
-          - identifier: 'LATER'
-            title: 'Später'
-
 ################################################
 ##  Customize
 ################################################
@@ -46,20 +27,19 @@ notify:
   - name: family_main_devices
     platform: group
     services:
-      - service: mobile_app_iphonemax8 #ios_iphonemax8
+      - service: mobile_app_iphonemax8 
 #hack: voruebergehend deaktiviert
-#      - service: ios_iphone8_ing 
+      #- service: mobile_app_ingrid_s_iphone
   - name: max
     platform: group
     services:
-      - service: ios_iphonemax8
+      - service: mobile_app_iphonemax8
+      - service: mobile_app_ipad_max
   - name: ing
     platform: group
     services:
-#hack: voruebergehend umgeleitet
-#      - service: ios_iphone8_ing 
-      - service: ios_iphonemax8
-#end hack
+      - service: mobile_app_ingrid_s_iphone 
+      - service: mobile_app_iehrlichs_ipad 
 
 # Mail Benachrichtigung
   - name: gmail_smtp
@@ -105,10 +85,11 @@ sensor:
           - input_boolean.open_window_alert
           - input_boolean.dwd_weather_alert
           - binary_sensor.vacuum_error_alert
-        value_template: "{{ (1 if is_state('input_boolean.open_backdoor_alert', 'on') else 0)
-                          + (1 if is_state('input_boolean.open_window_alert', 'on') else 0)
-                          + (1 if is_state('input_boolean.dwd_weather_alert', 'on') else 0) 
-                          + (1 if is_state('binary_sensor.vacuum_error_alert', 'on') else 0) 
-                        }}"
-            # numeric would be like that: + (0 if is_state('sensor.dwd_current_warn_count', '0') else 1) 
+        value_template: >
+          {{ (1 if is_state('input_boolean.open_backdoor_alert', 'on') else 0)
+            + (1 if is_state('input_boolean.open_window_alert', 'on') else 0)
+            + (1 if is_state('input_boolean.dwd_weather_alert', 'on') else 0) 
+            + (1 if is_state('binary_sensor.vacuum_error_alert', 'on') else 0) 
+          }}
+        # numeric would be like that: + (0 if is_state('sensor.dwd_current_warn_count', '0') else 1) 
         icon_template: mdi:comment-alert

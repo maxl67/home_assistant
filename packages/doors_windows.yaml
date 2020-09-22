@@ -131,55 +131,85 @@ automation:
     trigger:
       # niemand zuhause und mindestens eine Tür offen 
       platform: template
-      value_template: "{{ states.sensor.home_status.state in ['Away', 'Extended Away']  
-                          and is_state('group.all_doors', 'on') }}"
+      value_template: >
+        {{ states.sensor.home_status.state in ['Away', 'Extended Away']  
+           and is_state('group.all_doors', 'on') }}
       for:
-        seconds: 6
+        seconds: 5
     action:
       - service: input_boolean.turn_on
         entity_id: input_boolean.open_backdoor_alert
-      - service: notify.family_main_devices
-        data_template:
-          title: "Smart Home Alerts"
-          message: "Mindestens eine Balkontür ist offen."
-          data:
-            subtitle: "Türen offen!"
-            push:
-              badge: "{{states.sensor.count_notification_alerts.state|int}}"
-              #sound: "US-EN-Daisy-Back-Door-Open.wav"
-              sound:
-                name: default
-                critical: 1
-                volume: 1.0
-              thread-id: "doorswindows-notification-group"
-            apns_headers:
-              'apns-collapse-id': 'open-doors-detected'
-            clickAction: '/lovelace/home'
+      - choose:
+        - conditions:
+          - condition: state
+            entity_id: sensor.ing_status
+            state: 'Just Left'
+          sequence:
+            - service: notify.family_main_devices
+              data_template:
+                title: "Smart Home Alarm"
+                message: >
+                  {{states|selectattr('entity_id','in',state_attr('group.all_doors','entity_id'))|selectattr('state','eq','on')|list|count}} {{'Terassentür ist' if states|selectattr('entity_id','in',state_attr('group.all_doors','entity_id'))|selectattr('state','eq','on')|list|count==1 else 'Terassentüren sind'}} offen (und {{states|selectattr('entity_id','in',state_attr('group.all_windows','entity_id'))|selectattr('state','eq','on')|list|count}} Fenster).
+                data:
+                  subtitle: "Türen offen!"
+                  push:
+                    badge: "{{states.sensor.count_notification_alerts.state|int}}"
+                    sound:
+                      name: default 
+                      #name: "US-EN-Daisy-Back-Door-Open.wav" 
+                      critical: 1
+                      volume: 1.0
+                    thread-id: "doorswindows-notification-group"
+                  apns_headers:
+                    'apns-collapse-id': 'open-doors-detected'
+                  clickAction: '/lovelace/home'
+        default:
+        - service: notify.max
+          data_template:
+            title: "Smart Home Alarm"
+            message: >
+              {{states|selectattr('entity_id','in',state_attr('group.all_doors','entity_id'))|selectattr('state','eq','on')|list|count}} {{'Terassentür ist' if states|selectattr('entity_id','in',state_attr('group.all_doors','entity_id'))|selectattr('state','eq','on')|list|count==1 else 'Terassentüren sind'}} offen (und {{states|selectattr('entity_id','in',state_attr('group.all_windows','entity_id'))|selectattr('state','eq','on')|list|count}} Fenster).
+            data:
+              subtitle: "Türen offen!"
+              push:
+                badge: "{{states.sensor.count_notification_alerts.state|int}}"
+                sound:
+                  name: default 
+                  #name: "US-EN-Daisy-Back-Door-Open.wav" 
+                  critical: 1
+                  volume: 1.0
+                thread-id: "doorswindows-notification-group"
+              apns_headers:
+                'apns-collapse-id': 'open-doors-detected'
+              clickAction: '/lovelace/home'
 
   - alias: Notify all - Open Windows
     trigger:
       # niemand zuhause und mindestens ein Fenster offen 
       platform: template
-      value_template: "{{ states.sensor.home_status.state in ['Away', 'Extended Away']  
-                          and is_state('group.all_windows', 'on') }}"
+      value_template: >
+        {{ states.sensor.home_status.state in ['Away', 'Extended Away']  
+           and is_state('group.all_windows', 'on') 
+           and is_state('group.all_doors', 'off') }}
       for:
-        seconds: 6
+        seconds: 5
     action:
       - service: input_boolean.turn_on
         entity_id: input_boolean.open_window_alert
       - service: notify.family_main_devices
         data_template:
-          title: "Smart Home Alerts"
-          message: "Mindestens ein Fenster ist offen."
+          title: "Smart Home Alarm"
+          message: >
+            {{states|selectattr('entity_id','in',state_attr('group.all_windows','entity_id'))|selectattr('state','eq','on')|list|count}} Fenster {{'ist' if states|selectattr('entity_id','in',state_attr('group.all_windows','entity_id'))|selectattr('state','eq','on')|list|count==1 else 'sind'}} offen.
           data:
             subtitle: "Fenster offen!"
             push:
               badge: "{{states.sensor.count_notification_alerts.state|int}}"
-              #sound: "US-EN-Daisy-Front-Window-Open.wav"
               sound:
                 name: default
+                #name: "US-EN-Daisy-Front-Window-Open.wav"
                 critical: 1
-                volume: 0.8
+                volume: 1.0
               thread-id: "doorswindows-notification-group"
             apns_headers:
               'apns-collapse-id': 'open-windows-detected'
@@ -189,9 +219,10 @@ automation:
     trigger:
       # jemand zuhause oder alle Türen zu 
       platform: template
-      value_template: "{{ (states.sensor.home_status.state in ['Home']  
-                           or is_state('group.all_doors', 'off'))
-                          and is_state('input_boolean.open_backdoor_alert', 'on') }}"
+      value_template: >
+        {{ (states.sensor.home_status.state in ['Home']  
+              or is_state('group.all_doors', 'off'))
+            and is_state('input_boolean.open_backdoor_alert', 'on') }}
       for:
         seconds: 1
     action:
@@ -212,9 +243,10 @@ automation:
     trigger:
       # jemand zuhause oder alle Fenster zu 
       platform: template
-      value_template: "{{ (states.sensor.home_status.state in ['Home']  
-                           or is_state('group.all_windows', 'off'))
-                          and is_state('input_boolean.open_window_alert', 'on') }}"
+      value_template: >
+        {{ (states.sensor.home_status.state in ['Home']  
+              or is_state('group.all_windows', 'off'))
+            and is_state('input_boolean.open_window_alert', 'on') }}
       for:
         seconds: 1
     action:
