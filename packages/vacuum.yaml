@@ -63,15 +63,15 @@ vacuum:
 switch:
   - platform: template
     switches: ## are needed in addition to input_booleans to get a dynamic icon
-      disable_automatic_vacuum:
-        friendly_name: Automatische Reinigung aus #Disable Vacuum Automation    
-        value_template: "{% if states.input_boolean.disable_automatic_vacuum.state %}{{ is_state('input_boolean.disable_automatic_vacuum', 'on') }}{% endif %}"
+      enable_automatic_vacuum:
+        friendly_name: Automatische Reinigung #enable vacuum automation    
+        value_template: "{% if states.input_boolean.disable_automatic_vacuum.state %}{{ is_state('input_boolean.disable_automatic_vacuum', 'off') }}{% endif %}"
         turn_on:
-          service: homeassistant.turn_on
+          service: homeassistant.turn_off
           data:
             entity_id: input_boolean.disable_automatic_vacuum
         turn_off:
-          service: homeassistant.turn_off
+          service: homeassistant.turn_on
           data:
             entity_id: input_boolean.disable_automatic_vacuum
         icon_template: >-
@@ -180,30 +180,26 @@ binary_sensor:
   - platform: template
     sensors:
       vacuum_paused:
-        entity_id: vacuum.xiaomi_vacuum_cleaner
         value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.status in ['Paused'] }}"    
       vacuum_started:
-        entity_id: vacuum.xiaomi_vacuum_cleaner
         value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.status in ['Cleaning', 'Definition missing for state 18'] }}"    
 
       vacuum_error_alert:
-        entity_id: vacuum.xiaomi_vacuum_cleaner
         icon_template: mdi:alert-octagon
-        value_template: '{{ is_state("vacuum.xiaomi_vacuum_cleaner","error") }}'
+        value_template: "{{ is_state('vacuum.xiaomi_vacuum_cleaner','error') }}"
 
 sensor:
   - platform: template
     sensors: #not sure if I need this sensor in addition to input_select
       vacuum_cleaned_room:
-        value_template: '{{ states.input_select.vacuum_last_cleaned_room.state }}'
+        value_template: "{{ states.input_select.vacuum_last_cleaned_room.state }}"
         friendly_name: 'cleaned room history'
-        icon_template: "mdi:broom"
+        icon_template: 'mdi:broom'
 
   - platform: template
     sensors:
       vacuum_status:
         friendly_name: Vacuum status
-        entity_id: vacuum.xiaomi_vacuum_cleaner
 #        value_template: '{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.status }}'
         value_template: >
           {% set val =  states.vacuum.xiaomi_vacuum_cleaner.attributes.status  %}
@@ -229,8 +225,7 @@ sensor:
           {% endif %}
       vacuum_fan_speed:
         friendly_name: Fan Speed
-        entity_id: vacuum.xiaomi_vacuum_cleaner
-        value_template: '{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.fan_speed }}'
+        value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.fan_speed }}"
         icon_template: "mdi:speedometer"
 #      vacuum_fan_speed_list:
 #        friendly_name: "Vacuum - Fan Speed List"
@@ -238,50 +233,42 @@ sensor:
 #        entity_id: vacuum.xiaomi_vacuum_cleaner
       vacuum_battery:
         friendly_name: Vacuum Battery
-        entity_id: vacuum.xiaomi_vacuum_cleaner
-        value_template: '{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.battery_level }}'
+        value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.battery_level }}"
         unit_of_measurement: '%'
-        icon_template: '{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.battery_icon }}'
+        icon_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.battery_icon }}"
       vacuum_cleaning_time:
         friendly_name: Time of Last Cycle
-        entity_id: vacuum.xiaomi_vacuum_cleaner
-        value_template: '{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.cleaning_time }}'
+        value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.cleaning_time }}"
         unit_of_measurement: 'min'
         icon_template: "mdi:timer"
       vacuum_cleaned_area:
         friendly_name: Area of Last Cycle
         unit_of_measurement: 'm²'
-        entity_id: vacuum.xiaomi_vacuum_cleaner
-        value_template: '{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.cleaned_area }}'
+        value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.cleaned_area }}"
         icon_template: "mdi:ruler"
       vacuum_cleanmainbrush:
         friendly_name: Replace main brush
         unit_of_measurement: 'h'
-        entity_id: vacuum.xiaomi_vacuum_cleaner
-        value_template: 'Main Brush: {{ states.vacuum.xiaomi_vacuum_cleaner.attributes.main_brush_left }}'
+        value_template: "Main Brush: {{ states.vacuum.xiaomi_vacuum_cleaner.attributes.main_brush_left }}"
         icon_template: "mdi:screwdriver"
       vacuum_cleansidebrush:
         friendly_name: Replace side brush
         unit_of_measurement: 'h'
-        entity_id: vacuum.xiaomi_vacuum_cleaner
-        value_template: 'Side brush: {{ states.vacuum.xiaomi_vacuum_cleaner.attributes.side_brush_left }}'
+        value_template: "Side brush: {{ states.vacuum.xiaomi_vacuum_cleaner.attributes.side_brush_left }}"
         icon_template: "mdi:screwdriver"
       vacuum_cleanfilter:
         friendly_name: Replace filter
         unit_of_measurement: 'h'
-        entity_id: vacuum.xiaomi_vacuum_cleaner
-        value_template: 'Filter: {{ states.vacuum.xiaomi_vacuum_cleaner.attributes.filter_left }}'
+        value_template: "Filter: {{ states.vacuum.xiaomi_vacuum_cleaner.attributes.filter_left }}"
         icon_template: "mdi:screwdriver"
       vacuum_sensordirtyleft:
         friendly_name: Clean sensors
         unit_of_measurement: 'h'
-        entity_id: vacuum.xiaomi_vacuum_cleaner
-        value_template: 'Sensor: {{ states.vacuum.xiaomi_vacuum_cleaner.attributes.sensor_dirty_left }}'
+        value_template: "Sensor: {{ states.vacuum.xiaomi_vacuum_cleaner.attributes.sensor_dirty_left }}"
         icon_template: "mdi:screwdriver"
       vacuum_do_not_disturb:
         friendly_name: Do Not Disturb
-        entity_id: vacuum.xiaomi_vacuum_cleaner
-        value_template: '{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.do_not_disturb }}'
+        value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.do_not_disturb }}"
         icon_template: >
           {% set val =  states.vacuum.xiaomi_vacuum_cleaner.attributes.do_not_disturb  %}
           {% if val == 'on' %}
@@ -503,7 +490,7 @@ automation:
           state: 'on'
     action:
       - service: notify.family_main_devices
-        data_template:
+        data:
           title: "Smart Home Alerts"
           message: "DustiE hat einen Fehlerstatus."
           data:
@@ -525,7 +512,7 @@ automation:
           state: 'off'
     action:
       - service: notify.family_main_devices
-        data_template:
+        data:
           title: "Smart Home ..."
           message: "DustiE Fehler behoben."
           data:
@@ -537,20 +524,20 @@ automation:
   - id: vacuum_start_fullcleanup
     alias: Start full Vacuum
     trigger:
-    - platform: state
-      entity_id: sensor.home_status
-      from: 'Home'
-      to: 'Away'
-      for:
-        minutes: 2
-    - platform: time
-      at: '8:02:00'
-    - platform: state
-      entity_id: input_boolean.disable_automatic_vacuum
-      to: 'off'
-    - platform: state
-      entity_id: input_boolean.automatic_vacuum_when_home
-      to: 'on'
+      - platform: state
+        entity_id: sensor.home_status
+        from: 'Home'
+        to: 'Away'
+        for:
+          minutes: 2
+      - platform: time
+        at: '08:02:00'
+      - platform: state
+        entity_id: input_boolean.disable_automatic_vacuum
+        to: 'off'
+      - platform: state
+        entity_id: input_boolean.automatic_vacuum_when_home
+        to: 'on'
     condition:
       condition: and
       conditions:
@@ -575,17 +562,17 @@ automation:
           entity_id: input_boolean.automatic_vacuum_when_home
           state: 'on'
     action:
-    - delay: '00:00:10'
-    - service: script.vacuum_all
-    - service: homeassistant.turn_on
-      entity_id: input_boolean.automatic_vacuum_first_run
-    - service: notify.family_main_devices
-      data:
-        message: 'wöchentliches Saugen der gesamten Wohnung wurde gestartet.'
-        title: 'Automatisierung Dusti-E'
-    - delay: '01:50:00'
-    - service: homeassistant.turn_on
-      entity_id: input_boolean.dustbin_full_alert
+      - delay: '00:00:10'
+      - service: script.vacuum_all
+      - service: homeassistant.turn_on
+        entity_id: input_boolean.automatic_vacuum_first_run
+      - service: notify.family_main_devices
+        data:
+          message: 'wöchentliches Saugen der gesamten Wohnung wurde gestartet.'
+          title: 'Automatisierung Dusti-E'
+      - delay: '01:50:00'
+      - service: homeassistant.turn_on
+        entity_id: input_boolean.dustbin_full_alert
 
   ## automated partly cleanup
   ## Thursday between 8:00 and 17:00, if nobody is at home (or automatic_vacuum_when_home='on')
@@ -601,7 +588,7 @@ automation:
           minutes: 2
       # at 8:02, if everybody already has left earlier 
       - platform: time
-        at: '8:02:00'
+        at: '08:02:00'
       # change in options variables
       - platform: state
         entity_id: input_boolean.disable_automatic_vacuum
@@ -704,7 +691,7 @@ automation:
             false
           {% endif %}
     action:
-      - service_template: >
+      - service: >
           {% if (states.sensor.max_status.state in ['Home', 'Just Arrived']) and (states.sensor.ing_status.state in ['Home', 'Just Arrived']) %}
             notify.family_main_devices
           {% elif states.sensor.max_status.state in ['Home', 'Just Arrived'] %}
@@ -732,12 +719,12 @@ automation:
   ## Changing fan speed to the value selected by 'input_select.vacuum_fan_speed_list'
   - id: vacuum_set_fanspeed
     alias: Set vacuum fan speed
-    initial_state: 'on' #true
+#    initial_state: 'on' #true
     trigger:
       platform: state
       entity_id: input_select.vacuum_fan_speed_list
     action:
-      - service_template: >
+      - service: >
           {{ {
           'Silent' : 'script.vacuum_set_silent',
           'Standard' : 'script.vacuum_set_standard',

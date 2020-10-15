@@ -18,7 +18,7 @@ homeassistant:
   # definitions
     package.node_anchors:
       common: &common
-        package: "presence_detection"
+        package: 'presence_detection'
       device_wifi: &device_wifi
         icon: mdi:cellphone-wireless
         <<: *common
@@ -149,7 +149,7 @@ input_datetime:
     has_date: true
     has_time: true
 
-# Manuelle Eingabe, ob Gäste in der Wohnung sind. Erhöht der Wert von 'sensor.n_people_home' um 1.
+# Manuelle Eingabe, ob Gäste in der Wohnung sind. Erhöht den Wert von 'sensor.n_people_home' um 1.
 input_boolean:
   guests:
     name: Wir haben Gäste #We have guests
@@ -158,8 +158,11 @@ input_boolean:
 #####################################################################################################################
 ## Structure of sensors/automations
 #
-# 1) monitor.sh is running on 2 raspi (east, west) and scanning for known devices using bluetooth.
-#    Each area script is sending for each device a confidence value [0..100] via MQTT.
+# ON RASPBERRY PI's
+# 1) monitor.sh is running on 2 raspi (area east & west) and scanning for known devices using bluetooth.
+#    Each area script is reporting a confidence value [0..100] via MQTT for each device.
+#    All devices that are scanned for are configured for the script locally on the raspi's (MAC and name).
+# IN HOME-ASSISTANT
 # 2) For each device 2 MQTT sensors are listening to these confidence values (sensor '<person> present {E|W}')
 # 3) The 2 sensors are combined (max function) and a confidence for the device being present is calculated
 #    (sensor '<person> Home Confidence'). Range [0..100].
@@ -168,20 +171,21 @@ input_boolean:
 # 5) The BT-device is part of the group 'phone_<person>' which could contain other devices_trackers.
 #    The group is turned 'on', if at least one device in the group is 'home'.
 # From this point on only the group is used in status automation triggers to be independent of devices.
+# PERSON status
 # 6) 2 automations are triggered by 'group.phone_<person>' and set the 'input_select.<person>_status_dropdown' to 
 #    [Just Left, Just Arrived, Home].
 #    3 time triggered automations switch the status value to [Home, Away, Extended Away].
 #    automations: 'Mark person as <...>'
 # 7) The value of the 'input_select.<person>_status_dropdown' variable is reflected in a sensor '<person>_status'.
 # HOME status
-# 8) Sensor 'n_people_home' counts the persons with at least 1 device 'home' in the divice-group of this person.
+# 8) Sensor 'n_people_home' counts the persons with at least 1 device 'home' in the device-group of this person.
 #    In addition the 'input_boolean.guests' is counted with 1, if 'true'.
 #    'n_people_home' >0 means someone is at home, =0 means nobody is home.
 # 9) 2 automations are triggered by 'sensor.n_people_home' and set the 'input_select.home_status_dropdown' to 
 #    [Away, Home].
 #    1 time triggered automation switches the status value to [Extended Away].
 #    automations: 'Home Status - <...>'
-#10) The value of the 'input_select.home_status_dropdown' variable are reflected in a sensor 'home_status'.
+#10) The value of the 'input_select.home_status_dropdown' variable is reflected in a sensor 'home_status'.
 #####################################################################################################################
 
 ###############################################################################
@@ -195,24 +199,24 @@ sensor:
   - platform: mqtt
     name: 'Max present E'
     state_topic: 'monitor/ost/iphone_max_bt'
-    value_template: '{{ value_json.confidence }}'
+    value_template: "{{ value_json.confidence }}"
     unit_of_measurement: '%'
-    availability_topic: "monitor/ost/status"
-    payload_available: "online"
-    payload_not_available: "offline"
+    availability_topic: 'monitor/ost/status'
+    payload_available: 'online'
+    payload_not_available: 'offline'
     json_attributes_topic: 'monitor/ost/iphone_max_bt'
   - platform: mqtt
     name: 'Max present W'
     state_topic: 'monitor/west/iphone_max_bt'
-    value_template: '{{ value_json.confidence }}'
+    value_template: "{{ value_json.confidence }}"
     unit_of_measurement: '%'
-    availability_topic: "monitor/west/status"
-    payload_available: "online"
-    payload_not_available: "offline"
+    availability_topic: 'monitor/west/status'
+    payload_available: 'online'
+    payload_not_available: 'offline'
     json_attributes_topic: 'monitor/west/iphone_max_bt'
   # combining all area values into a total confidence value
   - platform: min_max
-    name: "Max Home Confidence"
+    name: 'Max Home Confidence'
     type: max
     round_digits: 0 #todo: not working, still shows one digit in card.
     entity_ids:
@@ -223,24 +227,24 @@ sensor:
   - platform: mqtt
     name: 'Ing present E'
     state_topic: 'monitor/ost/iphone_ing_bt'
-    value_template: '{{ value_json.confidence }}'
+    value_template: "{{ value_json.confidence }}"
     unit_of_measurement: '%'
-    availability_topic: "monitor/ost/status"
-    payload_available: "online"
-    payload_not_available: "offline"
+    availability_topic: 'monitor/ost/status'
+    payload_available: 'online'
+    payload_not_available: 'offline'
     json_attributes_topic: 'monitor/ost/iphone_ing_bt'
   - platform: mqtt
     name: 'Ing present W'
     state_topic: 'monitor/west/iphone_ing_bt'
-    value_template: '{{ value_json.confidence }}'
+    value_template: "{{ value_json.confidence }}"
     unit_of_measurement: '%'
-    availability_topic: "monitor/west/status"
-    payload_available: "online"
-    payload_not_available: "offline"
+    availability_topic: 'monitor/west/status'
+    payload_available: 'online'
+    payload_not_available: 'offline'
     json_attributes_topic: 'monitor/west/iphone_ing_bt'
   # combining all area values into a total confidence value
   - platform: min_max
-    name: "Ing Home Confidence"
+    name: 'Ing Home Confidence'
     type: max
     round_digits: 0
     entity_ids:
@@ -252,12 +256,10 @@ sensor:
     sensors:
       max_status:
         friendly_name: 'Max'
-        entity_id: input_select.max_status_dropdown
-        value_template: '{{ states.input_select.max_status_dropdown.state }}'
+        value_template: "{{ states('input_select.max_status_dropdown') }}"
       ing_status:
         friendly_name: 'Ingrid'
-        entity_id: input_select.ing_status_dropdown
-        value_template: '{{ states.input_select.ing_status_dropdown.state }}'
+        value_template: "{{ states('input_select.ing_status_dropdown') }}"
 
   # Gesamtstatus / total status of home
   - platform: template
@@ -265,13 +267,6 @@ sensor:
     # Anzahl der Personen zuhause
       n_people_home:
         friendly_name: Number of People Home
-        entity_id:
-          # list all entities (not group) otherwise the trigger will not perform correctly
-          - device_tracker.iphone8_max_wifi
-          - device_tracker.iphone8_ing_wifi
-          - device_tracker.iphone8_ing_bt
-          - device_tracker.iphone8_max_bt    
-          - input_boolean.guests
         value_template: >
           {{ (1 if states|selectattr('entity_id','in',state_attr('group.phone_max','entity_id'))
                    |selectattr('state','eq','home')|list|count > 0 else 0) + 
@@ -282,8 +277,7 @@ sensor:
     # Gesamtstatus: ist jemand zuhause
       home_status:
         friendly_name: 'Home Presence Status'
-        entity_id: input_select.home_status_dropdown
-        value_template: '{{ states.input_select.home_status_dropdown.state }}'
+        value_template: "{{ states('input_select.home_status_dropdown') }}"
         icon_template: mdi:home-account #account-supervisor-circle oder account-search
           #account-supervisor-circle oder account-search
 
@@ -295,6 +289,7 @@ automation:
   # Update device_tracker bluetooth states from the confidence values derived from BlueTooth monitor.sh 
   # We stick to the device_tracker sensors because they were already in use...input_boolean would be fine too...
   # ...and I like the idea, that the monitor.sh scripts are just a better source for the intended bluetooth device_trackers.
+  # Person 1
   - alias: Max Occupancy On
     trigger:
       - platform: numeric_state
@@ -318,6 +313,7 @@ automation:
           location_name: not_home
           source_type: bluetooth
 
+  # Person 2
   - alias: Ing Occupancy On
     trigger:
       - platform: numeric_state
@@ -353,9 +349,9 @@ automation:
         below: *int_confidence_threshold_area_arrival_scan
     action:
       - service: mqtt.publish
-        data_template:
-          topic: "monitor/scan/arrive" 
-          payload: '{"data" : "west"}' #this monitor publisher will NOT respond!
+        data:
+          topic: 'monitor/scan/arrive' 
+          payload: "{'data' : 'west'}" #this monitor publisher will NOT respond!
   - alias: Start BT Arrival Scan West
     trigger:
       - platform: numeric_state
@@ -365,11 +361,11 @@ automation:
         below: *int_confidence_threshold_area_arrival_scan
     action:
       - service: mqtt.publish
-        data_template:
-          topic: "monitor/scan/arrive" 
-          payload: '{"data" : "ost"}' #this monitor publisher will NOT respond!
+        data:
+          topic: 'monitor/scan/arrive' 
+          payload: "{'data' : 'ost'}" #this monitor publisher will NOT respond!
 
-  # if confidence dropped to 0 in one area, we trigger a departure scan in the other area 
+  # if confidence dropped to almost 0 in one area, we trigger a departure scan in the other area 
   #   (to speed things up, in case the 2nd monitor missed the departure)
   - alias: Start BT Departure Scan Ost
     trigger:
@@ -382,9 +378,9 @@ automation:
           seconds: 15
     action:
       - service: mqtt.publish
-        data_template:
-          topic: "monitor/scan/depart" 
-          payload: '{"data" : "west"}' #this monitor publisher will NOT respond!
+        data:
+          topic: 'monitor/scan/depart' 
+          payload: "{'data' : 'west'}" #this monitor publisher will NOT respond!
   - alias: Start BT Departure Scan West
     trigger:
       - platform: numeric_state
@@ -396,9 +392,9 @@ automation:
           seconds: 15
     action:
       - service: mqtt.publish
-        data_template:
-          topic: "monitor/scan/depart" 
-          payload: '{"data" : "ost"}' #this monitor publisher will NOT respond!
+        data:
+          topic: 'monitor/scan/depart' 
+          payload: "{'data' : 'ost'}" #this monitor publisher will NOT respond!
 
   # if WiFi detects an arrival, we trigger a BT arrival scan (in case monitor.sh missed that)
   # if frontdoor opens too.
@@ -418,8 +414,8 @@ automation:
     condition: []
     action:
       - service: mqtt.publish
-        data_template:
-          topic: "monitor/scan/arrive"
+        data:
+          topic: 'monitor/scan/arrive'
           payload: ''
 
   # if WiFi detects a departure, we trigger a BT depart scan (in case monitor.sh missed that)
@@ -441,18 +437,18 @@ automation:
     condition: []
     action:
       - service: mqtt.publish
-        data_template:
-          topic: "monitor/scan/depart"
+        data:
+          topic: 'monitor/scan/depart'
           payload: ''
       - delay: '00:00:40'
       - service: mqtt.publish
-        data_template:
-          topic: "monitor/scan/depart"
+        data:
+          topic: 'monitor/scan/depart'
           payload: ''
       - delay: '00:01:00'
       - service: mqtt.publish
-        data_template:
-          topic: "monitor/scan/depart"
+        data:
+          topic: 'monitor/scan/depart'
           payload: ''
 
 
@@ -467,10 +463,10 @@ automation:
     mode: queued
     action:
       - service: input_datetime.set_datetime
-        data_template:
+        data:
           entity_id: input_datetime.{{ trigger.entity_id[13:] }}_last_changed
-          time: '{{ (as_timestamp(now()) | timestamp_custom("%H:%M:%S", true)) }}'
-          date: '{{ (as_timestamp(now()) | timestamp_custom("%Y-%m-%d", true)) }}'
+          time: "{{ (as_timestamp(now()) | timestamp_custom('%H:%M:%S', true)) }}"
+          date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
 
 # if a device_tracker changed while HA was offline, we have to correct the input_select.*_status_dropdown after restart.
 # We also do that once a day (00:45 at night) in case a trigger was missed.
@@ -485,41 +481,41 @@ automation:
     action:
       # first update device status from MQTT (BlueTooth monitor.sh) 
       - service: mqtt.publish
-        data_template:
-          topic: "monitor/scan/restart"
+        data:
+          topic: 'monitor/scan/restart'
           payload: ''
       - delay: '00:00:30'
       - service: mqtt.publish
         data:
-          topic: "monitor/ost/KNOWN DEVICE STATES"
-          payload: "on"
+          topic: 'monitor/ost/KNOWN DEVICE STATES'
+          payload: 'on'
       - service: mqtt.publish
         data:
-          topic: "monitor/west/KNOWN DEVICE STATES"
-          payload: "on"
+          topic: 'monitor/west/KNOWN DEVICE STATES'
+          payload: 'on'
       - delay: '00:00:10'
       # correct person 1
       - service: input_select.select_option
-        data_template:
+        data:
           entity_id: input_select.max_status_dropdown
           option: >
            {% if is_state('group.phone_max','home') %}
-              {% if states.input_select.max_status_dropdown.state in ['Just Arrived','Just Left'] %}
+              {% if states('input_select.max_status_dropdown') in ['Just Arrived','Just Left'] %}
                 Home
-              {% elif states.input_select.max_status_dropdown.state in ['Away', 'Extended Away'] %}
+              {% elif states('input_select.max_status_dropdown') in ['Away', 'Extended Away'] %}
                 Just Arrived
               {% else %}
                 Home
               {% endif %}
             {% else %} 
-              {% if states.input_select.max_status_dropdown.state in ['Just Left'] %}
+              {% if states('input_select.max_status_dropdown') in ['Just Left'] %}
                 Away
-              {% elif states.input_select.max_status_dropdown.state in ['Home', 'Just Arrived'] %}
+              {% elif states('input_select.max_status_dropdown') in ['Home', 'Just Arrived'] %}
                 Just Left
-              {% elif (states.input_select.max_status_dropdown.state in ['Away']) and 
-                      (((as_timestamp(now()) - as_timestamp(states.input_datetime.max_status_dropdown_last_changed.state))/3600) | int >=24) %}
+              {% elif (states('input_select.max_status_dropdown') in ['Away']) and 
+                      (((as_timestamp(now()) - as_timestamp(states('input_datetime.max_status_dropdown_last_changed')))/3600) | int >=24) %}
                 Extended Away
-              {% elif states.input_select.max_status_dropdown.state in ['Extended Away'] %}
+              {% elif states('input_select.max_status_dropdown') in ['Extended Away'] %}
                 Extended Away
               {% else %}
                 Away
@@ -527,38 +523,39 @@ automation:
             {% endif %}
       # correct person 2
       - service: input_select.select_option
-        data_template:
+        data:
           entity_id: input_select.ing_status_dropdown
           option: >
             {% if is_state('group.phone_ing','home') %}
-              {% if states.input_select.ing_status_dropdown.state in ['Just Arrived','Just Left'] %}
+              {% if states('input_select.ing_status_dropdown') in ['Just Arrived','Just Left'] %}
                 Home
-              {% elif states.input_select.ing_status_dropdown.state in ['Away', 'Extended Away'] %}
+              {% elif states('input_select.ing_status_dropdown') in ['Away', 'Extended Away'] %}
                 Just Arrived
               {% else %}
                 Home
               {% endif %}
             {% else %} 
-              {% if states.input_select.ing_status_dropdown.state in ['Just Left'] %}
+              {% if states('input_select.ing_status_dropdown') in ['Just Left'] %}
                 Away
-              {% elif states.input_select.ing_status_dropdown.state in ['Home', 'Just Arrived'] %}
+              {% elif states('input_select.ing_status_dropdown') in ['Home', 'Just Arrived'] %}
                 Just Left
-              {% elif (states.input_select.ing_status_dropdown.state in ['Away']) and 
-                      (((as_timestamp(now()) - as_timestamp(states.input_datetime.ing_status_dropdown_last_changed.state))/3600) | int >=24) %}
+              {% elif (states('input_select.ing_status_dropdown') in ['Away']) and 
+                      (((as_timestamp(now()) - as_timestamp(states('input_datetime.ing_status_dropdown_last_changed')))/3600) | int >=24) %}
                 Extended Away
-              {% elif states.input_select.ing_status_dropdown.state in ['Extended Away'] %}
+              {% elif states('input_select.ing_status_dropdown') in ['Extended Away'] %}
                 Extended Away
               {% else %}
                 Away
               {% endif %}
             {% endif %}
       # correct home status
+      # todo: dies verursacht den Log-Eintrag 'WARNING (MainThread) [homeassistant.components.input_select] Invalid option:  (possible options: Home, Away, Extended Away)'
       - service: input_select.select_option
-        data_template:
+        data:
           entity_id: input_select.home_status_dropdown
           option: >
             {% if is_state('input_select.home_status_dropdown','Away') %}
-              {% if (((as_timestamp(now()) - as_timestamp(states.input_datetime.home_status_dropdown_last_changed.state))/3600) | int >=24) %}
+              {% if (as_timestamp(now()) - as_timestamp(states('input_datetime.home_status_dropdown_last_changed')))/3600 |int >=24 %}
                 Extended Away
               {% endif %}
             {% endif %}
@@ -588,7 +585,7 @@ automation:
         to: 'home'
     action:
       - service: input_select.select_option
-        data_template:
+        data:
           entity_id: >
             {% if trigger.entity_id == 'group.phone_max' %}
               input_select.max_status_dropdown
@@ -619,7 +616,7 @@ automation:
         to: 'not_home'
     action:
       - service: input_select.select_option
-        data_template:
+        data:
           entity_id: >
             {% if trigger.entity_id == 'group.phone_max' %}
               input_select.max_status_dropdown
@@ -646,7 +643,7 @@ automation:
         to: 'Just Arrived'
     action:
       - service: input_select.select_option
-        data_template:
+        data:
           entity_id: "{{ trigger.entity_id }}"
           option: Home
   
@@ -662,7 +659,7 @@ automation:
           minutes: *int_minutes_after_being_away # default: 10
     action:
       - service: input_select.select_option
-        data_template:
+        data:
           entity_id: "{{ trigger.entity_id }}"
           option: Away
   
@@ -679,7 +676,7 @@ automation:
           minutes: *int_minutes_after_being_extendedaway #for testing. Default: 0
     action:
       - service: input_select.select_option
-        data_template:
+        data:
           entity_id: "{{ trigger.entity_id }}"
           option: Extended Away
 

@@ -156,8 +156,6 @@ lovelace:
       type: module
     - url: /hacsfiles/bar-card/bar-card.js
       type: module
-    - url: /hacsfiles/calendar-card/calendar-card.js
-      type: js #module
     - url: /hacsfiles/lovelace-card-mod/card-mod.js
       type: module
     - url: /hacsfiles/lovelace-slider-entity-row/slider-entity-row.js
@@ -165,10 +163,17 @@ lovelace:
     # Repo: https://github.com/sgttrs/lovelace-weather-card-chart
     - url: /hacsfiles/lovelace-weather-card-chart/weather-card-chart.js
       type: module
+    # Repo: https://github.com/dmulcahey/zha-network-visualization-card
+    - url: /hacsfiles/zha-network-visualization-card/zha-network-visualization-card.js
+      type: module
+            
+## deprecated
+##  - url: /hacsfiles/calendar-card/calendar-card.js
+##    type: js #module
 
 frontend:
   themes: !include_dir_merge_named themes
-  javascript_version: latest
+  
 #map:
 uilogs:
 
@@ -181,6 +186,10 @@ hacs:
 
 breaking_changes:
   scan_interval: 600 #sec. default 60.
+
+python_script:
+
+zha_map:
 
 ################################################################
 ## Test / Development

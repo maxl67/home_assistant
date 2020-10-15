@@ -304,9 +304,9 @@ cards:
       - entity: input_select.vacuum_room
       - type: section
         label: automatisches Saugen #automatic cleanup
-      - entity: switch.disable_automatic_vacuum
+      - entity: switch.enable_automatic_vacuum
         toggle: true
-        name: Automatisches Saugen deaktivieren #Disable Daily Cleanup
+        name: Automatisches Saugen aktivieren #enable Daily Cleanup
 
     # options for automatic cleanup only if activated)
     - type: conditional

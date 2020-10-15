@@ -51,8 +51,13 @@ cards:
       - entity: sensor.max_status
       - entity: sensor.ing_status
       - entity: input_boolean.guests
-      #- entity: sensor.n_people_home
       - entity: sensor.home_status
+        type: custom:multiple-entity-row
+        name: Home Status
+      #  secondary_info: last-changed
+      #  entities:
+      #  - entity: sensor.n_people_home
+      #    name: '#Pers.'
 
   # show events from home-calendar (if any)
 #  - type: conditional
@@ -60,30 +65,22 @@ cards:
 #      - entity: calendar.home
 #        state_not: 'off'
 #    card:
-  - type: custom:calendar-card
-    title: "Home-Kalender"
-    progressBar: false
-    timeFormat: "H:mm"
-    highlightToday: true
-    numberOfDays: 3
-    fullDayEventText: "ganztägig"
+  - type: calendar
+    title: 'Home-Kalender'
+    initial_view: listWeek #list_view
     entities:
       - calendar.home
-      #- calendar.privat_max
+      - calendar.privat_max
       #- calendar.ingrid
 
-  # status of power switches
-#  - type: conditional
-#    conditions: 
-#      - entity: input_boolean.disable_power_automation
-#        state: "off"
-#    card:
+  # status of power switches and lights
   - type: entities
     title: Power
     show_header_toggle: false
     state_color: true
     entities:
-      - entity: input_boolean.disable_power_automation
+      #- entity: input_boolean.disable_power_automation
+      - entity: switch.enable_power_automation
       - entity: switch.osram_plug_01_a1bf020a_3
         name: Media Rack
       - type: custom:slider-entity-row
@@ -91,9 +88,12 @@ cards:
         name: Ambiente-Licht
         toggle: true
         hide_when_off: true
-#  - type: light
-#    entity: light.0008da499c8dbd
-#    name: Ambiente-Licht
+      - type: custom:slider-entity-row
+        entity: light.philips_lightstrip_ku
+        name: Lichtsteifen Küche
+        toggle: true
+        hide_when_off: true
+
 
   # device tracking status (for testing)
   - !include ../cards/devicetracker_debug.yaml

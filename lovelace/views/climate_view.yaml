@@ -183,6 +183,8 @@ cards:
             name: Ventilöffn.
           - entity: sensor.hm_thermo_gz_window_state
             name: Fenster
+          - entity: sensor.hm_thermo_gz_active_profile
+            name: Profil
         control:
           - hvac
           #- preset       
@@ -220,7 +222,7 @@ cards:
       state_color: true
       entities:
       - entity: switch.heating_period
-      - entity: switch.enable_automate_heating
+      - entity: switch.enable_heating_automation
       - type: custom:hui-conditional-card
         conditions:
           - entity: input_boolean.automate_heating

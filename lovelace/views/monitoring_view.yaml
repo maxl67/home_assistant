@@ -354,7 +354,7 @@ cards:
         entities:
           - type: weblink
             url: https://fritz.box
-            icon: mdi:network-router
+            icon: mdi:router-network
             name: FritzBox (int)
           - type: weblink
             url: https://hera:5001
@@ -379,7 +379,7 @@ cards:
         entities:
           - type: weblink
             url: https://wkj60fbqxmykyvov.myfritz.net:8441/
-            icon: mdi:network-router
+            icon: mdi:router-network
             name: FritzBox (ext)
           - type: weblink
             url: https://maxing.myds.me:5001/
@@ -389,6 +389,10 @@ cards:
             url: https://unifi.maxing.myds.me
             icon: mdi:access-point-network
             name: Unifi Controller (ext)
+          - type: weblink
+            url: https://www.maxing.myds.me/index.php/de/spiel-werkzeug/home-assistant
+            icon: mdi:web-box
+            name: Homepage Doku
 
   # ========== Devices ==============
   - type: glance

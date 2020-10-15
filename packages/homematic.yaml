@@ -80,6 +80,8 @@ homeassistant:
       <<: *valve
     sensor.hm_thermo_gz_window_state:
       <<: *common
+    sensor.hm_thermo_gz_active_profile:
+      <<: *common
 
     sensor.hm_ccu_last_reboot:
       <<: *common
@@ -125,116 +127,100 @@ sensor:
     sensors:
     # Wohnzimmer
       hm_thermo_wz_current_temp:
-        value_template: '{{state_attr("climate.000c9a499b5808","current_temperature")|float}}'
-        entity_id: climate.000c9a499b5808
-        friendly_name: 'Wohnzimmer Ist-Temperatur'
+        value_template: "{{state_attr('climate.000c9a499b5808','current_temperature')|float}}"
+        friendly_name: "Wohnzimmer Ist-Temperatur"
       hm_thermo_wz_target_temp:
-        value_template: '{{state_attr("climate.000c9a499b5808","temperature")|float}}'
-        entity_id: climate.000c9a499b5808
-        friendly_name: 'Wohnzimmer Soll-Temperatur'
+        value_template: "{{state_attr('climate.000c9a499b5808','temperature')|float}}"
+        friendly_name: "Wohnzimmer Soll-Temperatur"
       hm_thermo_wz_actor_state:
         value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ')}}{% endif %}"
-        entity_id: homematic.raspi_ccu
-        friendly_name: 'Wohnzimmer Heizungsventile'
+        friendly_name: "Wohnzimmer Heizungsventile"
         icon_template: "mdi:valve"
       hm_thermo_wz_actor_value: #for mini-graph
-        friendly_name: 'Wohnzimmer Heizventile'
+        friendly_name: "Wohnzimmer Heizventile"
         value_template: >-
           {%if state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == False %}
             {%if is_state('input_boolean.heating_period','on') %}
           0
             {% else %}
-          -20
+          -5
             {% endif %}
           {% elif state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == True %}
           20
           {% endif %}
         icon_template: "mdi:valve"
-        entity_id: 
-          - homematic.raspi_ccu
-          - input_boolean.heating_period
       hm_thermo_wz_window_state:
         value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ')}}{% endif %}"
         icon_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == False %} mdi:window-closed-variant {% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == True %} mdi:window-open-variant {% endif %}"
-        entity_id: homematic.raspi_ccu
-        friendly_name: 'Fensterstatus Wohnzimmerthermostat'
+        friendly_name: "Fensterstatus Wohnzimmerthermostat"
       # Küche
       hm_thermo_ku_current_temp:
-        value_template: '{{state_attr("climate.000a1a49a10ba3","current_temperature")|float}}'
-        entity_id: climate.000a1a49a10ba3
-        friendly_name: 'Küche Ist-Temperatur'
+        value_template: "{{state_attr('climate.000a1a49a10ba3','current_temperature')|float}}"
+        friendly_name: "Küche Ist-Temperatur"
       hm_thermo_ku_target_temp:
-        value_template: '{{state_attr("climate.000a1a49a10ba3","temperature")|float}}'
-        entity_id: climate.000a1a49a10ba3
-        friendly_name: 'Küche Soll-Temperatur'
+        value_template: "{{state_attr('climate.000a1a49a10ba3','temperature')|float}}"
+        friendly_name: "Küche Soll-Temperatur"
       hm_thermo_ku_valve_status:
         #Status Adaptierfahrt. 4=ADAPTION_DONE
-        value_template: '{{state_attr("climate.000a1a49a10ba3","valve")|int}}'
-        entity_id: climate.000a1a49a10ba3
-        friendly_name: 'Küche Ventilstatus'
+        value_template: "{{state_attr('climate.000a1a49a10ba3','valve')|int}}"
+        friendly_name: "Küche Ventilstatus"
         icon_template: "mdi:valve"
       hm_thermo_ku_actor_value:
-        value_template: '{{(state_attr("climate.000a1a49a10ba3","level")|float*100)|int}}'
-        entity_id: climate.000a1a49a10ba3
-        friendly_name: 'Küche Ventilöffnung'
+        value_template: "{{(state_attr('climate.000a1a49a10ba3','level')|float*100)|int}}"
+        friendly_name: "Küche Ventilöffnung"
         icon_template: "mdi:valve"
       hm_thermo_ku_actor_display:  #for mini-graph
-        value_template: '{{state_attr("climate.000a1a49a10ba3","level")|float*20}}'
-        entity_id: climate.000a1a49a10ba3
-        friendly_name: 'Küche Ventilöffnung'
+        value_template: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.000a1a49a10ba3','level')|float==0) else state_attr('climate.000a1a49a10ba3','level')|float*20 }}"
+                       #"{{state_attr('climate.000a1a49a10ba3','level')|float*20}}"
+        friendly_name: "Küche Ventilöffnung"
         icon_template: "mdi:valve"
       hm_thermo_ku_window_state:
         value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU')}}{% endif %}"
         icon_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU') == False %} mdi:window-closed-variant {% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU') == True %} mdi:window-open-variant {% endif %}"
-        entity_id: homematic.raspi_ccu
-        friendly_name: 'Fensterstatus Küchenthermostat'
+        friendly_name: "Fensterstatus Küchenthermostat"
       # Gästezimmer
       hm_thermo_gz_current_temp:
-        value_template: '{{state_attr("climate.000a1a49a107b5","current_temperature")|float}}'
-        entity_id: climate.000a1a49a107b5
-        friendly_name: 'Gästezimmer Ist-Temperatur'
+        value_template: "{{state_attr('climate.000a1a49a107b5','current_temperature')|float}}"
+        friendly_name: "Gästezimmer Ist-Temperatur"
       hm_thermo_gz_target_temp:
-        value_template: '{{state_attr("climate.000a1a49a107b5","temperature")|float}}'
-        entity_id: climate.000a1a49a107b5
-        friendly_name: 'Gästezimmer Soll-Temperatur'
+        value_template: "{{state_attr('climate.000a1a49a107b5','temperature')|float}}"
+        friendly_name: "Gästezimmer Soll-Temperatur"
       hm_thermo_gz_valve_status:
         #Status Adaptierfahrt. 4=ADAPTION_DONE
-        value_template: '{{state_attr("climate.000a1a49a107b5","valve")|int}}'
-        entity_id: climate.000a1a49a107b5
-        friendly_name: 'Gästezimmer Ventilstatus'
+        value_template: "{{state_attr('climate.000a1a49a107b5','valve')|int}}"
+        friendly_name: "Gästezimmer Ventilstatus"
         icon_template: "mdi:valve"
       hm_thermo_gz_actor_value:
-        value_template: '{{(state_attr("climate.000a1a49a107b5","level")|float*100)|int}}'
-        entity_id: climate.000a1a49a107b5
-        friendly_name: 'Gästezimmer Ventilöffnung'
+        value_template: "{{(state_attr('climate.000a1a49a107b5','level')|float*100)|int}}"
+        friendly_name: "Gästezimmer Ventilöffnung"
         icon_template: "mdi:valve"
       hm_thermo_gz_actor_display:  #for mini-graph
-        value_template: '{{state_attr("climate.000a1a49a107b5","level")|float*20}}'
-        entity_id: climate.000a1a49a107b5
-        friendly_name: 'Gästezimmer Ventilöffnung'
+        value_template: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.000a1a49a107b5','level')|float==0) else state_attr('climate.000a1a49a107b5','level')|float*20 }}"
+                      # "{{state_attr('climate.000a1a49a107b5','level')|float*20}}"
+        friendly_name: "Gästezimmer Ventilöffnung"
         icon_template: "mdi:valve"
       hm_thermo_gz_window_state:
         value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_GZ') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_GZ') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Fensteroffen_GZ')}}{% endif %}"
         icon_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_GZ') == False %} mdi:window-closed-variant {% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_GZ') == True %} mdi:window-open-variant {% endif %}"
-        entity_id: homematic.raspi_ccu
-        friendly_name: 'Fensterstatus Gästethermostat'
-  # CCU
+        friendly_name: "Fensterstatus Gästethermostat"
+      hm_thermo_gz_active_profile:
+        value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Wochenprofil_GZ') == False %}0{% else %}{{state_attr('homematic.raspi_ccu', 'V_Wochenprofil_GZ')}}{% endif %}"
+        friendly_name: "Heizprofil Gästethermostat"
+    # CCU
   - platform: template
     sensors:
       hm_ccu_last_reboot:
         value_template: "{{ state_attr('homematic.raspi_ccu', 'V_Last_Reboot') or '01.01.1970 00:00:00' }}"
         icon_template: "mdi:clock"
-        entity_id: homematic.raspi_ccu
       
 binary_sensor:
   - platform: template
     sensors:
       hm_homematic_up:
         friendly_name: "Homematic is sending updates"
-        entity_id:
-          - sensor.hm_thermo_wz_current_temp
-          - sensor.time
+        # Time based template: see https://www.home-assistant.io/integrations/binary_sensor.template/#working-without-entities
         value_template: >-
+          {% set dummy = states('sensor.time') %}
           {{as_timestamp(now()) - as_timestamp(states.sensor.hm_thermo_wz_current_temp.last_changed) < 3600}}
 
 
@@ -245,10 +231,10 @@ automation:
   # Reconnect to CCU, if sensor has not been updated for over 1 hour or ccu rebooted
   - alias: Homematic Reconnect
     trigger:
-    - platform: state
-      entity_id: binary_sensor.hm_homematic_up
-      to: "off"
-    - platform: state
-      entity_id: sensor.hm_ccu_last_reboot
+      - platform: state
+        entity_id: binary_sensor.hm_homematic_up
+        to: "off"
+      - platform: state
+        entity_id: sensor.hm_ccu_last_reboot
     action:
-      service: homematic.reconnect  
+      service: homematic.reconnect

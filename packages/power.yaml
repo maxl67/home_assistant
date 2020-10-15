@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 14.11.2019
+#   @date         : 08.10.2020
 #   @package      : power
 #   @description  : power consumtion and regulation
 #   @links        : 
@@ -14,14 +14,18 @@ homeassistant:
   # definitions
     package.node_anchors:
       common: &common
-        package: "power"
+        package: 'power'
   # entities
     switch.osram_plug_01_a1bf020a_3:
       icon: mdi:power-socket-de
     light.0008da499c8dbd:
       icon: mdi:ceiling-light
-  # groups, variables
+    light.philips_lightstrip_ku:
+      icon: mdi:led-strip-variant
+    # groups, variables
     input_boolean.disable_power_automation:
+      <<: *common
+    input_boolean.ll_signals_doorstatus:
       <<: *common
   # automations
     automation.power_down_mediarack:
@@ -51,16 +55,16 @@ homeassistant:
 
 scene:
   - name: Welcome
-    icon: "mdi:flower-tulip"
+    icon: 'mdi:flower-tulip'
     entities:
       light.0008da499c8dbd:
-        state: on
+        state: 'on'
         #brightness: 250 #-->.brightness=249
         brightness: 170 #-->.brightness=
   - name: Movies
     entities:
       light.0008da499c8dbd:
-        state: on
+        state: 'on'
         #brightness: 125 #-->.brightness=124
         brightness: 85 #-->.brightness=
 
@@ -71,13 +75,37 @@ input_boolean:
   disable_power_automation:
     name: Stromabschaltung deaktivieren
     icon: mdi:robot
+  ll_signals_doorstatus:
+    name: Türstatus wird angezeigt
+    icon: mdi:traffic-light
 
-    #initial: on #default: Auto aus, da Plug sonst scheinbar das ZigBee Routing stoppt.
+switch:
+  - platform: template
+    switches: ## are needed in addition to input_booleans to get a dynamic icon
+      enable_power_automation:
+        friendly_name: Automatische Stromabschaltung #   
+        value_template: "{% if not states('input_boolean.disable_power_automation')=='unknown' %}{{ is_state('input_boolean.disable_power_automation', 'off') }}{% endif %}"
+        turn_on:
+          service: homeassistant.turn_off
+          data:
+            entity_id: input_boolean.disable_power_automation
+        turn_off:
+          service: homeassistant.turn_on
+          data:
+            entity_id: input_boolean.disable_power_automation
+        icon_template: >-
+          {% if is_state('input_boolean.disable_power_automation', 'on') %}
+            mdi:ghost-off 
+          {% else %}
+            mdi:ghost
+          {% endif %}
 
 ###############################################################################
 #                               Automations
 ###############################################################################
 automation:
+  #----------------------------------------------------------------------------------
+  # Urlaubslicht
   # https://community.home-assistant.io/t/new-automation-not-loading-random-switching-of-lights-when-away-on-holiday/211414/14
   - id: random_lights_during_vacation
     alias: zufälliges Urlaubslicht
@@ -98,23 +126,25 @@ automation:
     action:
       - delay:
           minutes: "{{ range(5, 25 if trigger.platform == 'sun' else 90) | random }}"
-#      - service_template: "homeassistant.turn_{{ 'on' if trigger.platform == 'sun' else 'off' }}"
+#      - service: "homeassistant.turn_{{ 'on' if trigger.platform == 'sun' else 'off' }}"
 #        entity_id: group.holiday_lights
-      - service_template: "light.turn_{{ 'on' if trigger.platform == 'sun' else 'off' }}"
+      - service: "light.turn_{{ 'on' if trigger.platform == 'sun' else 'off' }}"
         entity_id: light.0008da499c8dbd
 
 
+  #----------------------------------------------------------------------------------
+  # Licht-Szene für Fernsehen
   - id: set_scene_movies
     alias: Scene 'Movies' 
     trigger:
-    - platform: state
-      entity_id: binary_sensor.smarttv
-      to: 'on'
-      for: 
-        seconds: 4
-    - platform: state
-      entity_id: light.0008da499c8dbd
-      to: 'on'
+      - platform: state
+        entity_id: binary_sensor.smarttv
+        to: 'on'
+        for: 
+          seconds: 4
+      - platform: state
+        entity_id: light.0008da499c8dbd
+        to: 'on'
     condition:
       condition: and
       conditions:
@@ -127,29 +157,33 @@ automation:
       - condition: state
         entity_id: input_boolean.disable_power_automation
         state: 'off'
+#todo:
     action:
 #    - service: scene.turn_on
 #      data:
 #        entity_id: scene.movies
 #        transition: 2 #[sec] langsamer Übergang
 
-  # Ausschalten von Welcome-Licht, wenn wir für 10min weg sind oder nachts um 00:00
+
+  #----------------------------------------------------------------------------------
+  # Welcome-/Ambientelicht
+  # Ausschalten von Welcome-Licht und Lichtleiste, wenn wir für 10min weg sind oder nachts um 00:00
   - id: switch_off_lights
     alias: switch off welcome light
     trigger: 
-    - platform: state
-      entity_id: sensor.home_status
-      from: 'Home'
-      to: 'Away'
-      for:
-        minutes: 10
-    - platform: state
-      entity_id: input_boolean.disable_power_automation
-      to: 'off'
-    - platform: time 
-      at: '00:01:00'
-    - platform: homeassistant
-      event: start
+      - platform: state
+        entity_id: sensor.home_status
+        from: 'Home'
+        to: 'Away'
+        for:
+          minutes: 2
+      - platform: state
+        entity_id: input_boolean.disable_power_automation
+        to: 'off'
+      - platform: time 
+        at: '00:01:00'
+      - platform: homeassistant
+        event: start
     condition:
       # 'power_automation' aktiv UND (Home status away ODER nach 0:00)
       condition: and
@@ -167,7 +201,9 @@ automation:
         state: 'off'
     action:
       - service: light.turn_off
-        entity_id: light.0008da499c8dbd
+        entity_id: 
+          - light.0008da499c8dbd
+          - light.philips_lightstrip_ku
 
   # Einschalten von Welcome-Licht, wenn wir nach Hause kommen ODER bei Sonnenuntergang
   - id: switch_on_lights
@@ -178,7 +214,7 @@ automation:
         to: 'Home'
       - platform: sun
         event: sunset
-        offset: "+00:15:00" # Optional time offset. 
+        offset: '+00:15:00' # Optional time offset. 
       - platform: state
         entity_id: input_boolean.disable_power_automation
         to: 'off'
@@ -206,21 +242,23 @@ automation:
       #- service: light.turn_on
       #  entity_id: light.0008da499c8dbd
 
-  # Ausschalten des Media Racks, wenn wir für 10min weg sind
+  #----------------------------------------------------------------------------------
+  # Medien-Rack
+  # Ausschalten des Medien-Racks, wenn wir für 10min weg sind
   - id: power_down_mediarack
     alias: switch off media rack
     trigger: 
-    - platform: state
-      entity_id: sensor.home_status
-      from: 'Home'
-      to: 'Away'
-      for:
-        minutes: 10
-    - platform: state
-      entity_id: input_boolean.disable_power_automation
-      to: 'off'
-    - platform: homeassistant
-      event: start
+      - platform: state
+        entity_id: sensor.home_status
+        from: 'Home'
+        to: 'Away'
+        for:
+          minutes: 10
+      - platform: state
+        entity_id: input_boolean.disable_power_automation
+        to: 'off'
+      - platform: homeassistant
+        event: start
     condition:
       # 'power_automation' aktiv UND Home status 'Away'
       condition: and
@@ -258,3 +296,117 @@ automation:
     action:
       - service: switch.turn_on
         entity_id: switch.osram_plug_01_a1bf020a_3
+
+
+  #----------------------------------------------------------------------------------
+  # Ampelschaltung auf der Lichtleiste Küche
+  # Lightstrip kitchen - signals open door/window status
+  - id: LL_signal_status
+    alias: Lichtband zeigt Status
+    trigger: 
+      #wenn Eingangstür geöffnet wird oder sich der Status von Türen/Fenstern ändert.
+      - platform: state
+        entity_id: group.entrance_door 
+        to: 'on' #=open
+      - platform: state
+        entity_id: input_boolean.disable_power_automation
+        to: 'off'
+      - platform: state
+        entity_id: 
+          - group.all_doors
+          - group.all_windows
+    condition:
+      # 'power_automation' aktiv UND Home status 'Home' UND Eingangtür offen
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.disable_power_automation
+        state: 'off'
+      - condition: state
+        entity_id: sensor.home_status
+        state: 'Home'
+      - condition: state
+        entity_id: group.entrance_door
+        state: 'on'
+    action:
+      # merken, dass wir die Ampel eingeschaltet haben
+      - service: input_boolean.turn_on
+        entity_id: input_boolean.ll_signals_doorstatus
+      # speichern des aktuellen Licht-Zustands...
+      - choose:
+        - conditions: #...aber nur, wenn nicht schon gespeichert wurde
+          - condition: template
+            value_template: "{{ states('dw_signal_store.light_philips_lightstrip_ku') == 'unknown' }}"
+          sequence:
+            service: python_script.light_store
+            data:
+              store_name: dw_signal_store
+              entity_id:
+                - light.philips_lightstrip_ku
+      - choose:
+        - conditions: # Mindestens eine Tür ist offen...
+          - condition: state
+            entity_id: group.all_doors
+            state: 'on'
+          sequence:
+            service: light.turn_on
+            data:
+              entity_id: light.philips_lightstrip_ku
+              brightness: 255
+              rgb_color:  [255, 0, 0] #rot
+              transition: 0.2
+        - conditions: #...sonst wenn mindestens ein Fenster offen ...
+          - condition: state
+            entity_id: group.all_windows
+            state: 'on'
+          sequence:
+            service: light.turn_on
+            data:
+              entity_id: light.philips_lightstrip_ku
+              brightness: 255
+              rgb_color:  [255, 255, 0] #gelb
+              transition: 0.2
+        default: # ...Türen und Febster sind zu,
+          service: light.turn_on
+          data:
+            entity_id: light.philips_lightstrip_ku
+            brightness: 255
+            rgb_color:  [0, 255, 0] #grün
+            transition: 0.2
+
+  - id: LL_status_signal_off
+    alias: Lichtband zeigt Status
+    trigger: 
+      - platform: state
+        entity_id: group.entrance_door 
+        to: 'off' #=closed
+    condition:
+      # 'power_automation' aktiv UND Ampel-Merker an UND Eingangtür zu
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.disable_power_automation
+        state: 'off'
+      - condition: state
+        entity_id: input_boolean.ll_signals_doorstatus
+        state: 'on'
+      - condition: state
+        entity_id: group.entrance_door
+        state: 'off'
+    action:
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.ll_signals_doorstatus
+      - wait_template: "{{ not states('dw_signal_store.light_philips_lightstrip_ku') == 'unknown' }}"
+        timeout: '00:00:05'
+      - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ wait.completed }}" #wait condition was met = entity existes
+          sequence:
+            - service: python_script.light_store
+              data:
+                store_name: dw_signal_store
+                operation: restore
+        default:
+          - service: light.turn_off
+            entity_id: light.philips_lightstrip_ku   
