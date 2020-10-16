@@ -25,6 +25,16 @@
 #    Ventiltyp: NC
 #    Intervall der Entkalkungsfahrt bei Nichtbenutzung: 14 Tage
 
+#----------------------------------------------------------------------------------
+# HmIP-BRC2 Wandtaster wird nicht als entity nach HA exportiert, da er keinen Status hat.
+# in Hm-CCU wurden 2 "preudo"-Programme angelegt, um den Tastendruck an HA zu senden.
+# ID für HmIP-BRC2 wurde über das logging ermittelt.
+# Key:   6uk95-ykbw7-wb51f-9xfgq-tze8b8
+# SGTIN: 3014-f711-a000-19db-e994-3030
+# siehe: https://community.home-assistant.io/t/homematic-switch-hmip-wrc2/39242/9
+#        https://www.home-assistant.io/integrations/homematic/#devices-with-buttons
+#        https://community.home-assistant.io/t/problem-connecting-to-homematic-hmip-brc2-switch/199078
+
 ################################################
 ##  Customize
 ################################################
@@ -178,6 +188,9 @@ sensor:
         value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU')}}{% endif %}"
         icon_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU') == False %} mdi:window-closed-variant {% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU') == True %} mdi:window-open-variant {% endif %}"
         friendly_name: "Fensterstatus Küchenthermostat"
+      hm_thermo_ku_active_profile:
+        value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Wochenprofil_KU') == False %}0{% else %}{{state_attr('homematic.raspi_ccu', 'V_Wochenprofil_KU')}}{% endif %}"
+        friendly_name: "Heizprofil Küchenthermostat"
       # Gästezimmer
       hm_thermo_gz_current_temp:
         value_template: "{{state_attr('climate.000a1a49a107b5','current_temperature')|float}}"

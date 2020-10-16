@@ -93,6 +93,7 @@ cards:
         name: Lichtsteifen Küche
         toggle: true
         hide_when_off: true
+#      - entity: input_boolean.trigger_test #hack
 
 
   # device tracking status (for testing)

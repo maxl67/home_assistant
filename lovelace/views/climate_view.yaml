@@ -144,6 +144,8 @@ cards:
             name: Ventilöffn.
           - entity: sensor.hm_thermo_ku_window_state
             name: Fenster
+          - entity: sensor.hm_thermo_ku_active_profile
+            name: Profil
         control:
           - hvac
           #- preset       

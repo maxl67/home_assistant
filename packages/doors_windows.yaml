@@ -112,6 +112,7 @@ group:
     icon: mdi:door
     entities:
       - binary_sensor.lumi_lumi_sensor_magnet_aq2_20a30a04_on_off #9 Eingangstür
+#      - input_boolean.trigger_test #hack
 
 ###############################################################################
 ##  Variables

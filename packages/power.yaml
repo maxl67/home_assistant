@@ -78,6 +78,9 @@ input_boolean:
   ll_signals_doorstatus:
     name: Türstatus wird angezeigt
     icon: mdi:traffic-light
+#  trigger_test: #hack
+#    name: Trigger-Tester
+#    icon: mdi:bug
 
 switch:
   - platform: template
@@ -303,6 +306,8 @@ automation:
   # Lightstrip kitchen - signals open door/window status
   - id: LL_signal_status
     alias: Lichtband zeigt Status
+    mode: single #Do not start a new run, if running already.
+    #mode: restart #Start a new run, after stopping the previous run.
     trigger: 
       #wenn Eingangstür geöffnet wird oder sich der Status von Türen/Fenstern ändert.
       - platform: state
@@ -315,6 +320,10 @@ automation:
         entity_id: 
           - group.all_doors
           - group.all_windows
+      #hack: nur temp
+#      - platform: state
+#        entity_id: input_boolean.trigger_test 
+#        to: 'on' 
     condition:
       # 'power_automation' aktiv UND Home status 'Home' UND Eingangtür offen
       condition: and
@@ -328,21 +337,20 @@ automation:
       - condition: state
         entity_id: group.entrance_door
         state: 'on'
+    variables:
+      lightstrip_status: "{{ states('light.philips_lightstrip_ku') }}"
     action:
       # merken, dass wir die Ampel eingeschaltet haben
       - service: input_boolean.turn_on
         entity_id: input_boolean.ll_signals_doorstatus
       # speichern des aktuellen Licht-Zustands...
-      - choose:
-        - conditions: #...aber nur, wenn nicht schon gespeichert wurde
-          - condition: template
-            value_template: "{{ states('dw_signal_store.light_philips_lightstrip_ku') == 'unknown' }}"
-          sequence:
-            service: python_script.light_store
-            data:
-              store_name: dw_signal_store
-              entity_id:
-                - light.philips_lightstrip_ku
+      - service: python_script.light_store
+        data:
+          store_name: dw_signal_store
+          entity_id:
+            - light.philips_lightstrip_ku
+          overwrite: false
+          all_attribs: true  #saves last color and brightness, even if state='off'. turn light on shortly
       - choose:
         - conditions: # Mindestens eine Tür ist offen...
           - condition: state
@@ -375,11 +383,16 @@ automation:
             transition: 0.2
 
   - id: LL_status_signal_off
-    alias: Lichtband zeigt Status
+    alias: Lichtband Status löschen
+    mode: single #Do not start a new run, if running already. 
     trigger: 
       - platform: state
         entity_id: group.entrance_door 
         to: 'off' #=closed
+#    #hack: nur temp
+#      - platform: state
+#        entity_id: input_boolean.trigger_test 
+#        to: 'off' 
     condition:
       # 'power_automation' aktiv UND Ampel-Merker an UND Eingangtür zu
       condition: and
@@ -397,7 +410,7 @@ automation:
       - service: input_boolean.turn_off
         entity_id: input_boolean.ll_signals_doorstatus
       - wait_template: "{{ not states('dw_signal_store.light_philips_lightstrip_ku') == 'unknown' }}"
-        timeout: '00:00:05'
+        timeout: '00:00:03'
       - choose:
         - conditions:
             - condition: template
@@ -407,6 +420,59 @@ automation:
               data:
                 store_name: dw_signal_store
                 operation: restore
+                all_attribs: true  #restores old color and brightness, even if state='off'
         default:
           - service: light.turn_off
             entity_id: light.philips_lightstrip_ku   
+
+  #----------------------------------------------------------------------------------
+  # HmIP-BRC2 Wandtaster schaltet Lichter an/aus
+  - alias: "Ambientelicht aus"
+    trigger:
+      platform: event
+      event_type: homematic.keypress
+      event_data:
+        name: '0019DBE9943030'
+        channel: 1
+        param: PRESS_SHORT
+    action:
+      service: light.turn_off
+      entity_id: light.0008da499c8dbd
+  - alias: "alle Licher aus"
+    trigger:
+      platform: event
+      event_type: homematic.keypress
+      event_data:
+        name: '0019DBE9943030'
+        channel: 1
+        param: PRESS_LONG
+    action:
+      - service: light.turn_off
+        entity_id: light.0008da499c8dbd
+      - service: light.turn_off
+        entity_id: light.philips_lightstrip_ku
+  
+  - alias: "Ambientelicht an"
+    trigger:
+      platform: event
+      event_type: homematic.keypress
+      event_data:
+        name: '0019DBE9943030'
+        channel: 2
+        param: PRESS_SHORT
+    action:
+      service: light.turn_on
+      entity_id: light.0008da499c8dbd  
+  - alias: "alle Licher an"
+    trigger:
+      platform: event
+      event_type: homematic.keypress
+      event_data:
+        name: '0019DBE9943030'
+        channel: 2
+        param: PRESS_LONG
+    action:
+      - service: light.turn_on
+        entity_id: light.0008da499c8dbd  
+      - service: light.turn_on
+        entity_id: light.philips_lightstrip_ku  

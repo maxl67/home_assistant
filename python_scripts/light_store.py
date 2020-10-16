@@ -1,7 +1,12 @@
+# Source:
 # https://github.com/pnbruckner/homeassistant-config/blob/53fe1dff32a36a84a4efdbb87b72387d4ce5f091/docs/light_store.md
 # https://community.home-assistant.io/t/save-and-restore-state-of-lights/7803/25
+#
+# Changes:
+# 15.10.20: neuer parameter 'all_attribs'
+#           save and restore changed
 
-VERSION = '1.2.0'
+VERSION = '1.2.0mr'
 
 DOMAIN = 'light_store'
 
@@ -9,6 +14,7 @@ ATTR_OPERATION  = 'operation'
 ATTR_OP_SAVE    = 'save'
 ATTR_OP_RESTORE = 'restore'
 ATTR_OVERWRITE  = 'overwrite'
+ATTR_ALLATTRIBS = 'all_attribs' #mr: new param
 
 ATTR_STORE_NAME = 'store_name'
 ATTR_ENTITY_ID  = 'entity_id'
@@ -38,6 +44,9 @@ else:
     
     # Get optional overwrite parameter (only applies to saving.)
     overwrite = data.get(ATTR_OVERWRITE, True)
+
+    # Get optional parameter ot save and restore all attribs.
+    all_attribs = data.get(ATTR_ALLATTRIBS, False) #mr: read new param
 
     # Get optional list (or comma separated string) of switches & lights to
     # save/restore.
@@ -91,7 +100,23 @@ else:
                     logger.error('Could not get state of {}.'.format(entity_id))
                 else:
                     attributes = {}
-                    if entity_id.startswith('light.') and cur_state.state == 'on':
+                    #mr: new if-case. if all attribs should be saved, we have to turn on the light to get them.
+                    if entity_id.startswith('light.') and cur_state.state == 'off' and all_attribs == True:
+                        component = entity_id.split('.')[0]
+                        service_data = {'entity_id': entity_id}
+                        hass.services.call(component,'turn_on',service_data) #turn on light
+                        new_state = hass.states.get(entity_id) #read entity data...
+                        while (new_state.state=='off'): #...until new state is reflected
+                            new_state = hass.states.get(entity_id)
+                        #read all attributes
+                        for attr in GEN_ATTRS:
+                            if attr in new_state.attributes:
+                                attributes[attr] = new_state.attributes[attr]
+                        for attr in COLOR_ATTRS:
+                            if attr in new_state.attributes:
+                                attributes[attr] = new_state.attributes[attr]
+                                break
+                    elif entity_id.startswith('light.') and cur_state.state == 'on': #mr: if -->elif
                         for attr in GEN_ATTRS:
                             if attr in cur_state.attributes:
                                 attributes[attr] = cur_state.attributes[attr]
@@ -111,11 +136,19 @@ else:
                 turn_on = old_state.state == 'on'
                 service_data = {'entity_id': entity_id}
                 component = entity_id.split('.')[0]
-                if component == 'light' and turn_on and old_state.attributes:
+                #mr: new if-case. if all attribs should be restored, we have to turn and set them before restoring state.
+                if component == 'light' and all_attribs and not turn_on and old_state.attributes:
+                    service_data.update(old_state.attributes)
+                    hass.services.call(component,
+                                    'turn_on',
+                                    service_data)
+                    service_data = {'entity_id': entity_id}
+                    time.sleep(0.2) #or better wail until hass.states.get(entity_id).state=='on'
+                elif component == 'light' and turn_on and old_state.attributes: #mr: if --> elif
                     service_data.update(old_state.attributes)
                 hass.services.call(component,
-                                   'turn_on' if turn_on else 'turn_off',
-                                   service_data)
+                        'turn_on' if turn_on else 'turn_off',
+                        service_data)
 
         # Remove saved states now that we're done with them.
         for entity_id in saved:
