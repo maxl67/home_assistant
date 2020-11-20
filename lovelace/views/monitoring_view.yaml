@@ -378,19 +378,19 @@ cards:
         padding: 0 px
         entities:
           - type: weblink
-            url: https://wkj60fbqxmykyvov.myfritz.net:8441/
+            url: !secret router_url
             icon: mdi:router-network
             name: FritzBox (ext)
           - type: weblink
-            url: https://maxing.myds.me:5001/
+            url: !secret dsm_url
             icon: mdi:nas
             name: DSM hera (ext)
           - type: weblink
-            url: https://unifi.maxing.myds.me
+            url: !secret unificontroller_url
             icon: mdi:access-point-network
             name: Unifi Controller (ext)
           - type: weblink
-            url: https://www.maxing.myds.me/index.php/de/spiel-werkzeug/home-assistant
+            url: !secret homepage_ha_url
             icon: mdi:web-box
             name: Homepage Doku
 

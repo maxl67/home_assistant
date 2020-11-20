@@ -211,20 +211,6 @@ calendar:
     - Home
     - Ingrid
     - Privat Max
-#    custom_calendars:
-#      - name: 'gelber_Sack'
-#        calendar: 'Ingrid'
-#        search: 'Gelber Sack'
-
-#grocy:
-#  url: "http://localhost"
-#  api_key: "BsbJFa46Im8ysTPLB0Gj1ZwWTywBtQT1VSXoQfWvD2Ft7s7LOO"
-#  verify_ssl: false
-#  port: 9283
-#  sensor:
-#    - enabled: true
-#  binary_sensor:
-#    - enabled : true
 
 ################################################################
 ## Recording, Logging, Lockbook
