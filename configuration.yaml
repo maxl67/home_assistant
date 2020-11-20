@@ -231,7 +231,7 @@ calendar:
 # https://community.home-assistant.io/t/large-homeassistant-database-files/4201/240
 ################################################################
 recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to be displayed in logbook and/or history
-  purge_keep_days: 7 #--> 37=1/10 of a year
+  purge_keep_days: 37 #37 #--> 37=1/10 of a year
   db_url: !secret HistoryDB_connection  # --> 'home-assistant_v2.db' now in MariaDB. Much faster.
   exclude:
     domains:
@@ -275,11 +275,15 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - automation.update_battery_status_group_members
       - automation.battery_persistent_notification_clear
       - automation.battery_persistent_notification
+      - automation.battery_sensor_from_attributes
       - sensor.vacuum_battery
       - sensor.osram_plug_01_a1bf020a_3_2820
       #- sensor.lumi_lumi_weather_95154a04_pressure
       - automation.update_requested_temp
       - sensor.geocoded_location
+      - automation.personstatus_last_changed_date_and_time
+      - automation.start_bt_arrival_scan
+      - automation.start_bt_departure_scan
     # HomeMatic
       - homematic.raspi_ccu
       - sensor.hm_ccu_last_reboot

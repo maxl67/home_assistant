@@ -17,6 +17,10 @@
 #todo: cleanup
 #https://community.home-assistant.io/t/how-do-you-use-service-template-when-different-services-use-different-attributes-solved/52314/15
 
+# HmIP-Thermostate Ist-Temoeratur
+#   GZ: ohne Heizung ok, während Heizen ca. +1°C
+
+
 ################################################
 ##  Customize
 ################################################
@@ -250,6 +254,10 @@ automation:
           - '11:00:00'
           - '14:00:00'
           - '15:00:00'
+     # - platform: state
+     #   entity_id: 
+     #     - sensor.max_status
+     #     - sensor.ing_status
     condition:
       condition: and
       conditions:

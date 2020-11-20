@@ -440,9 +440,9 @@ cards:
             - entity: sensor.raspi1lastboot
               name: letzter Systemstart
               icon: mdi:restart
-            - entity: sensor.raspi1powerstatus
-              name: Power Status
-              icon: mdi:power-plug
+            - entity: sensor.raspi1_updates
+              name: Upgrades pending
+              icon: mdi:new-box
           - type: section
         - type: horizontal-stack
           cards:
@@ -499,9 +499,9 @@ cards:
             - entity: sensor.raspi2lastboot
               name: letzter Systemstart
               icon: mdi:restart
-            - entity: sensor.raspi2powerstatus
-              name: Power Status
-              icon: mdi:power-plug
+            - entity: sensor.raspi2_updates
+              name: Upgrades pending
+              icon: mdi:new-box
           - type: custom:fold-entity-row
             head:
               type: section

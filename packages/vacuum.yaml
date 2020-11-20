@@ -41,10 +41,17 @@ homeassistant:
     input_boolean.automatic_vacuum_first_run:
       icon: mdi:calendar-check
       <<: *common
+    input_boolean.disable_automatic_vacuum:
+      <<: *common
+    input_boolean.disable_dustbin_notification:
+      <<: *common
+    input_boolean.dustbin_full_alert:
+      <<: *common
     input_select.vacuum_room:
       icon: mdi:floor-plan
       <<: *common
-    #rest of sensors, automations, etc. not with attribute 'package' because relation to this package is clear.
+  
+      #rest of sensors, automations, etc. not with attribute 'package' because relation to this package is clear.
 
 
 ################################################
@@ -118,16 +125,13 @@ switch:
 input_boolean:
   disable_automatic_vacuum:
     name: Automatische Reinigung aus #disable vacuum automation
-    #initial: on
   automatic_vacuum_when_home:
     name: Reinigung auch wenn anwesend #cleanup even though somebody is home
     initial: off
   automatic_vacuum_first_run:
     name: automatische Reinigung heute gestartet  #cleanup was already started today
-    #initial: off
   disable_dustbin_notification:
     name: Staubbehälternachrichten aus #disable dustbin notification
-    initial: off
   dustbin_full_alert:
     name: Staubbehälter leeren  #dustbin has to be cleaned
     icon: mdi:delete-alert
@@ -335,10 +339,11 @@ script:
   vacuum_room:
     alias: "Start room cleaning"
     sequence:
-      - service: script.turn_on
-        data_template:
-          entity_id: >
-            {% if is_state("input_select.vacuum_room", "Küche") %}
+#hack
+      - service: >
+            {% if false %}
+              script.vacuum_room_test
+            {% elif is_state("input_select.vacuum_room", "Küche") %}
               script.vacuum_kitchen
             {% elif is_state("input_select.vacuum_room", "Esszimmer") %}
               script.vacuum_dining
@@ -355,6 +360,26 @@ script:
             {% elif is_state("input_select.vacuum_room", "Gästezimmer") %}
               script.vacuum_guestroom
             {% endif %}
+#hack
+        data: 
+          my_roomid: >
+            {% if is_state("input_select.vacuum_room", "Küche") %}
+              [18]
+            {% elif is_state("input_select.vacuum_room", "Esszimmer") %}
+              [17]
+            {% elif is_state("input_select.vacuum_room", "Wohnzimmer") %}
+              script.vacuum_living
+            {% elif is_state("input_select.vacuum_room", "Bad") %}
+              script.vacuum_bathroom
+            {% elif is_state("input_select.vacuum_room", "Schlafzimmer") %}
+              script.vacuum_bedroom
+            {% elif is_state("input_select.vacuum_room", "Diele & Flur") %}
+              script.vacuum_entrance
+            {% elif is_state("input_select.vacuum_room", "Gästebad") %}
+              script.vacuum_guestbath
+            {% elif is_state("input_select.vacuum_room", "Gästezimmer") %}
+              script.vacuum_guestroom
+            {% endif %}            
       - delay:
           seconds: 1
       - service: input_select.select_option
@@ -368,7 +393,18 @@ script:
         data:
           entity_id: input_select.vacuum_room
           option: "Bitte auswählen"
-  
+
+  vacuum_room_test:
+    alias: "Clean rooms"
+    sequence:
+      - service: vacuum.send_command
+        data:
+          entity_id: vacuum.xiaomi_vacuum_cleaner
+          command: app_segment_clean
+          params: > #z.B. [18] oder [18,1,2]
+            {{ my_roomid }} 
+            
+                  
   ## Scripts for cleaning a specific room
   vacuum_kitchen:
     alias: "Vacuum Kitchen"
@@ -435,38 +471,14 @@ script:
           command: app_segment_clean
           params: [4] #erst 5, jetzt 4
 
-  ## changing fan speed
-  vacuum_set_silent:
+  ## set fan speed
+  vacuum_set_fanspeed:
     sequence:
       - service: vacuum.set_fan_speed
         data:
           entity_id: vacuum.xiaomi_vacuum_cleaner
-          fan_speed: 101 #Quiet
-  vacuum_set_standard:
-    sequence:
-      - service: vacuum.set_fan_speed
-        data:
-          entity_id: vacuum.xiaomi_vacuum_cleaner
-          fan_speed: 102 #Balanced
-  vacuum_set_medium:
-    sequence:
-      - service: vacuum.set_fan_speed
-        data:
-          entity_id: vacuum.xiaomi_vacuum_cleaner
-          fan_speed: 103 #Turbo
-  vacuum_set_max:
-    sequence:
-      - service: vacuum.set_fan_speed
-        data:
-          entity_id: vacuum.xiaomi_vacuum_cleaner
-          fan_speed: 104 #Max
-  vacuum_set_mop:
-    sequence:
-      - service: vacuum.set_fan_speed
-        data:
-          entity_id: vacuum.xiaomi_vacuum_cleaner
-          fan_speed: 105 #Mop
-        
+          fan_speed: "{{ new_fanspeed }}"
+
 ###############################################################################
 ##  Automations
 ###############################################################################
@@ -713,22 +725,31 @@ automation:
       entity_id: input_select.vacuum_room
       from: 'Bitte auswählen'
     action:
-    - service: script.turn_on
-      entity_id: script.vacuum_room
+# todo, wenn arrays übergebn werden können
+#      - service: script.vacuum_room_test
+#        data:
+#          my_roomid: [18]
+      - service: script.turn_on
+        entity_id: script.vacuum_room
 
   ## Changing fan speed to the value selected by 'input_select.vacuum_fan_speed_list'
-  - id: vacuum_set_fanspeed
-    alias: Set vacuum fan speed
-#    initial_state: 'on' #true
+  - id: vacuum_change_fanspeed
+    alias: Chnage vacuum fan speed
     trigger:
       platform: state
       entity_id: input_select.vacuum_fan_speed_list
     action:
-      - service: >
-          {{ {
-          'Silent' : 'script.vacuum_set_silent',
-          'Standard' : 'script.vacuum_set_standard',
-          'Medium' : 'script.vacuum_set_medium',
-          'Turbo' : 'script.vacuum_set_max', 
-          'Mop' : 'script.vacuum_set_mop'
-          } [trigger.to_state.state] }}
+      - service: script.vacuum_set_fanspeed
+        data:
+          new_fanspeed: >
+            {{ {
+            'Silent' : 101,
+            'Standard' : 102,
+            'Medium' : 103,
+            'Turbo' : 104, 
+            'Mop' : 105
+            } [trigger.to_state.state] }}
+# todo: eigentlich besser so (mit Zuordnung der Zahlen im Script), aber es wird scheinbar String übergeben und das klappt nicht
+#      - service: script.vacuum_set_speed
+#        data:
+#          new_fanspeed: trigger.to_state.state

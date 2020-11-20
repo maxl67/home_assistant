@@ -2,7 +2,7 @@
 #   @author       : Max Reigl
 #   @date         : 08.10.2020
 #   @package      : power
-#   @description  : power consumtion and regulation
+#   @description  : light/power consumtion and regulation
 #   @links        : 
 ###############################################################################
 
@@ -171,6 +171,7 @@ automation:
   #----------------------------------------------------------------------------------
   # Welcome-/Ambientelicht
   # Ausschalten von Welcome-Licht und Lichtleiste, wenn wir für 10min weg sind oder nachts um 00:00
+  #   und morgens beim Sonnenaufgang
   - id: switch_off_lights
     alias: switch off welcome light
     trigger: 
@@ -185,8 +186,10 @@ automation:
         to: 'off'
       - platform: time 
         at: '00:01:00'
+      - platform: sun
+        event: sunrise
       - platform: homeassistant
-        event: start
+        event: start      
     condition:
       # 'power_automation' aktiv UND (Home status away ODER nach 0:00)
       condition: and
