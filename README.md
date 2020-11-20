@@ -30,5 +30,5 @@ A welcome light is automatically turned on upon arriving at home or at sunset an
 ### Monitoring Devices
 Information about internet connection and the status of some network devices is monitored. I also use [NotoriousBDG's Battery Alert Package](https://raw.githubusercontent.com/notoriousbdg/Home-AssistantConfig/master/packages/battery_alert.yaml).
 
-Packages:   [synology](packages/synology.yaml), network.yaml, fritzboy.yaml
-Views:  monitoring_view.yaml
+- Packages:   [synology](packages/synology.yaml), [network](packages/network.yaml), [fritzbox](packages/fritzbox.yaml)
+- Views: [monitoring_view](lovelace/views/monitoring_view.yaml)
