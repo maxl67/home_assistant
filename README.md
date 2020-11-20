@@ -1,3 +1,7 @@
+# Home-Assistant Configuration
+##Environment/Infrastructure
+
+
 ##Environment/Infrastructure
 I run Home-Assistant core in a docker container (homeassistant/home-assistant from dockerhub) on a Synology NAS. 
 Zigbee Coordinator (USB stick NORTEK HUSBZB-1) is plugged into NAS directly.
