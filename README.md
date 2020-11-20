@@ -9,7 +9,7 @@ I try to combine all code for a specific topic into a package. Integrations and 
 
 The main topics that I am handling with Home-Assistant are:
 ### Presence Detection
-I mainly use bluetooth for device tracking. I run Andrew Freyers super cool script (https://github.com/andrewjfreyer/monitor) on 2 Rasperry Pi's to cover the whole appartment. Some automations will reduce the amount of arrival and departure scans to a minimum. Arrival is usually detected within 2-5 seconds, departure in less that a minute.
+I mainly use bluetooth for device tracking. I run @andrewjfreyer Andrew Freyers super cool script (https://github.com/andrewjfreyer/monitor) on 2 Rasperry Pi's to cover the whole appartment. Some automations will reduce the amount of arrival and departure scans to a minimum. Arrival is usually detected within 2-5 seconds, departure in less that a minute.
 Packages:   presence_detection.yaml
 
 ### Open Doors/Windows
