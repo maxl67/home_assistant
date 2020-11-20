@@ -27,7 +27,7 @@ Radiators will be turned off as soon as the last person leaves the appartment. H
 ### Automation of Power Consumption and Lights
 A welcome light is automatically turned on upon arriving at home or at sunset and turned off when leaving the appartment. Some power plugs are also turned on and off depending on presence. All devices use zigbee protocoll.
 
-### Monitoring IT-Devices
-Information about internet connection and the status of some network devices is monitored.
+### Monitoring Devices
+Information about internet connection and the status of some network devices is monitored. I also use [notoriousbdg's battery monitoring package](https://raw.githubusercontent.com/notoriousbdg/Home-AssistantConfig/master/packages/battery_alert.yaml).
 Packages:   synology.yaml, network.yaml, fritzboy.yaml
 Views:  monitoring_view.yaml
