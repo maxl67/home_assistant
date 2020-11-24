@@ -93,7 +93,7 @@ homeassistant:
 ##  Groups
 ###############################################################################
 group:
-  # group.phone_* dient zum zentralen Setzen des aktuell zu prüfenden Devices pro Person.
+  # 'group.phone_* is used to have a central location to map (and change) the current device per person.
   #   Werden mehrere Geräte angegeben, dann ist Gruppe 'on'='anwesend' wenn mindestens ein Gerät 'on' ist.
   phone_max:
     name: Phone Max
@@ -109,7 +109,7 @@ group:
 ###############################################################################
 ##  Variables
 ###############################################################################
-# mögliche Statuswerte für Personen und den Gesamtstatus 'sensor.home_status'
+# Possible status values for single persons and the overall status 'sensor.home_status'
 input_select:
   max_status_dropdown:
     name: Max
@@ -134,7 +134,7 @@ input_select:
       - Away
       - Extended Away
   
-# these values are used to persistent the *_status_dropdown.last_changed, which are reset at HA reboot.
+# These values are used to persistent the *_status_dropdown.last_changed, which are reset at HA reboot.
 input_datetime:
   max_status_dropdown_last_changed:
     name: Max status last changed
@@ -149,7 +149,7 @@ input_datetime:
     has_date: true
     has_time: true
 
-# Manuelle Eingabe, ob Gäste in der Wohnung sind. Erhöht den Wert von 'sensor.n_people_home' um 1.
+# Manual input, if we have guests. Will increase value of 'sensor.n_people_home' by 1.
 input_boolean:
   guests:
     name: Wir haben Gäste #We have guests
@@ -159,8 +159,8 @@ input_boolean:
 ## Structure of sensors/automations
 #
 # ON RASPBERRY PI's
-# 1) monitor.sh is running on 2 raspi (area east & west) and scanning for known devices using bluetooth.
-#    Each area script is reporting a confidence value [0..100] via MQTT for each device.
+# 1) monitor.sh is running on 2 raspi (area east & west) and scans for known devices using bluetooth.
+#    Each area script reports a confidence value [0..100] via MQTT for each device.
 #    All devices that are scanned for are configured for the script locally on the raspi's (MAC and name).
 # IN HOME-ASSISTANT
 # 2) For each device 2 MQTT sensors are listening to these confidence values (sensor '<person> present {E|W}')
@@ -192,7 +192,7 @@ input_boolean:
 ##  Sensors
 ###############################################################################
 sensor:
-# 2 raspberry pis are located in east and west part of building and are running the monitor.sh script.
+# 2 raspberry pis are located in east and west part of appartment and are running the monitor.sh script.
 # We get the BT presence confidence values via MQTT for each device which are mapped to a person here.
 # Person 1
   # reading the MQTT messages from BlueTooth monitor.sh into confidence sensors for separate areas.
@@ -218,7 +218,7 @@ sensor:
   - platform: min_max
     name: 'Max Home Confidence'
     type: max
-    round_digits: 0 #todo: not working, still shows one digit in card.
+    round_digits: 0
     entity_ids:
       - sensor.max_present_e
       - sensor.max_present_w
@@ -251,7 +251,7 @@ sensor:
       - sensor.ing_present_e
       - sensor.ing_present_w
 
-  # Status sensors off all persons. input_select values are set by automations.
+  # Status sensors for each person. input_select values are set by automations.
   - platform: template
     sensors:
       max_status:
@@ -452,7 +452,8 @@ automation:
           payload: ''
 
 
-  # save the time a status was changed last, because these values will be reset every time HA is rebooted
+  # save the time a status was changed last, because these values will be reset every time HA is rebooted.
+  #   we need that time to trigger status changes (e.g 'extended_away')
   - alias: personstatus_last_changed_date_and_time #Person-Status and home-status last changed date and time
     trigger:
       platform: state

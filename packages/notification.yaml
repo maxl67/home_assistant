@@ -28,18 +28,17 @@ notify:
     platform: group
     services:
       - service: mobile_app_iphonemax8 
-#hack: voruebergehend deaktiviert
-      #- service: mobile_app_ingrid_s_iphone
+      - service: mobile_app_ingrid_s_iphone
   - name: max
     platform: group
     services:
       - service: mobile_app_iphonemax8
-      - service: mobile_app_ipad_max
+      #- service: mobile_app_ipad_max
   - name: ing
     platform: group
     services:
       - service: mobile_app_ingrid_s_iphone 
-      - service: mobile_app_iehrlichs_ipad 
+      #- service: mobile_app_iehrlichs_ipad 
 
 # Mail Benachrichtigung
   - name: gmail_smtp

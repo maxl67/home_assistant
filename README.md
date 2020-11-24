@@ -1,20 +1,20 @@
 # Home-Assistant Configuration
 ## Environment/Infrastructure
 I run Home-Assistant core in a docker container (homeassistant/home-assistant from dockerhub) on a Synology NAS. 
-Zigbee Coordinator (USB stick NORTEK HUSBZB-1) is plugged into NAS directly.
-I generally try to avoid using any vendor specific gateways and keep all of my data in my network at home.
+A Zigbee coordinator (USB stick NORTEK HUSBZB-1) is plugged into NAS directly.
+I generally try to avoid using any vendor specific gateways and keep all of my data in my network at home. The only exception is a virtual interface to the HomeMatic environment which I run on a separate Raspberry Pi.
 
-## Structure
+## Structure of HA Config
 I try to combine all code for a specific topic into a package. Integrations and hardware specific stuff gets its own package (like homematic, synology).
 
 The main topics that I am handling with Home-Assistant are:
 ### Presence Detection
-I mainly use bluetooth for device tracking. I run [Andrew Freyers super cool script](https://github.com/andrewjfreyer/monitor) on 2 Rasperry Pi's to cover the whole appartment. Some automations will reduce the amount of arrival and departure scans to a minimum. Arrival is usually detected within 2-5 seconds, departure in less that a minute.
+I mainly use bluetooth for device tracking. I run [Andrew Freyers super cool script](https://github.com/andrewjfreyer/monitor) on 2 Rasperry Pi's to cover the whole appartment. Some automations will reduce the amount of arrival and departure scans to a minimum. Arrival is usually detected within 2-5 seconds, departure in less that a minute. I got the idea to have different occupancy status from [Phil Hawthorne](https://philhawthorne.com/making-home-assistants-presence-detection-not-so-binary).
 - Packages:   [presence_detection](packages/presence_detection.yaml), 
 - Views: [home_view](lovelace/views/home_view.yaml)
 
 ### Open Doors/Windows
-I will get a notification on my device as soon as I leave the house and a window or door is open. In addition a lightstrip is signaling the status whenever I open my entrance door (red: door is open, yellow: window is open, green: doors and windows are closed)
+I will get a notification on my device as soon as I leave the house and a window or backdoor is open. In addition a lightstrip is signaling the status whenever I open my entrance door (red: backdoor is open, yellow: window is open, green: doors and windows are closed). I use XIAOMI mi Aqara door sensors (ZigBee protocol).
 - Packages:   [doors_windows](packages/doors_windows.yaml), [notification](packages/notification.yaml)
 - Views: [home_view](lovelace/views/home_view.yaml)
 

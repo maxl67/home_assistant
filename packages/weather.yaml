@@ -11,6 +11,8 @@
 # https://community.home-assistant.io/t/dwd-global-weather-warning-integration/17165/9
 # https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/objekteinbindung.html
 ###############################################################################
+#Sonnenuntergang real:
+  #24.11   16:15
 
 ################################################
 ##  Customize

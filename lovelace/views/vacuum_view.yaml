@@ -1,11 +1,92 @@
+anchors:
+  colours:
+#    dark_gray: &dark_gray '#3d3d3d'
+#    dark_yellow: &dark_yellow '#91920e'
+#    dark_blue: &dark_blue '#0d0099'
+    blue: &blue '#3090C7'
+#    green: &green '#009A00'
+#    #yellow: &yellow '#f0e91f'
+#    light_orange: &light_orange '#f4ad01'
+#    orange: &orange '#e39a24'
+#    dark_orange: &dark_orange '#d35400'
+#    red: &red '#cc1800'
+    light_blue: &light_blue '#84a6ba'
+    white: &white '#ffffff'
+    light_gray: &light_gray '#cccccc'
+
+  fonts:
+    default_font: &default_font 'Trebuchet MS'
+
+  style_icon_button: &style_icon_button
+    top: 90%
+    color: *blue
+
+  style_label_header: &style_label_header
+    color: *white
+    transform: translate(0%,-50%)
+    font-family: *default_font
+    font-size: 150%
+    font-weight: bold
+    border-color: rgb(34, 154, 210)
+    border-radius: 6px
+    background-color: *light_gray
+
+  style_label_column: &style_label_column
+    top: 10%
+    color: *white
+    transform: translate(0%,-50%)
+    pointer-events: none
+    font-family: *default_font
+    font-size: 90%
+    font-weight: bold
+    border-color: rgb(34, 154, 210) #*blue?
+    background-color: *blue
+    border-radius: 6px
+
+  style_label_maintenance: &style_label_maintenance
+    right: 1%
+    color: *white
+    transform: translate(0%,-50%)
+    pointer-events: none
+    font-family: *default_font
+    font-size: 76%
+    font-weight: bold
+    border-right-style: solid
+    border-color: *blue
+
+  style_label_operation: &style_label_operation
+    left: 1%
+    color: *white
+    transform: translate(0%,-50%)
+    font-family: *default_font
+    font-size: 80%
+    font-weight: bold
+    border-left-style: solid
+    border-color: *blue
+
+  style_label_lastCleanup: &style_label_lastCleanup
+    top: 79%
+    color: *light_blue
+    transform: translate(0%,-50%)
+    font-family: *default_font
+    font-size: 80%
+    font-weight: bold
+
+  style_entitycard_header: &style_header
+    style: |
+      .card-header {
+        font-size: 20px;
+        padding: 10px 16px;
+      }
+#---------------------------------
 id: vacuum
-title: Dusti-E
+title: Dust-E
 path: vacuum
 icon: mdi:robot-vacuum
 cards:
   - type: custom:vertical-stack-in-card
     cards:
-    # nice picture card with all kinds of information ind buttons to operate vacuum
+    # nice picture card with all kinds of information and buttons to operate vacuum
     - type: picture-elements
       image: '/local/vacuum1.jpg'
       elements:
@@ -27,9 +108,8 @@ cards:
                 #service_data:
                 #  entity_id: vacuum.xiaomi_vacuum_cleaner
               style:
-                top: 90%
                 left: 20%
-                color: '#3090C7'
+                <<: *style_icon_button
         - type: conditional
           conditions:
             - entity: binary_sensor.vacuum_started
@@ -41,9 +121,8 @@ cards:
                 action: call-service
                 service: script.vacuum_pause
               style:
-                top: 90%
                 left: 21%
-                color: '#3090C7'
+                <<: *style_icon_button
         - type: conditional
           conditions:
             - entity: binary_sensor.vacuum_paused
@@ -55,9 +134,8 @@ cards:
                 action: call-service
                 service: script.vacuum_resume
               style:
-                top: 90%
                 left: 19%
-                color: '#3090C7'
+                <<: *style_icon_button
 
         - type: icon
           icon: mdi:stop
@@ -67,9 +145,8 @@ cards:
             service_data:
               entity_id: vacuum.xiaomi_vacuum_cleaner
           style:
-            top: 90%
             left: 35%
-            color: '#3090C7'
+            <<: *style_icon_button
         - type: icon
           icon: mdi:home
           tap_action: 
@@ -78,9 +155,8 @@ cards:
             service_data:
               entity_id: vacuum.xiaomi_vacuum_cleaner
           style:
-            top: 90%
             left: 50%
-            color: '#3090C7'
+            <<: *style_icon_button
         - type: icon
           icon: mdi:crosshairs
           tap_action: 
@@ -89,9 +165,8 @@ cards:
             service_data:
               entity_id: vacuum.xiaomi_vacuum_cleaner
           style:
-            top: 90%
             left: 65%
-            color: '#3090C7'
+            <<: *style_icon_button
         - type: icon
           icon: mdi:bell-ring
           tap_action: 
@@ -100,39 +175,10 @@ cards:
             service_data:
               entity_id: vacuum.xiaomi_vacuum_cleaner
           style:
-            top: 90%
             left: 80%
-            color: '#3090C7'
+            <<: *style_icon_button
         
         ## Labels (top)
-        - type: state-label
-          entity: sensor.vacuum_operation
-          style:
-            top: 10%
-            left: 1%
-            color: rgb(255, 255, 255)
-            transform: translate(0%,-50%)
-            pointer-events: none
-            font-family: Trebuchet MS
-            font-size: 90%
-            font-weight: bold
-            border-color: rgb(34, 154, 210)
-            background-color: '#3090C7'
-            border-radius: 6px
-        - type: state-label
-          entity: sensor.vacuum_accessories
-          style:
-            top: 10%
-            right: 1%
-            color: rgb(255, 255, 255)
-            transform: translate(0%,-50%)
-            pointer-events: none
-            font-family: Trebuchet MS
-            font-size: 90%
-            font-weight: bold
-            border-color: rgb(34, 154, 210)
-            background-color: '#3090C7'
-            border-radius: 6px
         - type: state-label
           tap_action:
             entity: vacuum.xiaomi_vacuum_cleaner
@@ -141,69 +187,40 @@ cards:
           style:
             top: 14%
             right: 38%
-            color: rgb(255, 255, 255)
-            transform: translate(0%,-50%)
-            font-family: Trebuchet MS
-            font-size: 150%
-            font-weight: bold
-            border-color: rgb(34, 154, 210)
-            border-radius: 6px
-            background-color: '#cccccc'
+            <<: *style_label_header
+        - type: state-label
+          entity: sensor.vacuum_operation
+          style:
+            left: 1%
+            <<: *style_label_column
+        - type: state-label
+          entity: sensor.vacuum_accessories
+          style:
+            right: 1%
+            <<: *style_label_column
         
         ## Information Maintenance (right)
         - type: state-label
           entity: sensor.vacuum_cleanmainbrush
           style:
             top: 35%
-            right: 1%
-            color: '#ffffff'
-            transform: translate(0%,-50%)
-            pointer-events: none
-            font-family: Trebuchet MS
-            font-size: 76%
-            font-weight: bold
-            border-right-style: solid
-            border-color: rgb(34, 154, 210)
+            <<: *style_label_maintenance
         - type: state-label
           entity: sensor.vacuum_cleansidebrush
           style:
             top: 45%
-            right: 1%
-            color: '#ffffff'
-            transform: translate(0%,-50%)
-            pointer-events: none
-            font-family: Trebuchet MS
-            font-size: 76%
-            font-weight: bold
-            border-right-style: solid
-            border-color: rgb(34, 154, 210)
+            <<: *style_label_maintenance
         - type: state-label
           entity: sensor.vacuum_cleanfilter
           style:
             top: 55%
-            right: 1%
-            color: '#ffffff'
-            transform: translate(0%,-50%)
-            pointer-events: none
-            font-family: Trebuchet MS
-            font-size: 76%
-            font-weight: bold
-            border-right-style: solid
-            border-color: rgb(34, 154, 210)
+            <<: *style_label_maintenance
             opacity: 0.8
         - type: state-label
           entity: sensor.vacuum_sensordirtyleft
           style:
             top: 65%
-            right: 1%
-            color: '#ffffff'
-            transform: translate(0%,-50%)
-            pointer-events: none
-            font-family: Trebuchet MS
-            font-size: 76%
-            font-weight: bold
-            border-right-style: solid
-            border-color: rgb(34, 154, 210)
+            <<: *style_label_maintenance
         
         ## Information Operation (left)
         - type: state-label
@@ -211,29 +228,15 @@ cards:
           prefix: 'Status: '
           style:
             top: 40%
-            left: 1%
-            color: '#ffffff'
-            transform: translate(0%,-50%)
             pointer-events: none
-            font-family: Trebuchet MS
-            font-size: 80%
-            font-weight: bold
-            border-left-style: solid
-            border-color: '#3090C7'
+            <<: *style_label_operation
         - type: state-label
           entity: sensor.vacuum_battery
           prefix: 'Battery: '
           style:
             top: 50%
-            left: 1%
-            color: '#ffffff'
-            transform: translate(0%,-50%)
             pointer-events: none
-            font-family: Trebuchet MS
-            font-size: 80%
-            font-weight: bold
-            border-left-style: solid
-            border-color: rgb(34, 154, 210)
+            <<: *style_label_operation
         - type: state-label
           entity: input_select.vacuum_fan_speed_list
           prefix: 'Mode: '
@@ -246,57 +249,35 @@ cards:
           style:
             pointer-events: auto              
             top: 60%
-            left: 1%
-            color: '#ffffff'
-            transform: translate(0%,-50%)
-            font-family: Trebuchet MS
-            font-size: 80%
-            font-weight: bold
-            border-left-style: solid
-            border-color: rgb(34, 154, 210)
+            <<: *style_label_operation
 
         ## Information last run (center)
         - type: state-label
           tap_action:
             action: more-info
             entity: sensor.vacuum_cleaned_room
-          #entity: input_select.vacuum_last_cleaned_room
           entity: sensor.vacuum_cleaned_room
-          prefix: "Room: "
+          prefix: 'Room: '
           style:
-            pointer-events: auto
-            top: 79%
             left: 14% #n/a
-            color: '#84a6ba'
-            transform: translate(0%,-50%)
-            font-family: Trebuchet MS
-            font-size: 80%
-            font-weight: bold
+            pointer-events: auto
+            <<: *style_label_lastCleanup
         - type: state-label
           entity: sensor.vacuum_cleaned_area
-          prefix: "Area: "
+          prefix: 'Area: '
           style:
-            top: 79%
             left: 46% #31%
-            color: '#84a6ba'
-            transform: translate(0%,-50%)
             pointer-events: none
-            font-family: Trebuchet MS
-            font-size: 80%
-            font-weight: bold
+            <<: *style_label_lastCleanup
         - type: state-label
           entity: sensor.vacuum_cleaning_time
-          prefix: "Time: "
+          prefix: 'Time: '
           style:
-            top: 79%
             left: 68% #51%
-            color: '#84a6ba'
-            transform: translate(0%,-50%)
             pointer-events: none
-            font-family: Trebuchet MS
-            font-size: 80%
-            font-weight: bold
+            <<: *style_label_lastCleanup
 
+    #------------------------------------------------------------
     # options for room cleaning and automation (always displayed)
     - type: entities
       state_color: true
@@ -308,18 +289,17 @@ cards:
         toggle: true
         name: Automatisches Saugen aktivieren #enable Daily Cleanup
 
-    # options for automatic cleanup only if activated)
+    # options for automatic cleanup (only if activated)
     - type: conditional
       conditions:
         - entity: input_boolean.disable_automatic_vacuum
-          state: "off"
+          state: 'off'
       card:
         type: entities
-        #title: automatisches Saugen
         show_header_toggle: false
         state_color: true
         entities:
-          #presense status
+          # presence status
           - type: section
             label: Anwesenheit #presense status
           - entity: input_boolean.automatic_vacuum_when_home
@@ -328,7 +308,7 @@ cards:
             entities:
             - entity: sensor.home_status
               name: Home Status
-          # Notifications
+          # notifications
           - type: section
             label: Benachrichtigungen & Alarm # Notifications
           - entity: switch.disable_dustbin_notification
@@ -346,12 +326,11 @@ cards:
             entities:
             - entity: vacuum.xiaomi_vacuum_cleaner
               name: Status
-          #History
+          # history
           - type: section
             label: Verlauf #History
           - entity: input_boolean.automatic_vacuum_first_run
             type: custom:multiple-entity-row
-            #toggle: true
             name: heute schon gereinigt?
             state_color: false
             entities:
@@ -367,7 +346,8 @@ cards:
       type: custom:vertical-stack-in-card
       cards:
       - type: entities
-        title: Debug
+        <<: *style_header
+        title: Debug      
         show_header_toggle: false
         entities:
           - type: custom:fold-entity-row

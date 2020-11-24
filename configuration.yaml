@@ -45,11 +45,7 @@ http:
 ################################################################
 ## Includes (mostly moved to packages)
 ################################################################
-#automation: !include includes/automations.yaml
 binary_sensor: !include includes/binary_sensors.yaml
-#group: !include includes/groups.yaml
-#script: !include includes/scripts.yaml
-#sensor: !include includes/sensors.yaml
 zone: !include includes/zones.yaml
 
 ################################################################

@@ -2,7 +2,7 @@
 #   @author       : Max Reigl
 #   @date         : 14.11.2019
 #   @package      : doors_windows
-#   @description  : Notifications for situations around door and windows
+#   @description  : Notifications for status of door and windows
 #   @links        : 
 ###############################################################################
 
@@ -112,7 +112,6 @@ group:
     icon: mdi:door
     entities:
       - binary_sensor.lumi_lumi_sensor_magnet_aq2_20a30a04_on_off #9 Eingangstür
-#      - input_boolean.trigger_test #hack
 
 ###############################################################################
 ##  Variables
