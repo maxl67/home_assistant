@@ -7,19 +7,13 @@
 # 
 # remarks:
 # - contains example of how to pass params from automation to script.
+#   idea from: #https://community.home-assistant.io/t/how-do-you-use-service-template-when-different-services-use-different-attributes-solved/52314/15
 ###############################################################################
 
 #todo: alarm
 # feuchte > 60: warnung > 70 alarm
 # draussen zu warm und heizen > alarm
 # heizperiode an und april..oktober
-
-#todo: cleanup
-#https://community.home-assistant.io/t/how-do-you-use-service-template-when-different-services-use-different-attributes-solved/52314/15
-
-# HmIP-Thermostate Ist-Temoeratur
-#   GZ: ohne Heizung ok, während Heizen ca. +1°C
-
 
 ################################################
 ##  Customize
@@ -275,7 +269,7 @@ automation:
           - thu
           - fri        
     action:
-      # Max-Büro
+      # Max-Arbeitszimmer
       - choose:
         - conditions:
             - condition: state
@@ -295,7 +289,7 @@ automation:
             data:
               my_thermostat_id: *thermostat_id_gz
               my_profile_no: *default_profile
-      # Ing-Arbeitszimmer
+      # Ing-Büro
       - choose:
         - conditions:
             - condition: state

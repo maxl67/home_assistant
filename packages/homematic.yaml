@@ -26,8 +26,11 @@
 #    Intervall der Entkalkungsfahrt bei Nichtbenutzung: 14 Tage
 
 #----------------------------------------------------------------------------------
+# HmIP-Thermostate Ist-Temperatur
+#   GZ: ohne Heizung ok, während Heizen ca. +1°C
+#----------------------------------------------------------------------------------
 # HmIP-BRC2 Wandtaster wird nicht als entity nach HA exportiert, da er keinen Status hat.
-# in Hm-CCU wurden 2 "preudo"-Programme angelegt, um den Tastendruck an HA zu senden.
+# in Hm-CCU wurden 2 "pseudo"-Programme angelegt, um den Tastendruck an HA zu senden.
 # ID für HmIP-BRC2 wurde über das logging ermittelt.
 # Key:   6uk95-ykbw7-wb51f-9xfgq-tze8b8
 # SGTIN: 3014-f711-a000-19db-e994-3030

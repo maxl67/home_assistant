@@ -45,13 +45,13 @@ homeassistant:
 #switch:
 #  - platform: wake_on_lan
 #    name: raspi1_power
-#    host: 192.168.2.15
-#    mac: dc:a6:32:5b:e1:fd
+#    host: !secret raspi1_ost_ip
+#    mac: !secret raspi1_ost_mac
 #    turn_off:
 #      service: shell_command.turn_off_raspi1 
 
 #shell_command:
-#  turn_off_raspi1: 'ssh pi@192.168.2.15 sudo shutdown -h now'
+#  turn_off_raspi1: 'ssh <user>@192.168.x.x sudo shutdown -h now'
 
 scene:
   - name: Welcome
@@ -60,7 +60,7 @@ scene:
       light.0008da499c8dbd:
         state: 'on'
         #brightness: 250 #-->.brightness=249
-        brightness: 170 #-->.brightness=
+        brightness: 125 #-->.brightness=
   - name: Movies
     entities:
       light.0008da499c8dbd:
@@ -78,9 +78,6 @@ input_boolean:
   ll_signals_doorstatus:
     name: Türstatus wird angezeigt
     icon: mdi:traffic-light
-#  trigger_test: #hack
-#    name: Trigger-Tester
-#    icon: mdi:bug
 
 switch:
   - platform: template
@@ -129,10 +126,11 @@ automation:
     action:
       - delay:
           minutes: "{{ range(5, 25 if trigger.platform == 'sun' else 90) | random }}"
-#      - service: "homeassistant.turn_{{ 'on' if trigger.platform == 'sun' else 'off' }}"
-#        entity_id: group.holiday_lights
       - service: "light.turn_{{ 'on' if trigger.platform == 'sun' else 'off' }}"
         entity_id: light.0008da499c8dbd
+#  or with groups like that: 
+#      - service: "homeassistant.turn_{{ 'on' if trigger.platform == 'sun' else 'off' }}"
+#        entity_id: group.holiday_lights
 
 
   #----------------------------------------------------------------------------------
@@ -143,8 +141,8 @@ automation:
       - platform: state
         entity_id: binary_sensor.smarttv
         to: 'on'
-        for: 
-          seconds: 4
+        #for: 
+        #  seconds: 4
       - platform: state
         entity_id: light.0008da499c8dbd
         to: 'on'
@@ -160,12 +158,11 @@ automation:
       - condition: state
         entity_id: input_boolean.disable_power_automation
         state: 'off'
-#todo:
     action:
-#    - service: scene.turn_on
-#      data:
-#        entity_id: scene.movies
-#        transition: 2 #[sec] langsamer Übergang
+      - service: scene.turn_on
+        data:
+          entity_id: scene.movies
+          transition: 2 #[sec] langsamer Übergang
 
 
   #----------------------------------------------------------------------------------
@@ -224,9 +221,6 @@ automation:
       - platform: state
         entity_id: input_boolean.disable_power_automation
         to: 'off'
-#schaltet bei Update von HA Nachts das Licht an.
-#      - platform: homeassistant
-#        event: start
     condition:
       # 'power_automation' aktiv UND Home status 'Home' UND Sonne untergegangen
       condition: and
@@ -323,10 +317,6 @@ automation:
         entity_id: 
           - group.all_doors
           - group.all_windows
-      #hack: nur temp
-#      - platform: state
-#        entity_id: input_boolean.trigger_test 
-#        to: 'on' 
     condition:
       # 'power_automation' aktiv UND Home status 'Home' UND Eingangtür offen
       condition: and
@@ -392,10 +382,6 @@ automation:
       - platform: state
         entity_id: group.entrance_door 
         to: 'off' #=closed
-#    #hack: nur temp
-#      - platform: state
-#        entity_id: input_boolean.trigger_test 
-#        to: 'off' 
     condition:
       # 'power_automation' aktiv UND Ampel-Merker an UND Eingangtür zu
       condition: and

@@ -23,15 +23,15 @@ My XIAOMI Roborock S6 will automatically clean the appartment when the last pers
 - Packages:   [vacuum](packages/vacuum.yaml)
 - Views: [vacuum_view](lovelace/views/vacuum_view.yaml)
 
+### Automation of Heating
+Radiators will be turned off as soon as the last person leaves the appartment. Heating will also be stopped in a room, whenever a window/door is opened in that room. Different heating shedules (profiles) will be set automatically for regular work days, home office days and guest presence. I use HomeMatic IP thermostats. The virtual HomeMatic CCU (piVCCU) runs on one of my raspis.
+- Packages:   [climate](packages/climate.yaml), [HomeMatic](packages/homematic.yaml)
+- Views: [climate_view](lovelace/views/climate_view.yaml)
+
 ### Weather Forecast and Warnings
 Warnings from the german weather service (DWD integration) are analysed and in case of storm and rain mail messages and notifications are send. In the furture I will use this information to automate outside blinds and awnings (as soon as I get them connetced to HA).
 - Packages:   [weather](packages/weather.yaml)
 - Views: [weather_view](lovelace/views/weather_view.yaml)
-
-### Automation of Heating
-Radiators will be turned off as soon as the last person leaves the appartment. Heating will also be stopped in a room, whenever a window/door is opened in that room. I use HomeMatic IP thermostats. The virtual HomeMatic CCU (piVCCU) runs on one of my raspis.
-- Packages:   [climate](packages/climate.yaml), [HomeMatic](packages/homematic.yaml)
-- Views: [climate_view](lovelace/views/climate_view.yaml)
 
 ### Automation of Power Consumption and Lights
 A welcome light is automatically turned on upon arriving at home or at sunset and turned off when leaving the appartment. Some power plugs are also turned on and off depending on presence. All devices use zigbee protocoll.
