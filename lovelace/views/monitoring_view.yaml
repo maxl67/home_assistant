@@ -405,8 +405,10 @@ cards:
 #        name: Hera
       - entity: binary_sensor.rpi_ost
         name: RPi-1
+        icon: mdi:raspberry-pi
       - entity: binary_sensor.rpi_west
         name: RPi-2
+        icon: mdi:home-automation
       - entity: binary_sensor.roborock
         name: Dusti-E
       - entity: binary_sensor.hpdrucker

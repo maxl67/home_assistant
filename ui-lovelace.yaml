@@ -45,7 +45,7 @@ custom_header:
       config:
         menu_hide: false
         disabled_mode: false
-        hide_tabs: "plants,media,maintenance"
+        hide_tabs: "plants,maintenance" #media
         hide_help: true
         hide_config: true
         hide_unused: false
@@ -76,7 +76,7 @@ views:
 #  - !include lovelace/views/plants_view.yaml
 
   # 6:view to operate TV (doesn't work yet)
-#  - !include lovelace/views/media_view.yaml
+  - !include lovelace/views/media_view.yaml
 
   # 7: view to monitor internet-connection, network, network devices
   - !include lovelace/views/monitoring_view.yaml

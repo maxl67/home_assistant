@@ -19,7 +19,7 @@ homeassistant:
     - type: trusted_networks
       trusted_networks:
         - 127.0.0.1
-        - 192.168.2.0/24
+        - !secret home_subnet
         - ::1
         - ::ffff:127.0.0.1
         - fd00::/8
@@ -133,7 +133,7 @@ lovelace:
     - url: /hacsfiles/lovelace-auto-entities/auto-entities.js
       type: module
     - url: /hacsfiles/lovelace-multiple-entity-row/multiple-entity-row.js
-      type: module #js
+      type: module 
     - url: /hacsfiles/lovelace-fold-entity-row/fold-entity-row.js
       type: module    
     - url: /hacsfiles/lovelace-swipe-navigation/swipe-navigation.js
@@ -207,7 +207,7 @@ calendar:
     - Home
     - Ingrid
     - Privat Max
-
+   
 ################################################################
 ## Recording, Logging, Lockbook
 # https://community.home-assistant.io/t/large-homeassistant-database-files/4201/240

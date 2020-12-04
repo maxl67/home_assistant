@@ -62,14 +62,20 @@ homeassistant:
     # other devices
     binary_sensor.hpdrucker:
       <<: *common
+      icon: mdi:printer # mdi:printer-wireless
     binary_sensor.smarttv:
       <<: *common
+      icon: mdi:television  #television-classic-off
     binary_sensor.roborock:
       <<: *common
+      icon: mdi:robot-vacuum
     binary_sensor.radiobad:
       <<: *common
+      icon: mdi:radio
     binary_sensor.router:
       <<: *common
+      icon: mdi:router-network
+
 
 # Network sensors. todo: Not working!
 #    binary_sensor.hpdrucker:

@@ -1,0 +1,191 @@
+###############################################################################
+#   @author       : Max Reigl
+#   @date         : 01.12.2020
+#   @package      : media
+#   @description  : media devices and player
+#   @links        : 
+###############################################################################
+
+################################################
+##  Customize
+################################################
+homeassistant:
+  customize:
+  # definitions
+    package.node_anchors:
+      common: &common
+        package: "media"
+  # groups, variables
+    group.mediadevices_in_use:
+      <<: *common
+  # sensors
+    sensor.netreceiver_is_used:
+      icon: mdi:music-box
+      <<: *common
+  # automations
+    automation.power_off_unused_mediarack:
+      <<: *common
+    automation.power_on_mediarack_for_use:
+      <<: *common
+    automation.set_scene_movies:
+      <<: *common
+
+
+################################################
+##   Platforms
+################################################
+# problem: if receiver is turned of while HA restarts, entity will be deleted
+media_player:
+  - platform: yamaha_musiccast
+    host: !secret yamaha_netreceiver
+    interval_seconds: 30
+
+#wake_on_lan:
+#samsungtv:
+#  - host: !secret samsung_tv_ip
+#    turn_on_action:
+#      - service: wake_on_lan.send_magic_packet
+#        data:
+#          mac: !secret samsung_tv_mac
+
+###############################################################################
+##  Groups
+###############################################################################
+group:
+  # group is 'on' if at least one device is 'on'
+  mediadevices_in_use:
+    name: TV oder Music ist an
+    icon: mdi:account-music
+    entities:
+      - sensor.netreceiver_is_used
+      - media_player.samsungtv
+      #- binary_sensor.smarttv
+
+
+###############################################################################
+##  Sensors
+###############################################################################
+binary_sensor:
+  - platform: ping
+    name: netreceiver_online
+    host: !secret yamaha_netreceiver
+    scan_interval: 10
+    count: 2
+
+sensor:
+  - platform: template
+    sensors:
+      netreceiver_is_used:
+        friendly_name: "Yamaha R-N803 in Benutzung"
+        value_template: >
+          {%- if states('media_player.r_n803d_86ae28_main') == 'unknown' -%}
+            on
+          {%-  elif not states('media_player.r_n803d_86ae28_main') in ['off','idle'] 
+                 and is_state('binary_sensor.netreceiver_online','on') -%}
+            on
+          {%- else -%}
+            off
+          {%-  endif -%}
+
+###############################################################################
+#                               Automations
+###############################################################################
+automation:
+  #----------------------------------------------------------------------------------
+  # Medien-Rack: Standby der Geräte nachts und tagsüber vermeiden.
+  # Ausschalten des Medien-Racks nachts, wenn es nicht mehr benutzt ist
+  - id: power_off_unused_mediarack
+    alias: switch off unused media rack at night
+    trigger: 
+      - platform: time
+        at: '00:10:00'
+      - platform: state
+        entity_id: group.mediadevices_in_use
+        to: 'off'
+        for:
+          minutes: 15
+      - platform: state
+        entity_id: input_boolean.disable_power_automation
+        to: 'off'
+    condition:
+      # 'power_automation' aktiv UND Home status 'Away'
+      condition: and
+      conditions:
+      - condition: or
+        conditions:
+          - condition: time
+            after: '23:00:00'
+          - condition: time
+            before: '7:30:00'    
+      - condition: state
+        entity_id: group.mediadevices_in_use
+        state: 'off'
+      - condition: state
+        entity_id: input_boolean.disable_power_automation
+        state: 'off'
+    action:
+      - service: switch.turn_off
+        entity_id: switch.osram_plug_01_a1bf020a_3
+
+  # Einschalten des Media Racks nachmittags, wenn wir zuhause sind
+  - id: power_on_mediarack_for_use
+    alias: switch on media rack for use at afternoon
+    trigger:
+      - platform: time
+        at: '17:00:00'
+      - platform: state
+        entity_id: input_boolean.disable_power_automation
+        to: 'off'
+    condition:
+      # 'power_automation' aktiv UND Home status 'Home'
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.disable_power_automation
+        state: 'off'
+      - condition: state
+        entity_id: sensor.home_status
+        state: 'Home'
+    action:
+      - service: switch.turn_on
+        entity_id: switch.osram_plug_01_a1bf020a_3
+
+
+  #----------------------------------------------------------------------------------
+  # Licht-Szene für Fernsehen
+  - id: set_scene_movies
+    alias: Scene 'Movies' 
+    trigger:
+      - platform: state
+        entity_id: media_player.samsungtv #binary_sensor.smarttv
+        to: 'on'
+      - platform: state
+        entity_id: light.0008da499c8dbd
+        to: 'on'
+    condition:
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: media_player.samsungtv #binary_sensor.smarttv
+        state: 'on'
+      - condition: state
+        entity_id: light.0008da499c8dbd
+        state: 'on'
+      - condition: state
+        entity_id: input_boolean.disable_power_automation
+        state: 'off'
+    action:
+      # speichern des aktuellen Licht-Zustands...
+      - service: python_script.light_store
+        data:
+          store_name: dw_signal_store
+          entity_id:
+            - light.0008da499c8dbd
+          overwrite: true
+          all_attribs: true  #saves last color and brightness, even if state='off'. turn light on shortly
+      - service: scene.turn_on
+        data:
+          entity_id: scene.movies
+          transition: 2 #[sec] langsamer Übergang
+
+#todo: neue Automation für rücksetzen des Lichts wenn fernseher wieder aus ist      

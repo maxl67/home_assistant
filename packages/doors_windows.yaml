@@ -71,6 +71,10 @@ homeassistant:
     input_boolean.open_window_alert:
       <<: *common
   # automations
+    automation.LL_signal_status:
+      <<: *common
+    automation.LL_status_signal_off:
+      <<: *common
     automation.notify_all_open_doors:
       <<: *common
     automation.notify_all_open_windows:
@@ -130,6 +134,125 @@ input_boolean:
 ##  Automations
 ###############################################################################
 automation:
+  #----------------------------------------------------------------------------------
+  # Ampelschaltung auf der Lichtleiste Küche
+  # Lightstrip kitchen - signals open door/window status
+  - id: LL_signal_status
+    alias: Lichtband zeigt Status
+    mode: single #Do not start a new run, if running already.
+    #mode: restart #Start a new run, after stopping the previous run.
+    trigger: 
+      #wenn Eingangstür geöffnet wird oder sich der Status von Türen/Fenstern ändert.
+      - platform: state
+        entity_id: group.entrance_door 
+        to: 'on' #=open
+      - platform: state
+        entity_id: input_boolean.disable_power_automation
+        to: 'off'
+      - platform: state
+        entity_id: 
+          - group.all_doors
+          - group.all_windows
+    condition:
+      # 'power_automation' aktiv UND Home status 'Home' UND Eingangtür offen
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.disable_power_automation
+        state: 'off'
+      - condition: state
+        entity_id: sensor.home_status
+        state: 'Home'
+      - condition: state
+        entity_id: group.entrance_door
+        state: 'on'
+    variables:
+      lightstrip_status: "{{ states('light.philips_lightstrip_ku') }}"
+    action:
+      # merken, dass wir die Ampel eingeschaltet haben
+      - service: input_boolean.turn_on
+        entity_id: input_boolean.ll_signals_doorstatus
+      # speichern des aktuellen Licht-Zustands...
+      - service: python_script.light_store
+        data:
+          store_name: dw_signal_store
+          entity_id:
+            - light.philips_lightstrip_ku
+          overwrite: false
+          all_attribs: true  #saves last color and brightness, even if state='off'. turn light on shortly
+      - choose:
+        - conditions: # Mindestens eine Tür ist offen...
+          - condition: state
+            entity_id: group.all_doors
+            state: 'on'
+          sequence:
+            service: light.turn_on
+            data:
+              entity_id: light.philips_lightstrip_ku
+              brightness: 255
+              rgb_color:  [255, 0, 0] #rot
+              transition: 0.2
+        - conditions: #...sonst wenn mindestens ein Fenster offen ...
+          - condition: state
+            entity_id: group.all_windows
+            state: 'on'
+          sequence:
+            service: light.turn_on
+            data:
+              entity_id: light.philips_lightstrip_ku
+              brightness: 255
+              rgb_color:  [255, 255, 0] #gelb
+              transition: 0.2
+        default: # ...Türen und Febster sind zu,
+          service: light.turn_on
+          data:
+            entity_id: light.philips_lightstrip_ku
+            brightness: 255
+            rgb_color:  [0, 255, 0] #grün
+            transition: 0.2
+
+  - id: LL_status_signal_off
+    alias: Lichtband Status löschen
+    mode: single #Do not start a new run, if running already. 
+    trigger: 
+      - platform: state
+        entity_id: group.entrance_door 
+        to: 'off' #=closed
+    condition:
+      # 'power_automation' aktiv UND Ampel-Merker an UND Eingangtür zu
+      condition: and
+      conditions:
+      - condition: state
+        entity_id: input_boolean.disable_power_automation
+        state: 'off'
+      - condition: state
+        entity_id: input_boolean.ll_signals_doorstatus
+        state: 'on'
+      - condition: state
+        entity_id: group.entrance_door
+        state: 'off'
+    action:
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.ll_signals_doorstatus
+      - wait_template: "{{ not states('dw_signal_store.light_philips_lightstrip_ku') == 'unknown' }}"
+        timeout: '00:00:03'
+      - choose:
+        - conditions:
+            - condition: template
+              value_template: "{{ wait.completed }}" #wait condition was met = entity existes
+          sequence:
+            - service: python_script.light_store
+              data:
+                store_name: dw_signal_store
+                operation: restore
+                all_attribs: true  #restores old color and brightness, even if state='off'
+        default:
+          - service: light.turn_off
+            entity_id: light.philips_lightstrip_ku
+            
+  #----------------------------------------------------------------------------------
+  # Benachrichtigungen & Alarm
+  # Notifications and alarm
   - alias: Notify all - Open Doors
     trigger:
       # niemand zuhause und mindestens eine Tür offen 
@@ -248,7 +371,9 @@ automation:
               'apns-collapse-id': 'open-windows-detected'
             clickAction: '/lovelace/home'
 
-  #Test
+#----------------------------------------------------------------------------------
+#----------------------------------------------------------------------------------
+#Test
   - alias: Test Zone Notify
     trigger:
       - platform: zone

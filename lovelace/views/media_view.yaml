@@ -1,13 +1,20 @@
+
 id: media
 title: Media
 path: media
-icon: mdi:library-movie
+icon: mdi:filmstrip-box-multiple
 cards:
   - type: media-control
     entity: media_player.samsungtv
-
-#  - type: media-control
-#    entity: media_player.samsungtv_2
+    name: Samsung Qled60
 
 #  - type: media-control
 #    entity: media_player.frontier_silicon
+  
+  - type: media-control
+    entity: media_player.r_n803d_86ae28_main
+    name: Yamaha R-N803D
+
+  # device status (for testing)
+  - !include ../cards/mediarack_debug.yaml
+

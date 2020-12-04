@@ -1,0 +1,30 @@
+type: custom:vertical-stack-in-card
+cards:
+  - type: entities
+    title: Entertainment-Rack
+    show_header_toggle: false
+    state_color: true
+    entities:
+      - entity: switch.osram_plug_01_a1bf020a_3
+        name: Power-Plug
+  - type: entities
+    show_header_toggle: false
+    entities:
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Status Geräte
+        open: true
+        entities:
+          - entity: binary_sensor.netreceiver_online
+            name: Yamaha online (ping)
+            icon: mdi:amplifier
+          - entity: sensor.netreceiver_is_used
+            name: Receiver in Nutzung
+          - entity: binary_sensor.smarttv
+            name: TV online (ping)
+          - entity: media_player.samsungtv
+            name: TV in Nutzung
+          - entity: group.mediadevices_in_use
+            name: TV an oder Music spielt
+  

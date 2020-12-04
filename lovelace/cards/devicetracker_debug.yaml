@@ -53,7 +53,7 @@ cards:
               service: automation.trigger
               service_data:
                 entity_id: automation.start_bt_departure_scan
-          - entity: input_select.max_status_dropdown
-            name: Statusauswahl Max
-          - entity: input_select.ing_status_dropdown
-            name: Statusauswahl Ing
+        #  - entity: input_select.max_status_dropdown
+        #    name: Statusauswahl Max
+        #  - entity: input_select.ing_status_dropdown
+        #    name: Statusauswahl Ing
