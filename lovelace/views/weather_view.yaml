@@ -1,4 +1,4 @@
-id: weather
+#id: weather
 title: Wetter
 path: weather
 icon: mdi:weather-partly-cloudy
@@ -129,7 +129,14 @@ cards:
 
   # current weather info and forcast
   - type: custom:weather-card-chart
-    #title: home
+    title: AK-Stgt (DWD)
+    weather: weather.dwd_weather_ak_stuttgart
+    sun: sun.sun
+    mode: daily #hourly|daily  - hourly display is not good.
+    locale: 'de-DE'
+
+  - type: custom:weather-card-chart
+    title: DarkSky
     weather: weather.dark_sky_daily
     sun: sun.sun
     mode: daily #hourly|daily  - hourly display is not good.

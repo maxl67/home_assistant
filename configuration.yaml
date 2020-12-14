@@ -24,12 +24,12 @@ homeassistant:
         - ::ffff:127.0.0.1
         - fd00::/8
       allow_bypass_login: true
-  # Customization file
+  # general customization file
   customize: !include includes/customize.yaml
   # load packages from directory
   packages: !include_dir_named packages
 
-# display panels in the frontend to configure and manage parts of Home Assistant
+# display panels in frontend to configure and manage parts of Home Assistant
 config:
 # 'System Health' integration data can be viewed in Developer Tools on the 'Info' tab
 system_health:
@@ -162,10 +162,9 @@ lovelace:
     # Repo: https://github.com/dmulcahey/zha-network-visualization-card
     - url: /hacsfiles/zha-network-visualization-card/zha-network-visualization-card.js
       type: module
-            
-## deprecated
-##  - url: /hacsfiles/calendar-card/calendar-card.js
-##    type: js #module
+    # deprecated, not maintained anymore
+    - url: /hacsfiles/calendar-card/calendar-card.js
+      type: js #module
 
 frontend:
   themes: !include_dir_merge_named themes
@@ -234,6 +233,7 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.network_out_eth0
     # router: Fritzbox
       - sensor.fritzbox
+      - sensor.fritz_last_boot
       #- sensor.fritz_rate_down
       #- sensor.fritz_rate_up
     # network devices
@@ -249,6 +249,8 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.raspi2memoryuse
       - sensor.raspi1DiskUse
       - sensor.raspi2DiskUse
+      - sensor.raspi1_lastmessage
+      - sensor.raspi2_lastmessage
     # Home Assistant
       - sensor.latest_version
       - sensor.hacs

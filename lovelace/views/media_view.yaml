@@ -1,5 +1,13 @@
+anchors:
+  style_entitycard_header: &style_header
+    style: |
+      .card-header {
+        font-size: 20px;
+        padding: 10px 16px;
+      }
 
-id: media
+#---------------------------------
+#id: media
 title: Media
 path: media
 icon: mdi:filmstrip-box-multiple
@@ -8,13 +16,25 @@ cards:
     entity: media_player.samsungtv
     name: Samsung Qled60
 
-#  - type: media-control
-#    entity: media_player.frontier_silicon
-  
   - type: media-control
     entity: media_player.r_n803d_86ae28_main
     name: Yamaha R-N803D
 
-  # device status (for testing)
-  - !include ../cards/mediarack_debug.yaml
-
+  # Zugriff Radio Bad geht, wird aber nicht gebraucht
+  #- type: media-control
+  #  entity: media_player.radio_bad
+  
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: entities
+        <<: *style_header
+        title: Entertainment-Rack
+        show_header_toggle: false
+        state_color: true
+        entities:
+          - entity: switch.osram_plug_01_a1bf020a_3
+            name: Power-Plug
+          - entity: group.mediadevices_in_use
+            name: TV an oder Music spielt
+      # device status (for testing)
+      - !include ../cards/mediarack_debug.yaml

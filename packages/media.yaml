@@ -4,6 +4,7 @@
 #   @package      : media
 #   @description  : media devices and player
 #   @links        : 
+#     samsungtv_tizen: https://github.com/jaruba/ha-samsungtv-tizen/blob/master/Smartthings.md
 ###############################################################################
 
 ################################################
@@ -19,6 +20,8 @@ homeassistant:
     group.mediadevices_in_use:
       <<: *common
   # sensors
+    binary_sensor.netreceiver_online:
+      <<: *common
     sensor.netreceiver_is_used:
       icon: mdi:music-box
       <<: *common
@@ -39,14 +42,25 @@ media_player:
   - platform: yamaha_musiccast
     host: !secret yamaha_netreceiver
     interval_seconds: 30
+  
+  - platform: samsungtv_tizen
+    name: samsungtv
+    host: !secret samsung_tv_ip
+    mac: !secret samsung_tv_mac
+    source_list: '{"TV": "KEY_DTV", "HDMI": "KEY_HDMI"}'
+#app_list klappt auch nicht.
+    #app_list: "{'DS video': '111399002250', 'YouTube': '111299001912'}"
+    #app_list: "{'ARD Mediathek':'??', 'ZDF mediathek':'??', 'DS video': '111399002250', 'YouTube': '111299001912', 'Rakuten TV': '??'}"
+# klappt nicht. Device wird in der Samsung-api als offline angezeigt. api_key ist evtl auch abgelaufen.
+# wenn diese werte aktiviert werden, dann klappt der media_player nicht mehr.
+#    api_key: "b3c028ad-affd-4f18-9369-643cb355d8a2"
+#    device_id: "f1a1ad77-5565-4406-bdae-4192b1fc6525" #oder: 48c3c7a0-f7f3-45a7-b497-a81d5ebf21af
 
-#wake_on_lan:
-#samsungtv:
-#  - host: !secret samsung_tv_ip
-#    turn_on_action:
-#      - service: wake_on_lan.send_magic_packet
-#        data:
-#          mac: !secret samsung_tv_mac
+  # Zugriff Radio Bad geht, wird aber nicht gebraucht
+  #- platform: frontier_silicon
+  #  name: Radio Bad
+  #  host: !secret radio_bad_ip
+
 
 ###############################################################################
 ##  Groups
@@ -59,7 +73,7 @@ group:
     entities:
       - sensor.netreceiver_is_used
       - media_player.samsungtv
-      #- binary_sensor.smarttv
+    #  - binary_sensor.smarttv
 
 
 ###############################################################################
@@ -69,7 +83,7 @@ binary_sensor:
   - platform: ping
     name: netreceiver_online
     host: !secret yamaha_netreceiver
-    scan_interval: 10
+    scan_interval: 30
     count: 2
 
 sensor:
@@ -137,7 +151,7 @@ automation:
         entity_id: input_boolean.disable_power_automation
         to: 'off'
     condition:
-      # 'power_automation' aktiv UND Home status 'Home'
+      # 'power_automation' aktiv UND Home status 'Home' UND WLAN ist an
       condition: and
       conditions:
       - condition: state
@@ -146,6 +160,9 @@ automation:
       - condition: state
         entity_id: sensor.home_status
         state: 'Home'
+      - condition: state
+        entity_id: switch.fritz_dect_200_1
+        state: 'on'
     action:
       - service: switch.turn_on
         entity_id: switch.osram_plug_01_a1bf020a_3
@@ -157,7 +174,10 @@ automation:
     alias: Scene 'Movies' 
     trigger:
       - platform: state
-        entity_id: media_player.samsungtv #binary_sensor.smarttv
+        entity_id: media_player.samsungtv 
+        to: 'on'
+      - platform: state
+        entity_id: binary_sensor.smarttv #in addition to media_player, until that one will work correctly
         to: 'on'
       - platform: state
         entity_id: light.0008da499c8dbd
@@ -165,9 +185,14 @@ automation:
     condition:
       condition: and
       conditions:
-      - condition: state
-        entity_id: media_player.samsungtv #binary_sensor.smarttv
-        state: 'on'
+      - condition: or
+        conditions:
+          - condition: state
+            entity_id: media_player.samsungtv
+            state: 'on'
+          - condition: state
+            entity_id: binary_sensor.smarttv #in addition to media_player, until that one will work correctly
+            state: 'on'
       - condition: state
         entity_id: light.0008da499c8dbd
         state: 'on'

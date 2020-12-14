@@ -79,7 +79,7 @@ anchors:
         padding: 10px 16px;
       }
 #---------------------------------
-id: vacuum
+#id: vacuum
 title: Dust-E
 path: vacuum
 icon: mdi:robot-vacuum
@@ -232,14 +232,14 @@ cards:
             <<: *style_label_operation
         - type: state-label
           entity: sensor.vacuum_battery
-          prefix: 'Battery: '
+          prefix: 'Batterie: ' #'Battery: '
           style:
             top: 50%
             pointer-events: none
             <<: *style_label_operation
         - type: state-label
           entity: input_select.vacuum_fan_speed_list
-          prefix: 'Mode: '
+          prefix: 'Modus: ' #'Mode: '
           #suffix: (sensor.vacuum_fan_speed)
           tap_action: 
             action: call-service
@@ -257,21 +257,21 @@ cards:
             action: more-info
             entity: sensor.vacuum_cleaned_room
           entity: sensor.vacuum_cleaned_room
-          prefix: 'Room: '
+          prefix: 'Raum: ' #'Room: '
           style:
             left: 14% #n/a
             pointer-events: auto
             <<: *style_label_lastCleanup
         - type: state-label
           entity: sensor.vacuum_cleaned_area
-          prefix: 'Area: '
+          prefix: 'Bereich: ' #'Area: '
           style:
             left: 46% #31%
             pointer-events: none
             <<: *style_label_lastCleanup
         - type: state-label
           entity: sensor.vacuum_cleaning_time
-          prefix: 'Time: '
+          prefix: 'Zeit: ' #'Time: '
           style:
             left: 68% #51%
             pointer-events: none
@@ -283,6 +283,7 @@ cards:
       state_color: true
       entities:
       - entity: input_select.vacuum_room
+        name: 'welchen Raum reinigen:'
       - type: section
         label: automatisches Saugen #automatic cleanup
       - entity: switch.enable_automatic_vacuum

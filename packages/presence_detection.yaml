@@ -477,7 +477,7 @@ automation:
       - platform: homeassistant
         event: start
       - platform: time
-        at: '00:45:00'
+        at: '00:30:00'
     condition: []
     action:
       # first update device status from MQTT (BlueTooth monitor.sh) 

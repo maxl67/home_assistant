@@ -1,4 +1,4 @@
-id: home
+#id: home
 title: Home
 icon: mdi:home
 path: home
@@ -65,13 +65,13 @@ cards:
 #      - entity: calendar.home
 #        state_not: 'off'
 #    card:
-  - type: calendar
+  - type: custom:calendar-card # more compact, but not maintained anymore, switch to ...
+  #- type: calendar # ...official card, uses lot of space.
     title: 'Home-Kalender'
     initial_view: listWeek #list_view
     entities:
       - calendar.home
       - calendar.privat_max
-      #- calendar.ingrid
 
   # status of power switches and lights
   - type: entities
@@ -93,7 +93,8 @@ cards:
         name: Lichtsteifen Küche
         toggle: true
         hide_when_off: true
-#      - entity: input_boolean.trigger_test #hack
+      - entity: switch.fritz_dect_200_1
+      - entity: switch.fritz_dect_200_2
 
 
   # device tracking status (for testing)

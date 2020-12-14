@@ -111,7 +111,7 @@ anchors:
       }
 
 #---------------------------------
-id: network
+#id: network
 title: Netzwerk
 path: network
 icon: mdi:lan #mdi:network
@@ -120,7 +120,6 @@ cards:
   - type: custom:vertical-stack-in-card
     cards:
       - type: entities
-        <<: *style_header
         title: FritzBox (6490)
         show_header_toggle: false
         entities:
@@ -445,6 +444,18 @@ cards:
             - entity: sensor.raspi1_updates
               name: Upgrades pending
               icon: mdi:new-box
+            - type: button
+              name: Reboot
+              secondary_info: last-triggered
+              tap_action: 
+                action: call-service
+                service: script.reboot_raspi1
+            #- type: button
+            #  name: Shutdown!
+            #  secondary_info: last-triggered
+            #  tap_action: 
+            #    action: call-service
+            #    service: script.kill_raspi1
           - type: section
         - type: horizontal-stack
           cards:
@@ -504,6 +515,12 @@ cards:
             - entity: sensor.raspi2_updates
               name: Upgrades pending
               icon: mdi:new-box
+            - type: button
+              name: Reboot
+              secondary_info: last-triggered
+              tap_action: 
+                action: call-service
+                service: script.reboot_raspi2
           - type: custom:fold-entity-row
             head:
               type: section
@@ -519,6 +536,12 @@ cards:
               name: Verbindung
               icon: mdi:sync
               secondary_info: last-changed
+            - type: button
+              name: Reconnect
+              secondary_info: last-triggered
+              tap_action: 
+                action: call-service
+                service: homematic.reconnect
           - type: section
         - type: horizontal-stack
           cards:

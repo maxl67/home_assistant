@@ -85,7 +85,7 @@ anchors:
     show_points: false
 
 #---------------------------------
-id: climate
+#id: climate
 title: Klima
 path: climate
 icon: mdi:thermometer-lines

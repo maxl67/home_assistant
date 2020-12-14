@@ -70,6 +70,8 @@ homeassistant:
       <<: *common
     input_boolean.open_window_alert:
       <<: *common
+    input_boolean.ll_signals_doorstatus:
+      <<: *common
   # automations
     automation.LL_signal_status:
       <<: *common
@@ -129,6 +131,9 @@ input_boolean:
     name: Fenster ist offen   #active warning: window is open
     icon: mdi:alert-box-outline
   #open_frontdoor_alert: to be implemented
+  ll_signals_doorstatus:
+    name: Türstatus wird angezeigt
+    icon: mdi:traffic-light
 
 ###############################################################################
 ##  Automations
