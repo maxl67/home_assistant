@@ -222,6 +222,7 @@ script:
     # Sets window state <my_window_state> for the thermostat <my_thermostat_id>.
     #   my_thermostat_id: climate.<id>
     #   my_window_state: {0|1} #has to be int
+    mode: queued
     sequence:
       - service: homematic.set_device_value
         data:
@@ -255,12 +256,14 @@ automation:
     condition:
       condition: and
       conditions:
+      # nur bei aktiver Heizperiode UND aktiver Automatisierung
       - condition: state
         entity_id: input_boolean.heating_period
         state: 'on'
       - condition: state
         entity_id: input_boolean.automate_heating
         state: 'on'
+      # und Arbeitstagen
       - condition: time
         weekday:
           - mon
@@ -531,17 +534,17 @@ automation:
       - service: script.set_temperature_all
         data:
           my_temperature: 20
-      - delay: '00:0:02'
+      - delay: '00:00:02'
       # Automatik-Modus
       - service: script.set_mode_all
         data:
           my_hvac_mode: auto
-      - delay: '00:0:02'
+      - delay: '00:00:02'
       # Wochenprofil 1
       - service: script.set_profile_all
         data:
           my_profile_no: *default_profile
-      - delay: '00:0:02'
+      - delay: '00:00:02'
       # Fensterstatus auf 'zu' setzen (falls noch offen)
       # Wohnzimmer
       - service: script.set_windowstate_thermostat

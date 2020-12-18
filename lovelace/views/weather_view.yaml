@@ -129,18 +129,37 @@ cards:
 
   # current weather info and forcast
   - type: custom:weather-card-chart
-    title: AK-Stgt (DWD)
+    #title: Woche (DWD)
     weather: weather.dwd_weather_ak_stuttgart
-    sun: sun.sun
+    temp: sensor.tem
+    wind:
+    #sun: sun.sun
     mode: daily #hourly|daily  - hourly display is not good.
-    locale: 'de-DE'
+    #locale: 'de-DE'
 
-  - type: custom:weather-card-chart
-    title: DarkSky
-    weather: weather.dark_sky_daily
-    sun: sun.sun
-    mode: daily #hourly|daily  - hourly display is not good.
-    locale: 'de-DE'
+  #MeteoBlue Meteogram
+  - type: picture
+    image: 'http://my.meteoblue.com/visimage/meteogram_web?look=KILOMETER_PER_HOUR%2CCELSIUS%2CMILLIMETER&apikey=5838a18e295d&temperature=C&windspeed=kmh&precipitationamount=mm&winddirection=3char&city=Stuttgart&iso2=de&lat=48.782299&lon=9.177020&asl=252&tz=Europe%2FBerlin&lang=de&sig=a86db103ee5f9645c8cf6d515d53a90b'
+    tap_action:
+      action: url
+      url_path: https://www.meteoblue.com/de/wetter/woche/stuttgart_deutschland_2825297
+  
+  - type: entities
+    show_header_toggle: false
+    entities:
+      - entity: weather.dwd_weather_ak_stuttgart
+      - entity: sensor.outside_visibility
+      - entity: sensor.sun_direction
+      - entity: sensor.sun_elevation
+      - entity: sensor.sun_is_shining
+      - entity: sensor.sunshine_intensity
+
+#  - type: custom:weather-card-chart
+#    title: DarkSky
+#    weather: weather.dark_sky_daily
+#    sun: sun.sun
+#    mode: daily #hourly|daily  - hourly display is not good.
+#    locale: 'de-DE'
 
   # 3 different satelite pictures (rain, clouds, snow); can be toggled by tapping on them. 
   - type: custom:vertical-stack-in-card

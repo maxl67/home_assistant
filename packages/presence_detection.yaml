@@ -156,7 +156,7 @@ input_boolean:
     icon: mdi:account-multiple
 
 #####################################################################################################################
-## Structure of sensors/automations
+## Structure of sensors & automations
 #
 # ON RASPBERRY PI's
 # 1) monitor.sh is running on 2 raspi (area east & west) and scans for known devices using bluetooth.
@@ -278,9 +278,8 @@ sensor:
       home_status:
         friendly_name: 'Home Presence Status'
         value_template: "{{ states('input_select.home_status_dropdown') }}"
-        icon_template: mdi:home-account #account-supervisor-circle oder account-search
-          #account-supervisor-circle oder account-search
-
+        icon_template: mdi:home-account 
+          
 
 ###############################################################################
 ##  Automations
@@ -337,7 +336,7 @@ automation:
           location_name: not_home
           source_type: bluetooth
 
-  # Enhancemanets for BlueTooth monitor.sh 
+  # Enhancements for BlueTooth monitor.sh 
   # if confidence starts to drop in one area, we trigger a arrival scan in the other area 
   #   (in case of movement inside the house)
   - alias: Start BT Arrival Scan Ost
@@ -451,7 +450,6 @@ automation:
           topic: 'monitor/scan/depart'
           payload: ''
 
-
   # save the time a status was changed last, because these values will be reset every time HA is rebooted.
   #   we need that time to trigger status changes (e.g 'extended_away')
   - alias: personstatus_last_changed_date_and_time #Person-Status and home-status last changed date and time
@@ -470,7 +468,7 @@ automation:
           date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
 
 # if a device_tracker changed while HA was offline, we have to correct the input_select.*_status_dropdown after restart.
-# We also do that once a day (00:45 at night) in case a trigger was missed.
+# We also do that once a day (00:30 at night) in case a trigger was missed.
 # Becasue *.last_changed value is reset at boot time, we use a persistent variable 'input_datetime.*_status_dropdown_last_changed'.
   - alias: Person- and Home-Status correction
     trigger: 
@@ -478,7 +476,8 @@ automation:
         event: start
       - platform: time
         at: '00:30:00'
-    condition: []
+    # after restart only, if both Raspis are online (because of BT-Monitor script)
+    condition: "{{ states('sensor.raspi1_lastmessage') != 'unavailable' and states('sensor.raspi2_lastmessage') != 'unavailable' }}"
     action:
       # first update device status from MQTT (BlueTooth monitor.sh) 
       - service: mqtt.publish
@@ -712,10 +711,7 @@ automation:
     trigger:
       platform: state
       entity_id: sensor.n_people_home
-    condition:
-      condition: template
-      value_template: >
-        {{ trigger.to_state.state|int > trigger.from_state.state|int }}
+    condition: "{{ trigger.to_state.state|int > trigger.from_state.state|int }}"
     action:
       service: input_select.select_option
       entity_id: input_select.home_status_dropdown

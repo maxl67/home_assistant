@@ -242,9 +242,7 @@ automation:
       - wait_template: "{{ not states('dw_signal_store.light_philips_lightstrip_ku') == 'unknown' }}"
         timeout: '00:00:03'
       - choose:
-        - conditions:
-            - condition: template
-              value_template: "{{ wait.completed }}" #wait condition was met = entity existes
+        - conditions: "{{ wait.completed }}" #wait condition was met = entity existes
           sequence:
             - service: python_script.light_store
               data:
@@ -400,8 +398,7 @@ automation:
           - condition: state
             entity_id: group.all_windows
             state: 'on'
-        - condition: template
-          value_template: "{{ states('sensor.ing_status') not in ['home', 'Just Arrived'] }}"
+        - "{{ states('sensor.ing_status') not in ['home', 'Just Arrived'] }}"
     action:
       - service: notify.max
         data:

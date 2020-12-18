@@ -16,9 +16,10 @@ cards:
     entity: media_player.samsungtv
     name: Samsung Qled60
 
-  - type: media-control
-    entity: media_player.r_n803d_86ae28_main
-    name: Yamaha R-N803D
+#hack
+#  - type: media-control
+#    entity: media_player.r_n803d_86ae28_main
+#    name: Yamaha R-N803D
 
   # Zugriff Radio Bad geht, wird aber nicht gebraucht
   #- type: media-control

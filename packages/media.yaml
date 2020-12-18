@@ -15,7 +15,7 @@ homeassistant:
   # definitions
     package.node_anchors:
       common: &common
-        package: "media"
+        package: 'media'
   # groups, variables
     group.mediadevices_in_use:
       <<: *common
@@ -39,9 +39,10 @@ homeassistant:
 ################################################
 # problem: if receiver is turned of while HA restarts, entity will be deleted
 media_player:
-  - platform: yamaha_musiccast
-    host: !secret yamaha_netreceiver
-    interval_seconds: 30
+# todo: reaktivieren, wenn log und restart-fehler behoben
+#  - platform: yamaha_musiccast
+#    host: !secret yamaha_netreceiver
+#    interval_seconds: 30
   
   - platform: samsungtv_tizen
     name: samsungtv
@@ -90,10 +91,11 @@ sensor:
   - platform: template
     sensors:
       netreceiver_is_used:
-        friendly_name: "Yamaha R-N803 in Benutzung"
+        friendly_name: 'Yamaha R-N803 in Benutzung'
+#hack: on statt off, wenn N803D wieder aktiv
         value_template: >
           {%- if states('media_player.r_n803d_86ae28_main') == 'unknown' -%}
-            on
+            off 
           {%-  elif not states('media_player.r_n803d_86ae28_main') in ['off','idle'] 
                  and is_state('binary_sensor.netreceiver_online','on') -%}
             on

@@ -34,7 +34,7 @@ cards:
       - type: custom:fold-entity-row
         head:
           type: section
-          label: Scipts & Values 
+          label: Scripts
         open: false
         entities:
           - type: button

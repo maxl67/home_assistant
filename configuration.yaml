@@ -221,6 +221,7 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - input_select
       - camera
       - calendar
+      - weather
     entities:
       - sun.sun # Don't record sun data
       - sensor.date
@@ -254,7 +255,7 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
     # Home Assistant
       - sensor.latest_version
       - sensor.hacs
-      - sensor.lets_encrypt_cert
+      - sensor.cert_expiry_timestamp_hera
     # diverse
       - automation.update_battery_status_group_members
       - automation.battery_persistent_notification_clear
@@ -276,7 +277,10 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.last_update_trigger
       - sensor.bssid
       - sensor.connection_type
-      
+    # DWD
+      - sensor.temperature_ak_stuttgart
+      - sensor.weather_ak_stuttgart
+      - sensor.precipitation_ak_stuttgart
 
 logbook: #recorded Entities, that will be displayed in Logbook
   exclude: #!include includes/exclude.yaml

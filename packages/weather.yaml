@@ -36,6 +36,10 @@ homeassistant:
       <<: *common
     sensor.outside_humidity:
       <<: *common
+    sensor.sun_direction:
+      <<: *common
+    sensor.sun_elevation:
+      <<: *common
     sensor.sun_is_shining:
       <<: *common
     sensor.sunshine_intensity:
@@ -56,12 +60,13 @@ homeassistant:
 ################################################
 sun: 
 
-weather:
-  - platform: darksky
-    api_key: !secret darksky_api_key
-    mode: daily
-    scan_interval: 720
-    name: dark_sky_daily
+#wird nach Kauf durch Apple 2021 abgeschaltet
+#weather:
+#  - platform: darksky
+#    api_key: !secret darksky_api_key
+#    mode: daily
+#    scan_interval: 720
+#    name: dark_sky_daily
 
 # get live satelite pictures
 camera:
@@ -115,22 +120,35 @@ sensor:
       outside_temperature: 
         value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'temperature')|float }}"
         unit_of_measurement: '°C'
-      # todo: temp from darksky, should be a own sensor outside
+        friendly_name: Außentemperatur
       outside_humidity:
         value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'humidity')|int }}"
         unit_of_measurement: '%'
-      # todo: temp from darksky, should be a own sensor outside
+        friendly_name: Luftfeuchte außen
+      outside_visibility:
+        value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'visibility')|float }}"
+        unit_of_measurement: '%'
+        friendly_name: Sicht
+      sun_direction:
+        value_template: "{{ state_attr('sun.sun', 'azimuth')|float }}"
+        unit_of_measurement: '°'
+        friendly_name: Sonnenrichtung
+      sun_elevation:
+        value_template: "{{ state_attr('sun.sun', 'elevation')|float }}"
+        unit_of_measurement: '°'
+        friendly_name: Sonnenhöhe
       sun_is_shining:
-        value_template: "{{ states('weather.dark_sky_daily') in ('sunny','partlycloudy') }}"
-      # todo: temp from darksky, should be a own sensor outside
+        value_template: "{{ states('weather.dwd_weather_ak_stuttgart') in ('sunny','partlycloudy') }}"
+        friendly_name: Sonne scheint
       sunshine_intensity:
         value_template: >
           {% if is_state('sensor.sun_is_shining', 'True') %}
-            {{ (states.sun.sun.attributes.elevation/90*100)|int }}
+            {{ (state_attr('sun.sun', 'elevation')/90*100)|int }}
           {% else %}
             0
           {% endif %}
         unit_of_measurement: '%'
+        friendly_name: Sonnenintensität
         # {{ state_attr('weather.dwd_weather_ak_stuttgart', 'visibility') }}
 
   - platform: dwd_weather_warnings
@@ -307,8 +325,7 @@ automation:
     condition:
       condition: and
       conditions:
-      - condition: template
-        value_template: "{{ states.sensor.dwd_current_warn_count.state | int > 0 }}"
+      - "{{ states.sensor.dwd_current_warn_count.state | int > 0 }}"
       - condition: state
         entity_id: input_boolean.dwd_weather_alert
         state: 'off'
@@ -317,12 +334,9 @@ automation:
 #        state: 'off'
       - condition: or
         conditions:
-        - condition: template
-          value_template: "{{ states.sensor.dwd_max_warn_level.state | int >= 3 }}"
-        - condition: template
-          value_template: "{{ states.sensor.dwd_current_warn_level_sturm.state | int >= 2 }}"
-        - condition: template
-          value_template: "{{ states.sensor.dwd_current_warn_level_gewitter.state | int >= 2 }}"
+        - "{{ states.sensor.dwd_max_warn_level.state | int >= 3 }}"
+        - "{{ states.sensor.dwd_current_warn_level_sturm.state | int >= 2 }}"
+        - "{{ states.sensor.dwd_current_warn_level_gewitter.state | int >= 2 }}"
     action:
       - service: input_boolean.turn_on
         entity_id: input_boolean.dwd_weather_alert

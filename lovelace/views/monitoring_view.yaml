@@ -227,7 +227,7 @@ cards:
         - entity: sensor.last_boot
           name: letzter Systemstart
           icon: mdi:restart
-        - entity: sensor.lets_encrypt_cert
+        - entity: sensor.cert_expiry_timestamp_hera
           name: Ablaufdatum Zertifikat
           icon: mdi:certificate
         - entity: sensor.hera_cpu_load_total
@@ -450,12 +450,12 @@ cards:
               tap_action: 
                 action: call-service
                 service: script.reboot_raspi1
-            #- type: button
-            #  name: Shutdown!
-            #  secondary_info: last-triggered
-            #  tap_action: 
-            #    action: call-service
-            #    service: script.kill_raspi1
+            - type: button
+              name: Shutdown!
+              secondary_info: last-triggered
+              tap_action: 
+                action: call-service
+                service: script.kill_raspi1
           - type: section
         - type: horizontal-stack
           cards:
@@ -574,3 +574,22 @@ cards:
       content: >
         <h3>Raspi2 (West)</h3>
         Ist offline!!
+
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: history-graph
+        title: 'Leistung'
+        hours_to_show: 24
+        entities:
+          - entity: sensor.fritz_switch1_currentpower
+            name: Unifi-Netzwerk
+          - entity: sensor.fritz_switch2_currentpower
+            name: Schreibtisch M
+      - type: history-graph
+        title: 'Temperatur'
+        hours_to_show: 24
+        entities:
+          - entity: sensor.fritz_switch1_temperature
+            name: Netzwerk-Rack
+          - entity: sensor.fritz_switch2_temperature
+            name: Schreibtisch M

@@ -15,6 +15,17 @@ homeassistant:
     package.node_anchors:
       common: &common
         package: 'power'
+  # constants 
+      # timespans for power downs
+      int_minutes_away_for_power_down: &int_minutes_away_for_power_down 10
+      int_minutes_home_for_power_up: &int_minutes_home_for_power_up 2
+      # entity-id's
+      wallswitch_sz_id: &wallswitch_sz_id 0019DBE9943030
+      colorlight_ku_entityid: &colorlight_ku_entityid light.philips_lightstrip_ku
+      ambientelight_wz_entityid: &ambientelight_wz_entityid light.0008da499c8dbd
+      powerswitch_rack_entityid: &powerswitch_rack_entityid switch.fritz_dect_200_1
+      powerswitch_gz_entityid: &powerswitch_gz_entityid switch.fritz_dect_200_2
+      powerswitch_tv_entityid: &powerswitch_tv_entityid switch.osram_plug_01_a1bf020a_3
   # entities
     switch.osram_plug_01_a1bf020a_3:
       icon: mdi:power-socket-de
@@ -22,8 +33,10 @@ homeassistant:
       icon: mdi:ceiling-light
     light.philips_lightstrip_ku:
       icon: mdi:led-strip-variant
-    # groups, variables
+  # groups, variables
     input_boolean.disable_power_automation:
+      <<: *common
+    switch.enable_power_automation:
       <<: *common
   # automations
     automation.random_lights_during_vacation:
@@ -40,19 +53,20 @@ homeassistant:
       <<: *common
     automation.switch_on_lights_from_sz:
       <<: *common
-
+    automation.switch_off_network:
+      <<: *common
+    automation.switch_on_network:
+      <<: *common
+    script.kill_raspi1:
+      <<: *common
+    script.reboot_raspi1:
+      <<: *common
+    script.reboot_raspi2:
+      <<: *common
+        
 ################################################
 ##   Platforms
 ################################################
-#wake_on_lan:
-#
-#switch:
-#  - platform: wake_on_lan
-#    name: raspi1_power
-#    host: !secret raspi1_ost_ip
-#    mac: !secret raspi1_ost_mac
-#    turn_off:
-#      service: shell_command.turn_off_raspi1 
 
 scene:
   - name: Welcome
@@ -98,27 +112,6 @@ switch:
             mdi:ghost
           {% endif %}
 
-###############################################################################
-##  Sensors
-###############################################################################
-sensor:
-  fritz_switch1_currentpower:
-    friendly_name: aktuelle Leistung
-    value_template: "{{ states.switch.fritz_dect_200_1.attributes.current_power_w }}"
-    icon_template: 'mdi:power-plug-outline'
-  fritz_switch2_currentpower:
-    friendly_name: aktuelle Leistung
-    value_template: "{{ states.switch.fritz_dect_200_2.attributes.current_power_w }}"
-    icon_template: 'mdi:power-plug-outline'
-  fritz_switch1_temperature:
-    friendly_name: aktuelle Temperatur
-    value_template: "{{ states.switch.fritz_dect_200_1.attributes.temperature }}"
-    icon_template: 'mdi:thermometer-lines'
-  fritz_switch2_temperature:
-    friendly_name: aktuelle Temperatur
-    value_template: "{{ states.switch.fritz_dect_200_2.attributes.temperature }}"
-    icon_template: 'mdi:thermometer-lines'
-  
 
 ###############################################################################
 #                               Automations
@@ -238,7 +231,7 @@ automation:
         from: 'Home'
         to: 'Away'
         for:
-          minutes: 10
+          minutes: *int_minutes_away_for_power_down
       - platform: state
         entity_id: input_boolean.disable_power_automation
         to: 'off'
@@ -256,7 +249,7 @@ automation:
         state: 'off'
     action:
       - service: switch.turn_off
-        entity_id: switch.osram_plug_01_a1bf020a_3
+        entity_id: *powerswitch_tv_entityid
 
   # Einschalten des Media Racks, wenn wir nach Hause kommen
   # mit 2 Minuten Verzögerung, da das Netzwerk erst wieder hochgefahren sein muss.
@@ -267,11 +260,11 @@ automation:
         entity_id: sensor.home_status
         to: 'Home'
         for: 
-          minutes: 2
+          minutes: *int_minutes_home_for_power_up
       - platform: state
         entity_id: input_boolean.disable_power_automation
         to: 'off'
-      # todo: this is temporary - switch on before reboot, otherwise Yamaha-Entity will not be recreated.      
+# todo: this is temporary - switch on before reboot, otherwise Yamaha-Entity will not be recreated.      
       - platform: homeassistant
         event: shutdown
     condition:
@@ -286,64 +279,64 @@ automation:
         state: 'Home'
     action:
       - service: switch.turn_on
-        entity_id: switch.osram_plug_01_a1bf020a_3
+        entity_id: *powerswitch_tv_entityid
 
   #----------------------------------------------------------------------------------
   # HmIP-BRC2 Wandtaster schaltet Lichter an/aus
   - id: switch_off_lights_from_sz
-    alias: "Ambientelicht aus"
+    alias: 'Ambientelicht aus'
     trigger:
       platform: event
       event_type: homematic.keypress
       event_data:
-        name: '0019DBE9943030'
+        name: *wallswitch_sz_id
         channel: 1
         param: PRESS_SHORT
     action:
       service: light.turn_off
-      entity_id: light.0008da499c8dbd
-  - alias: "alle Licher aus"
+      entity_id: *ambientelight_wz_entityid
+  - alias: 'alle Licher aus'
     trigger:
       platform: event
       event_type: homematic.keypress
       event_data:
-        name: '0019DBE9943030'
+        name: *wallswitch_sz_id
         channel: 1
         param: PRESS_LONG
     action:
       - service: light.turn_off
-        entity_id: light.0008da499c8dbd
+        entity_id: *ambientelight_wz_entityid
       - service: light.turn_off
-        entity_id: light.philips_lightstrip_ku
+        entity_id: *colorlight_ku_entityid
   
   - id: switch_on_lights_from_sz
-    alias: "Ambientelicht an"
+    alias: 'Ambientelicht an'
     trigger:
       platform: event
       event_type: homematic.keypress
       event_data:
-        name: '0019DBE9943030'
+        name: *wallswitch_sz_id
         channel: 2
         param: PRESS_SHORT
     action:
       service: light.turn_on
-      entity_id: light.0008da499c8dbd  
-  - alias: "alle Licher an"
+      entity_id: *ambientelight_wz_entityid
+  - alias: 'alle Licher an'
     trigger:
       platform: event
       event_type: homematic.keypress
       event_data:
-        name: '0019DBE9943030'
+        name: *wallswitch_sz_id
         channel: 2
         param: PRESS_LONG
     action:
       - service: light.turn_on
-        entity_id: light.0008da499c8dbd  
+        entity_id: *ambientelight_wz_entityid
       - service: light.turn_on
-        entity_id: light.philips_lightstrip_ku
+        entity_id: *colorlight_ku_entityid
 
   #----------------------------------------------------------------------------------
-  # FritzDect1 schaltet WLAN, Unify-Switch und Raspi aus
+  # FritzDect1 schaltet WLAN, Unify-Switch und Raspi aus.
   - id: switch_off_network
     alias: switch off network components
     trigger: 
@@ -352,7 +345,7 @@ automation:
         from: 'Home'
         to: 'Away'
         for:
-          minutes: 10
+          minutes: *int_minutes_away_for_power_down
       - platform: time
         at: '00:45:00'
     condition:
@@ -370,10 +363,10 @@ automation:
           minutes: 1
         continue_on_timeout: true  
       - service: switch.turn_off
-        entity_id: switch.fritz_dect_200_2
+        entity_id: *powerswitch_gz_entityid
       - delay: '00:00:05'
       - service: switch.turn_off
-        entity_id: switch.fritz_dect_200_1
+        entity_id: *powerswitch_rack_entityid
 
   - id: switch_on_network
     alias: switch on network components
@@ -394,23 +387,37 @@ automation:
             entity_id: input_boolean.disable_power_automation
             state: 'off'
           - condition: or
-            # someone is home or the entrance door is opened
+            # someone is home OR the entrance door is opened
             conditions:
               - condition: state
                 entity_id: sensor.home_status
-                state: 'home'
-              - condition: template
-                value_template: "{{ trigger.entity_id == 'group.entrance_door' }}"
+                state: 'Home'
+              - "{{ trigger.entity_id == 'group.entrance_door' }}"
     action:
+      # power up Unifi components and wait for them to initialize
       - service: switch.turn_on
-        entity_id: switch.fritz_dect_200_1
-      - delay: '00:01:00'
+        entity_id: *powerswitch_rack_entityid
+      - delay: '00:01:30'
+      # power up Desk and wait a bit
       - service: switch.turn_on
-        entity_id: switch.fritz_dect_200_2
+        entity_id: *powerswitch_gz_entityid
+      - delay: '00:00:30'
+      # reboot Raspi1, if not online and wait for reboot and sensors
+      - choose:
+        - conditions: "{{ states('sensor.raspi1_lastmessage') == 'unavailable' }}"
+          sequence:
+            - service: script.reboot_raspi1
       - delay: '00:01:00' 
-      #todo: condition: wenn sensor nicht verfügbar
-      - service: script.reboot_raspi1
-        
+      # switch of and on power for Raspi1. Necessary after longer power off periods
+      - choose:
+        - conditions: "{{ states('sensor.raspi1_lastmessage') == 'unavailable' }}"
+          sequence:
+            - service: switch.turn_off
+              entity_id: *powerswitch_rack_entityid
+            - delay: '00:00:05' 
+            - service: switch.turn_on
+              entity_id: *powerswitch_rack_entityid
+            
 
 ###############################################################################
 ##  Scripts
@@ -441,7 +448,7 @@ script:
 shell_command:
   shutdown_raspi: 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /config/.ssh/id_rsa "{{user}}"@"{{ip_address}}" sudo shutdown now'
   reboot_raspi: 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /config/.ssh/id_rsa "{{user}}"@"{{ip_address}}" sudo reboot now'
-  #produces an error in log file but works! Maybe because ssl looses connection... 
-  #log:
-  #  ERROR (MainThread) [homeassistant.components.shell_command] Error running command: `ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /config/.ssh/id_rsa "{{user}}"@"{{ip_address}}" sudo shutdown now`, return code: 255
-  #  NoneType: None
+  # produces an error in log file but works! Maybe because ssl looses connection... 
+  # log:
+  #   ERROR (MainThread) [homeassistant.components.shell_command] Error running command: `ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /config/.ssh/id_rsa "{{user}}"@"{{ip_address}}" sudo shutdown now`, return code: 255
+  #   NoneType: None

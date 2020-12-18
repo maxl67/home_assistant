@@ -16,7 +16,7 @@ homeassistant:
       common: &common
         package: "synology"
   # sensors
-    sensor.lets_encrypt_cert:
+    sensor.cert_expiry_timestamp_hera:
       <<: *common
     sensor.last_boot:
       <<: *common
@@ -61,7 +61,6 @@ sensor:
   - platform: cert_expiry
     host: !secret ssl_cert_name
     port: 443
-#    name: lets_encrypt_cert
 
 ###############################################################################
 ##  Sensors
@@ -97,4 +96,4 @@ automation:
     action:
       - delay: "0:00:50"
       - service: homeassistant.update_entity
-        entity_id: sensor.lets_encrypt_cert
+        entity_id: sensor.cert_expiry_timestamp_hera

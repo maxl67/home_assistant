@@ -54,6 +54,13 @@ homeassistant:
     input_select.vacuum_room:
       icon: mdi:floor-plan
       <<: *common
+    switch.enable_automatic_vacuum:
+      <<: *common
+    switch.disable_dustbin_notification:
+      <<: *common
+    switch.dustbin_full_alert:
+      <<: *common
+      
   # rest of sensors, automations, etc. not with attribute 'package' because relation to this package is clear.
   
 
@@ -213,7 +220,6 @@ sensor:
     sensors:
       vacuum_status:
         friendly_name: Vacuum status
-#        value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.status }}"
         value_template: >
           {% set val =  states.vacuum.xiaomi_vacuum_cleaner.attributes.status  %}
           {% if val == 'Definition missing for state 18' %}
@@ -399,12 +405,13 @@ automation:
       - service: script.vacuum_room
         data:
           my_roomname: "{{ states.input_select.vacuum_room.state }}"
-  
-  #-------------------------------
-  ## automated full cleanup
-  ## Monday (or Tuesday if delayed) between 8:00 and 17:00 if nobody is at home (or automatic_vacuum_when_home='on')
-  - id: vacuum_start_fullcleanup
-    alias: Start full Vacuum
+   
+  #-------------------------------------------
+  ## automated full cleanup and partly cleanup
+  ## full: Monday (or Tuesday if delayed) between 8:00 and 17:00 if nobody is at home (or automatic_vacuum_when_home='on')
+  ## partly: Thursday (or Friday if delayed) between 8:00 and 17:00, if nobody is at home (or automatic_vacuum_when_home='on')
+  - id: vacuum_start_cleanup
+    alias: Start automatic cleanup
     trigger:
       # last person left (gone for 2 min)
       - platform: state
@@ -424,7 +431,7 @@ automation:
         entity_id: input_boolean.automatic_vacuum_when_home
         to: 'on'
         for:
-          seconds: 10
+          seconds: 5
     condition:
       condition: and
       conditions:
@@ -440,9 +447,11 @@ automation:
           weekday:
             - mon
             - tue
+            - thu
+            - fri
           after: '08:00:00'
           before: '17:00:00'
-        # ...and nobody home or option 'automatic_vacuum_when_home' is set
+        # ...and nobody home OR option 'automatic_vacuum_when_home' is set
         - condition: or
           conditions:
             - condition: state
@@ -451,95 +460,65 @@ automation:
             - condition: state
               entity_id: input_boolean.automatic_vacuum_when_home
               state: 'on'
+    variables: 
+# todo: we have to set the variables here, because setting values insite choose block will not reflect outside
+      cleanup_area: "{{ 'full' if (now().weekday() in [0,1]) else 'partly'}}"
+      messagetext: >
+        {{ 'wöchentliches Saugen der gesamten Wohnung wurde gestartet.' if (cleanup_area=='full') 
+           else 'wöchentliches Saugen von Küche, Schlafzimmer und Bad wurde gestartet.'}}
+      cleanup_duration: "{{ '01:50:00' if (cleanup_area=='full') else '00:45:00'}}"
     action:
+      # wait a moment and then 
+      - delay: '00:00:05'
+      # choose what to clean
+      - choose:
+        # full cleanup on Mondays
+        - conditions:
+          - condition: time
+            weekday:
+              - mon
+              - tue
+          sequence:
+            - service: script.vacuum_all
+            #todo: does not word here (v2020.12.0)
+            #- variables:
+            #    messagetext: 'wöchentliches Saugen der gesamten Wohnung wurde gestartet.'
+            #    cleanup_duration: '01:50:00'
+        # partly cleanup on Thursdays
+        - conditions:
+          - condition: time
+            weekday:
+              - thu
+              - fri
+          sequence:
+            - service: script.vacuum_room
+              data:
+                my_roomname: 'Kü,Sz,B (auto)'
+            #todo: does not word here (v2020.12.0)
+            #- variables:
+            #    messagetext: 'wöchentliches Saugen von Küche, Schlafzimmer und Bad wurde gestartet.'
+            #    cleanup_duration: '00:45:00'
+        #default:
+            # nothing to do on other days
+      # wait until robot has left the bay
       - delay: '00:00:10'
-      - service: script.vacuum_all
+      # remember, that we have done the cleaning
       - service: homeassistant.turn_on
         entity_id: input_boolean.automatic_vacuum_first_run
+      # send notification
       - service: notify.family_main_devices
         data:
           title: 'Automatisierung Dust-E'
-          message: 'wöchentliches Saugen der gesamten Wohnung wurde gestartet.'
+          message: "{{ messagetext }}"
           data:
             push:
               thread-id: 'vacuum-notification-group'
             apns_headers:
               'apns-collapse-id': 'vacuum-auto-cleanup'
             clickAction: '/lovelace/vacuum'
-      - delay: '01:50:00'
+      - delay: "{{ cleanup_duration }}"
       - service: homeassistant.turn_on
         entity_id: input_boolean.dustbin_full_alert
-
-  ## automated partly cleanup
-  ## Thursday (or Friday if delayed) between 8:00 and 17:00, if nobody is at home (or automatic_vacuum_when_home='on')
-  - id: vacuum_start_partialcleanup
-    alias: Start partly vacuum
-    trigger:
-      # last person left (gone for 2 min)
-      - platform: state
-        entity_id: sensor.home_status
-        from: 'Home'
-        to: 'Away'
-        for:
-          minutes: *int_minutes_delay_AutoCleanup_after_departure
-      # at 8:02, if everybody already has left earlier 
-      - platform: time
-        at: '08:02:00'
-      # change in options variables
-      - platform: state
-        entity_id: input_boolean.disable_automatic_vacuum
-        to: 'off'
-      - platform: state
-        entity_id: input_boolean.automatic_vacuum_when_home
-        to: 'on'
-        for:
-          seconds: 10
-    condition:
-      condition: and
-      conditions:
-        # automation is turned on and not done earlier today...
-        - condition: state
-          entity_id: input_boolean.disable_automatic_vacuum
-          state: 'off'
-        - condition: state
-          entity_id: input_boolean.automatic_vacuum_first_run
-          state: 'off'
-        # ...and the correct weekday and time...
-        - condition: time
-          weekday:
-            - thu
-            - fri
-          after: '08:00:00'
-          before: '17:00:00'
-        # ...and nobody home or option 'automatic_vacuum_when_home' is set
-        - condition: or
-          conditions:
-            - condition: state
-              entity_id: sensor.home_status
-              state: 'Away'
-            - condition: state
-              entity_id: input_boolean.automatic_vacuum_when_home
-              state: 'on'
-    action:
-    - delay: '00:00:10'
-    - service: script.vacuum_room
-      data:
-        my_roomname: 'Kü,Sz,B (auto)'
-    - service: homeassistant.turn_on
-      entity_id: input_boolean.automatic_vacuum_first_run
-    - service: notify.family_main_devices
-      data:
-        title: 'Automatisierung Dust-E'
-        message: 'wöchentliches Saugen von Küche, Schlafzimmer und Bad wurde gestartet.'
-        data:
-          push:
-            thread-id: 'vacuum-notification-group'
-          apns_headers:
-            'apns-collapse-id': 'vacuum-auto-cleanup'
-          clickAction: '/lovelace/vacuum'
-    - delay: '00:45:00'
-    - service: homeassistant.turn_on
-      entity_id: input_boolean.dustbin_full_alert
 
   #-------------------------------
   ## Reset the variable 'automatic_vacuum_first_run' at midnight so that a new automatic cleanup can be triggered the next day.

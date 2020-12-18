@@ -36,12 +36,19 @@ homeassistant:
       <<: *common
     sensor.fritz_rate_down_max:
       <<: *common
-
-
+    sensor.fritz_switch1_currentpower:
+      <<: *common
+    sensor.fritz_switch2_currentpower:
+      <<: *common
+    sensor.fritz_switch1_temperature:
+      <<: *common
+    sensor.fritz_switch2_temperature:
+      <<: *common
+        
 ################################################
 ##   Platforms
 ################################################
-## Fritzbox Smart Home
+## Fritzbox Smart Home (now Config > Integrations)
 #fritzbox:
 #  devices:
 #    - host: !secret fritz_host
@@ -61,6 +68,29 @@ sensor:
 ###############################################################################
 ##  Sensors
 ###############################################################################
+  - platform: template
+    sensors:
+      fritz_switch1_currentpower:
+        friendly_name: aktuelle Leistung
+        value_template: "{{ state_attr('switch.fritz_dect_200_1', 'current_power_w') | float }}"
+        unit_of_measurement: 'Watt'
+        icon_template: 'mdi:power-plug-outline'
+      fritz_switch2_currentpower:
+        friendly_name: aktuelle Leistung
+        value_template: "{{ state_attr('switch.fritz_dect_200_2', 'current_power_w') | float }}"
+        unit_of_measurement: 'Watt'
+        icon_template: 'mdi:power-plug-outline'
+      fritz_switch1_temperature:
+        friendly_name: aktuelle Temperatur
+        value_template: "{{ state_attr('switch.fritz_dect_200_1', 'temperature') | float }}"
+        unit_of_measurement: '°C'
+        icon_template: 'mdi:thermometer-lines'
+      fritz_switch2_temperature:
+        friendly_name: aktuelle Temperatur
+        value_template: "{{ state_attr('switch.fritz_dect_200_2', 'temperature') | float }}"
+        unit_of_measurement: '°C'
+        icon_template: 'mdi:thermometer-lines'
+
   - platform: template
     sensors:
       fritz_is_linked:
