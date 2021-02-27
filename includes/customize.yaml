@@ -26,7 +26,13 @@
     battery_sensor_creation_disabled: true
   sensor.vacuum_status:
     battery_sensor_creation_disabled: true
-# both 
+  plant.plant_1:
+    battery_sensor_creation_disabled: true
+  plant.plant_2:
+    battery_sensor_creation_disabled: true
+  plant.plant_3:
+    battery_sensor_creation_disabled: true
+    # both 
   vacuum.xiaomi_vacuum_cleaner:
     battery_alert_disabled: true
     battery_sensor_creation_disabled: true

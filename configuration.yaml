@@ -66,7 +66,7 @@ zha:
 ################################################################
 # MQTT-Broker. Mosquitto-Docker MUSS vor HA gestartet werden. Todo: depend-on in Docker Config setzen
 # wird benötigt für Battery Status Automation (siehe Package 'battery_alert')
-# und BT-Monitor (Package 'presence_detection')
+# und BT-Monitor (Package 'presence_detection') und plantgateway und Raspi-Sensoren
 mqtt:
   broker: !secret DS_IP
 #  password: !secret mqtt_broker_password
@@ -137,24 +137,27 @@ lovelace:
     - url: /hacsfiles/lovelace-fold-entity-row/fold-entity-row.js
       type: module    
     - url: /hacsfiles/lovelace-swipe-navigation/swipe-navigation.js
-      type: js 
+      type: module
     - url: /hacsfiles/vertical-stack-in-card/vertical-stack-in-card.js
       type: module
     - url: /hacsfiles/group-card/group-card.js
       type: module
     - url: /hacsfiles/mini-graph-card/mini-graph-card-bundle.js
       type: module
-    - url: /hacsfiles/zha-network-card/zha-network-card.js
-      type: js
-    - url: /hacsfiles/check-button-card/check-button-card.js
-      type: js #module
+#    - url: /hacsfiles/check-button-card/check-button-card.js
+#      type: js #module
     - url: /hacsfiles/simple-thermostat/simple-thermostat.js
       type: module
     - url: /hacsfiles/bar-card/bar-card.js
       type: module
     - url: /hacsfiles/lovelace-card-mod/card-mod.js
       type: module
+# test: für Caed-Breite in Weather. not working
+#    - url: /hacsfiles/lovelace-layout-card/layout-card.js
+#      type: module
     - url: /hacsfiles/lovelace-slider-entity-row/slider-entity-row.js
+      type: module
+    - url: /hacsfiles/zha-network-card/zha-network-card.js
       type: module
     # Repo: https://github.com/sgttrs/lovelace-weather-card-chart
     - url: /hacsfiles/lovelace-weather-card-chart/weather-card-chart.js
@@ -162,6 +165,10 @@ lovelace:
     # Repo: https://github.com/dmulcahey/zha-network-visualization-card
     - url: /hacsfiles/zha-network-visualization-card/zha-network-visualization-card.js
       type: module
+    # repo: https://github.com/Yolandavdvegt/lovelace-flower-card
+    - url: /hacsfiles/lovelace-flower-card/flower-card.js 
+      type: module
+
     # deprecated, not maintained anymore
     - url: /hacsfiles/calendar-card/calendar-card.js
       type: js #module
@@ -170,7 +177,6 @@ frontend:
   themes: !include_dir_merge_named themes
   
 #map:
-uilogs:
 
 ################################################################
 ## Custom Components (in /config/custom_components/)
@@ -180,7 +186,7 @@ hacs:
   token: !secret hacs_token
 
 breaking_changes:
-  scan_interval: 600 #sec. default 60.
+  scan_interval: 3600 #sec. default 60.
 
 python_script:
 
@@ -195,6 +201,9 @@ input_select:
     options:
       - none
       - all
+      - home
+      #- presence detection
+      #- doors
     initial: none
 
 calendar:
@@ -226,6 +235,8 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sun.sun # Don't record sun data
       - sensor.date
       - binary_sensor.workday
+      - sensor.sun_direction
+      - sensor.sun_elevation
     # systemmonitor (HA host system)
       - sensor.last_boot 
       - sensor.processor_use
@@ -252,6 +263,10 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.raspi2DiskUse
       - sensor.raspi1_lastmessage
       - sensor.raspi2_lastmessage
+      - sensor.raspi1lastboot
+      - sensor.raspi2lastboot
+      - sensor.raspi1_updates
+      - sensor.raspi2_updates
     # Home Assistant
       - sensor.latest_version
       - sensor.hacs
@@ -273,6 +288,8 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - homematic.raspi_ccu
       - sensor.hm_ccu_last_reboot
       - binary_sensor.000c9a499b5808_low_bat
+      - sensor.hm_thermo_ku_valve_status
+      - sensor.hm_thermo_gz_valve_status
     # iOS
       - sensor.last_update_trigger
       - sensor.bssid
@@ -285,8 +302,8 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
 logbook: #recorded Entities, that will be displayed in Logbook
   exclude: #!include includes/exclude.yaml
     domains:
-#      - automation
-#      - script
+    #  - automation
+    #  - script
       - weblink
       - updater
       - systemmonitor

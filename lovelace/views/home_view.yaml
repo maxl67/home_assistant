@@ -50,6 +50,7 @@ cards:
     entities:
       - entity: sensor.max_status
       - entity: sensor.ing_status
+      - type: divider
       - entity: input_boolean.guests
       - entity: sensor.home_status
         type: custom:multiple-entity-row
@@ -73,16 +74,37 @@ cards:
       - calendar.home
       - calendar.privat_max
 
-  # status of power switches and lights
+  # status of power switches 
   - type: entities
     title: Power
     show_header_toggle: false
     state_color: true
     entities:
-      #- entity: input_boolean.disable_power_automation
-      - entity: switch.enable_power_automation
       - entity: switch.osram_plug_01_a1bf020a_3
-        name: Media Rack
+        name: HiFi-Rack
+      - entity: switch.fritz_dect_200_1
+        name: Network-Rack
+      - entity: switch.fritz_dect_200_2
+        name: Schreibtisch Max
+      - type: divider
+      - entity: switch.enable_power_automation
+
+  # status of lights
+  - type: entities
+    title: Licht
+    show_header_toggle: false
+    state_color: true
+#    style: |
+#      ha-card {
+#        background: url("/local/lampe.png");
+#        background-size: 60% 120px;
+#        background-position: center;
+#        background-repeat: no-repeat;
+#        --primary-text-color: var(--primary-text-color);
+#        --secondary-text-color: var(--secondary-text-color);
+#        --paper-item-icon-color: var(--primary-text-color);
+#      }
+    entities:
       - type: custom:slider-entity-row
         entity: light.0008da499c8dbd
         name: Ambiente-Licht
@@ -93,9 +115,8 @@ cards:
         name: Lichtsteifen Küche
         toggle: true
         hide_when_off: true
-      - entity: switch.fritz_dect_200_1
-      - entity: switch.fritz_dect_200_2
-
+      - type: divider
+      - entity: switch.enable_light_automation
 
   # device tracking status (for testing)
   - !include ../cards/devicetracker_debug.yaml

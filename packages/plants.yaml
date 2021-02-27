@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : __.__.2019
+#   @date         : 20.01.20121
 #   @package      : plants
 #   @description  : 
 #   @links        : 
@@ -14,5 +14,171 @@
 #https://www.danielmartingonzalez.com/caring-your-plants-with-mi-flora-and-home-assistant/
 #https://github.com/ChristianKuehnel/plantgateway
 #https://community.home-assistant.io/t/plantgateway-and-home-assistant/43886/4
+
+#https://github.com/tbrasser/lovelace-flower-card
  
 ###############################################################################
+# Kiwi: Actinidia chinensis
+# Bitterorangenbaum: citrus aurantium
+# Oleander: nerium oleander
+#?Kannenpflanze: nepenthes mirabilis (no data)
+# chinesische Feige: ficus microcarpa
+# Glücksfeder: zamioculcas zamiifolia
+# Sanders Pfeilblatt: alocasia sanderiana (no data)
+  #Elefantenohr: alocasia macrorrhizos
+  #Zehrwurz (Taro): colocasia esculenta
+# Geigen-Feige: ficus lyrata
+# Köstliches Fensterblatt: monstera deliciosa
+# Aloe: aloe aristata
+# Geldbaum, Pfennigbaum, Dickblatt: crassula ovata
+#?Dendrobium-Orchidee: dendrobium nobile
+homeassistant:
+  customize:
+  # definitions
+    package.node_anchors:
+      common: &common
+        package: 'plants'
+  # constants 
+      # parameters for miFlora integration
+      int_seconds_ago_unavailable_timeout: &int_seconds_ago_unavailable_timeout 43200
+      intervals_for_median: &intervals_for_median 3
+  # entities
+    plant.plant_1:
+      friendly_name: Pfeilblatt
+      <<: *common
+    plant.plant_2:
+      friendly_name: Glücksfeder
+      <<: *common  
+    plant.plant_3:
+      friendly_name: Oleander
+      <<: *common  
+    sensor.pflanze_2_moisture:
+      friendly_name: Feuchtigkeit
+      <<: *common
+    sensor.pflanze_2_battery:
+      friendly_name: Batterie
+      <<: *common
+    sensor.pflanze_2_temperature:
+      friendly_name: Temperatur
+      <<: *common
+    sensor.pflanze_2_conductivity:
+      friendly_name: Fruchtbarkeit
+      <<: *common
+    sensor.pflanze_2_light_intensity:
+      friendly_name: Helligkeit
+      <<: *common
+    sensor.pflanze_3_moisture:
+      friendly_name: Feuchtigkeit
+      <<: *common
+    sensor.pflanze_3_battery:
+      friendly_name: Batterie
+      <<: *common
+    sensor.pflanze_3_temperature:
+      friendly_name: Temperatur
+      <<: *common
+    sensor.pflanze_3_conductivity:
+      friendly_name: Fruchtbarkeit
+      <<: *common
+    sensor.pflanze_3_light_intensity:
+      friendly_name: Helligkeit
+      <<: *common
+
+################################################
+##   Platforms
+################################################
+plant:
+  #todo: integration openplantbook
+  plant_1:
+    #friendly_name: 'Kiwi'
+    sensors:
+      moisture: sensor.pflanze_1_moisture
+      battery: sensor.pflanze_1_battery
+      temperature: sensor.pflanze_1_temperature
+      conductivity: sensor.pflanze_1_conductivity
+      brightness: sensor.pflanze_1_light_intensity
+  plant_2:
+    sensors:
+      moisture: sensor.pflanze_2_moisture
+      battery: sensor.pflanze_2_battery
+      temperature: sensor.pflanze_2_temperature
+      conductivity: sensor.pflanze_2_conductivity
+      brightness: sensor.pflanze_2_light_intensity
+  plant_3:
+    sensors:
+      moisture: sensor.pflanze_3_moisture
+      battery: sensor.pflanze_3_battery
+      temperature: sensor.pflanze_3_temperature
+      conductivity: sensor.pflanze_3_conductivity
+      brightness: sensor.pflanze_3_light_intensity
+#    min_moisture: 15
+#    max_moisture: 60
+#    min_battery: 17
+#    min_conductivity: 500
+#    max_conductivity: 3000
+#    min_temperature: 5
+
+###############################################################################
+##  Sensors
+###############################################################################
+sensor:
+  # Sensors polled directly from HA-Container
+  - platform: miflora
+    mac: !secret plantsensor1_mac
+    name: 'Pflanze 1'
+    monitored_conditions:
+      - moisture
+      - light
+      - temperature
+      - conductivity
+      - battery
+    median: *intervals_for_median #scan_interval=20min 
+    go_unavailable_timeout: *int_seconds_ago_unavailable_timeout
+  - platform: miflora
+    mac: !secret plantsensor2_mac
+    name: 'Pflanze 2'
+    monitored_conditions:
+      - moisture
+      - light
+      - temperature
+      - conductivity
+      - battery
+    median: *intervals_for_median #scan_interval=20min 
+    go_unavailable_timeout: *int_seconds_ago_unavailable_timeout
+  - platform: miflora
+    mac: !secret plantsensor3_mac
+    name: 'Pflanze 3'
+    monitored_conditions:
+      - moisture
+      - light
+      - temperature
+      - conductivity
+      - battery
+    median: *intervals_for_median #scan_interval=20min 
+    go_unavailable_timeout: *int_seconds_ago_unavailable_timeout
+
+  # Sensors derived from MQTT, data send by plantgateway or miflora-mqtt-daemon 
+  - platform: mqtt
+    name: kiwi_moisture
+    state_topic: plants/miflora
+    value_template: '{{ value_json.moisture | int }}'
+    unit_of_measurement: '%'
+  - platform: mqtt
+    name: kiwi_battery
+    state_topic: plants/miflora
+    value_template: '{{ value_json.battery | int }}'
+    unit_of_measurement: '%'
+  - platform: mqtt
+    name: kiwi_temperature
+    state_topic: plants/miflora
+    value_template: '{{ value_json.temperature | float }}'
+    unit_of_measurement: '°C'
+  - platform: mqtt
+    name: kiwi_conductivity
+    state_topic: plants/miflora
+    value_template: '{{ value_json.conductivity | int }}'
+    unit_of_measurement: 'µS/cm'
+  - platform: mqtt
+    name: kiwi_brightness
+    state_topic: plants/miflora
+    value_template: '{{ value_json.brightness | int }}'
+    unit_of_measurement: 'Lux'

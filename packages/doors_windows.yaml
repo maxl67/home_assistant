@@ -22,7 +22,7 @@ homeassistant:
         <<: *common
         device_class: window
   # constants
-      # delays for notifocations 
+      # delays for notifications 
       int_seconds_alert_send_delay: &int_seconds_alert_send_delay 5 #default: 5
       int_seconds_alert_reset_delay: &int_seconds_alert_reset_delay 1 #default: 1
   # sensors
@@ -152,18 +152,18 @@ automation:
         entity_id: group.entrance_door 
         to: 'on' #=open
       - platform: state
-        entity_id: input_boolean.disable_power_automation
-        to: 'off'
-      - platform: state
         entity_id: 
           - group.all_doors
           - group.all_windows
+      - platform: state
+        entity_id: input_boolean.disable_light_automation
+        to: 'off'
     condition:
-      # 'power_automation' aktiv UND Home status 'Home' UND Eingangtür offen
+      # 'light_automation' aktiv UND Home status 'Home' UND Eingangtür offen
       condition: and
       conditions:
       - condition: state
-        entity_id: input_boolean.disable_power_automation
+        entity_id: input_boolean.disable_light_automation
         state: 'off'
       - condition: state
         entity_id: sensor.home_status
@@ -171,8 +171,6 @@ automation:
       - condition: state
         entity_id: group.entrance_door
         state: 'on'
-    variables:
-      lightstrip_status: "{{ states('light.philips_lightstrip_ku') }}"
     action:
       # merken, dass wir die Ampel eingeschaltet haben
       - service: input_boolean.turn_on
@@ -185,6 +183,7 @@ automation:
             - light.philips_lightstrip_ku
           overwrite: false
           all_attribs: true  #saves last color and brightness, even if state='off'. turn light on shortly
+      # Welcher Zustand?
       - choose:
         - conditions: # Mindestens eine Tür ist offen...
           - condition: state
@@ -208,7 +207,7 @@ automation:
               brightness: 255
               rgb_color:  [255, 255, 0] #gelb
               transition: 0.2
-        default: # ...Türen und Febster sind zu,
+        default: # ...Türen und Fenster sind zu.
           service: light.turn_on
           data:
             entity_id: light.philips_lightstrip_ku
@@ -224,11 +223,11 @@ automation:
         entity_id: group.entrance_door 
         to: 'off' #=closed
     condition:
-      # 'power_automation' aktiv UND Ampel-Merker an UND Eingangtür zu
+      # 'light_automation' aktiv UND Ampel-Merker an UND Eingangtür zu
       condition: and
       conditions:
       - condition: state
-        entity_id: input_boolean.disable_power_automation
+        entity_id: input_boolean.disable_light_automation
         state: 'off'
       - condition: state
         entity_id: input_boolean.ll_signals_doorstatus
@@ -249,8 +248,8 @@ automation:
                 store_name: dw_signal_store
                 operation: restore
                 all_attribs: true  #restores old color and brightness, even if state='off'
-        default:
-          - service: light.turn_off
+        default: #wait condition not met = entity does not exist
+          - service: light.turn_off #just turn off light
             entity_id: light.philips_lightstrip_ku
             
   #----------------------------------------------------------------------------------

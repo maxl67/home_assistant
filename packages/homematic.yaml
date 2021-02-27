@@ -67,7 +67,9 @@ homeassistant:
       <<: *actor
     sensor.hm_thermo_wz_window_state:
       <<: *common
-
+    sensor.hm_thermo_wz_active_profile:
+      <<: *common
+  
     sensor.hm_thermo_ku_current_temp:
       <<: *temperature
     sensor.hm_thermo_ku_target_temp:
@@ -80,7 +82,9 @@ homeassistant:
       <<: *valve
     sensor.hm_thermo_ku_window_state:
       <<: *common
-
+    sensor.hm_thermo_ku_active_profile:
+      <<: *common
+  
     sensor.hm_thermo_gz_current_temp:
       <<: *temperature
     sensor.hm_thermo_gz_target_temp:
@@ -166,6 +170,9 @@ sensor:
         value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ')}}{% endif %}"
         icon_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == False %} mdi:window-closed-variant {% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == True %} mdi:window-open-variant {% endif %}"
         friendly_name: "Fensterstatus Wohnzimmerthermostat"
+      hm_thermo_wz_active_profile:
+        value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Wochenprofil_WZ') == False %}0{% else %}{{state_attr('homematic.raspi_ccu', 'V_Wochenprofil_WZ')}}{% endif %}"
+        friendly_name: "Heizprofil Wohnzimmerthermostat"
       # Küche
       hm_thermo_ku_current_temp:
         value_template: "{{state_attr('climate.000a1a49a10ba3','current_temperature')|float}}"

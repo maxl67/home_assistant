@@ -88,7 +88,8 @@ cards:
     cards:
     # nice picture card with all kinds of information and buttons to operate vacuum
     - type: picture-elements
-      image: '/local/vacuum1.jpg'
+      #image: '/local/vacuum1.jpg'
+      image: '/local/vacuum_trans.png'
       elements:
         ## Command buttons (buttom)
         - type: conditional

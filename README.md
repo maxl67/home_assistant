@@ -34,7 +34,7 @@ Warnings from the german weather service (DWD integration) are analysed and in c
 - Views: [weather_view](lovelace/views/weather_view.yaml)
 
 ### Automation of Power Consumption and Lights
-A welcome light is automatically turned on upon arriving at home or at sunset and turned off when leaving the appartment. Some power plugs are also turned on and off depending on presence. All devices use zigbee protocoll.
+A welcome light is automatically turned on upon arriving at home or at sunset and turned off when leaving the appartment. Some power plugs are also turned on and off depending on presence. Devices use zigbee or DECT protocoll.
 - Packages:   [power](packages/power.yaml)
 - Views: [home_view](lovelace/views/home_view.yaml)
 

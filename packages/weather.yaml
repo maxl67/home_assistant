@@ -125,10 +125,10 @@ sensor:
         value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'humidity')|int }}"
         unit_of_measurement: '%'
         friendly_name: Luftfeuchte außen
-      outside_visibility:
-        value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'visibility')|float }}"
-        unit_of_measurement: '%'
-        friendly_name: Sicht
+      #outside_visibility:
+      #  value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'visibility')|float }}"
+      #  unit_of_measurement: '%'
+      #  friendly_name: Sicht
       sun_direction:
         value_template: "{{ state_attr('sun.sun', 'azimuth')|float }}"
         unit_of_measurement: '°'

@@ -3,29 +3,69 @@ title: Pflanzen
 path: plants
 icon: mdi:flower
 
-#https://github.com/Gluwc/check-button-card/blob/master/README.md
+#      species: "actinidia chinensis" #Kiwi
+#      species: "colocasia esculenta" #Zehrwurz (Taro)
+#      species: "zamioculcas zamiifolia" #Glücksfeder
+#      species: "alocasia macrorrhizos" #Elefantenohr
 cards:
   - type: custom:vertical-stack-in-card
     cards:
-      - type: custom:check-button-card
-        entity: sensor.button_lastwatered_mandarinenbaum
-        title: Mandarinenbaum
-        severity:
-        - value: 1 day
-          color: Blue
-        - value: 3 days
-          color: Red
-        - value: 5 days
-          color: Purple
-        - value: 10 days
-          color: Yellow
-      - type: custom:check-button-card
-        title: Orchideen
-        entity: sensor.button_lastwatered_orchideen
-        severity:
-        - value: 5 minutes
-          hue: '120'
-        - value: 10 minutes
-          hue: '40'
-        - value: 20 minutes
-          hue: '0'
+    - type: custom:flower-card
+      entity: plant.plant_1
+      species: 'alocasia macrorrhizos' #Elefantenohr
+    - type: divider
+    - type: plant-status
+      entity: plant.plant_1
+      name: 'Sanders Pfeilblatt'
+  - type: custom:vertical-stack-in-card
+    cards:
+    - type: custom:flower-card
+      entity: plant.plant_2
+      species: 'zamioculcas zamiifolia' #Glücksfeder
+      #name: 'Glücksfeder'
+    - type: divider
+    - type: glance
+      entities: 
+        - sensor.pflanze_2_moisture
+        - sensor.pflanze_2_conductivity
+        - sensor.pflanze_2_light_intensity
+        - sensor.pflanze_2_temperature
+        - sensor.pflanze_2_battery
+  - type: custom:vertical-stack-in-card
+    cards:
+    - type: custom:flower-card
+      entity: plant.plant_3
+      species: 'nerium oleander' #Olander
+    - type: divider
+    - type: glance
+      entities: 
+        - sensor.pflanze_3_moisture
+        - sensor.pflanze_3_conductivity
+        - sensor.pflanze_3_light_intensity
+        - sensor.pflanze_3_temperature
+        - sensor.pflanze_3_battery
+
+#  - type: custom:vertical-stack-in-card
+#    cards:
+#      - type: custom:check-button-card
+#        entity: sensor.button_lastwatered_mandarinenbaum
+#        title: Mandarinenbaum
+#        severity:
+#        - value: 1 day
+#          color: Blue
+#        - value: 3 days
+#          color: Red
+#        - value: 5 days
+#          color: Purple
+#        - value: 10 days
+#          color: Yellow
+#      - type: custom:check-button-card
+#        title: Orchideen
+#        entity: sensor.button_lastwatered_orchideen
+#        severity:
+#        - value: 5 minutes
+#          hue: '120'
+#        - value: 10 minutes
+#          hue: '40'
+#        - value: 20 minutes
+#          hue: '0'

@@ -17,41 +17,24 @@ homeassistant:
         package: 'power'
   # constants 
       # timespans for power downs
-      int_minutes_away_for_power_down: &int_minutes_away_for_power_down 10
+      int_minutes_away_for_power_down: &int_minutes_away_for_power_down 20
       int_minutes_home_for_power_up: &int_minutes_home_for_power_up 2
       # entity-id's
-      wallswitch_sz_id: &wallswitch_sz_id 0019DBE9943030
-      colorlight_ku_entityid: &colorlight_ku_entityid light.philips_lightstrip_ku
-      ambientelight_wz_entityid: &ambientelight_wz_entityid light.0008da499c8dbd
       powerswitch_rack_entityid: &powerswitch_rack_entityid switch.fritz_dect_200_1
       powerswitch_gz_entityid: &powerswitch_gz_entityid switch.fritz_dect_200_2
       powerswitch_tv_entityid: &powerswitch_tv_entityid switch.osram_plug_01_a1bf020a_3
   # entities
     switch.osram_plug_01_a1bf020a_3:
       icon: mdi:power-socket-de
-    light.0008da499c8dbd:
-      icon: mdi:ceiling-light
-    light.philips_lightstrip_ku:
-      icon: mdi:led-strip-variant
   # groups, variables
     input_boolean.disable_power_automation:
       <<: *common
     switch.enable_power_automation:
       <<: *common
   # automations
-    automation.random_lights_during_vacation:
-      <<: *common
-    automation.switch_off_lights:
-      <<: *common
-    automation.switch_on_lights:
-      <<: *common
     automation.power_down_mediarack:
       <<: *common
     automation.power_up_mediarack:
-      <<: *common
-    automation.switch_off_lights_from_sz:
-      <<: *common
-    automation.switch_on_lights_from_sz:
       <<: *common
     automation.switch_off_network:
       <<: *common
@@ -64,25 +47,6 @@ homeassistant:
     script.reboot_raspi2:
       <<: *common
         
-################################################
-##   Platforms
-################################################
-
-scene:
-  - name: Welcome
-    icon: 'mdi:flower-tulip'
-    entities:
-      light.0008da499c8dbd:
-        state: 'on'
-        #brightness: 250 #-->.brightness=249
-        brightness: 125 #-->.brightness=
-  - name: Movies
-    entities:
-      light.0008da499c8dbd:
-        state: 'on'
-        #brightness: 125 #-->.brightness=124
-        brightness: 75 #-->.brightness=30%
-
 ###############################################################################
 #                               Variables
 ###############################################################################
@@ -117,109 +81,6 @@ switch:
 #                               Automations
 ###############################################################################
 automation:
-  #----------------------------------------------------------------------------------
-  # Urlaubslicht
-  # https://community.home-assistant.io/t/new-automation-not-loading-random-switching-of-lights-when-away-on-holiday/211414/14
-  - id: random_lights_during_vacation
-    alias: zufälliges Urlaubslicht
-    trigger:
-      - platform: sun
-        event: sunset
-      - platform: time
-        at: '23:00:00'
-    condition:
-      condition: and
-      conditions:
-      - condition: state
-        entity_id: input_boolean.disable_power_automation
-        state: 'off'
-      - condition: state
-        entity_id: sensor.home_status
-        state: 'Extended Away'
-    action:
-      - delay:
-          minutes: "{{ range(5, 25 if trigger.platform == 'sun' else 90) | random }}"
-      - service: "light.turn_{{ 'on' if trigger.platform == 'sun' else 'off' }}"
-        entity_id: light.0008da499c8dbd
-#  or with groups like that: 
-#      - service: "homeassistant.turn_{{ 'on' if trigger.platform == 'sun' else 'off' }}"
-#        entity_id: group.holiday_lights
-    
-  #----------------------------------------------------------------------------------
-  # Welcome-/Ambientelicht 
-  # Einschalten von Welcome-Licht, wenn wir nach Hause kommen ODER bei Sonnenuntergang
-  - id: switch_on_lights
-    alias: switch on welcome light
-    trigger:
-      - platform: state
-        entity_id: sensor.home_status
-        to: 'Home'
-      - platform: sun
-        event: sunset
-        offset: '+00:15:00' # Optional time offset. 
-      - platform: state
-        entity_id: input_boolean.disable_power_automation
-        to: 'off'
-    condition:
-      # 'power_automation' aktiv UND Home status 'Home' UND Sonne untergegangen
-      condition: and
-      conditions:
-      - condition: state
-        entity_id: input_boolean.disable_power_automation
-        state: 'off'
-      - condition: state
-        entity_id: sensor.home_status
-        state: 'Home'
-      - condition: state  # from sunset until sunrise
-        entity_id: sun.sun
-        state: 'below_horizon'
-    action:
-      - service: scene.turn_on
-        data:
-          entity_id: scene.welcome
-          transition: 2 #[sec] langsamer Übergang
-  
-  # Ausschalten von Welcome-Licht und Lichtleiste, wenn wir für 10min weg sind oder nachts um 00:00
-  #   und morgens beim Sonnenaufgang
-  - id: switch_off_lights
-    alias: switch off welcome light
-    trigger: 
-      - platform: state
-        entity_id: sensor.home_status
-        from: 'Home'
-        to: 'Away'
-        for:
-          minutes: 2
-      - platform: state
-        entity_id: input_boolean.disable_power_automation
-        to: 'off'
-      - platform: time 
-        at: '00:01:00'
-      - platform: sun
-        event: sunrise
-      - platform: homeassistant
-        event: start      
-    condition:
-      # 'power_automation' aktiv UND (Home status away ODER nach 0:00)
-      condition: and
-      conditions:
-      - condition: or
-        conditions:
-        - condition: state
-          entity_id: sensor.home_status
-          state: 'Away'
-        - condition: time
-          after: '00:00:00'
-          before: '06:00:00'
-      - condition: state
-        entity_id: input_boolean.disable_power_automation
-        state: 'off'
-    action:
-      - service: light.turn_off
-        entity_id: 
-          - light.0008da499c8dbd
-          - light.philips_lightstrip_ku
-
   #----------------------------------------------------------------------------------
   # Medien-Rack
   # Ausschalten des Medien-Racks, wenn wir für 10min weg sind
@@ -282,62 +143,9 @@ automation:
         entity_id: *powerswitch_tv_entityid
 
   #----------------------------------------------------------------------------------
-  # HmIP-BRC2 Wandtaster schaltet Lichter an/aus
-  - id: switch_off_lights_from_sz
-    alias: 'Ambientelicht aus'
-    trigger:
-      platform: event
-      event_type: homematic.keypress
-      event_data:
-        name: *wallswitch_sz_id
-        channel: 1
-        param: PRESS_SHORT
-    action:
-      service: light.turn_off
-      entity_id: *ambientelight_wz_entityid
-  - alias: 'alle Licher aus'
-    trigger:
-      platform: event
-      event_type: homematic.keypress
-      event_data:
-        name: *wallswitch_sz_id
-        channel: 1
-        param: PRESS_LONG
-    action:
-      - service: light.turn_off
-        entity_id: *ambientelight_wz_entityid
-      - service: light.turn_off
-        entity_id: *colorlight_ku_entityid
-  
-  - id: switch_on_lights_from_sz
-    alias: 'Ambientelicht an'
-    trigger:
-      platform: event
-      event_type: homematic.keypress
-      event_data:
-        name: *wallswitch_sz_id
-        channel: 2
-        param: PRESS_SHORT
-    action:
-      service: light.turn_on
-      entity_id: *ambientelight_wz_entityid
-  - alias: 'alle Licher an'
-    trigger:
-      platform: event
-      event_type: homematic.keypress
-      event_data:
-        name: *wallswitch_sz_id
-        channel: 2
-        param: PRESS_LONG
-    action:
-      - service: light.turn_on
-        entity_id: *ambientelight_wz_entityid
-      - service: light.turn_on
-        entity_id: *colorlight_ku_entityid
-
-  #----------------------------------------------------------------------------------
   # FritzDect1 schaltet WLAN, Unify-Switch und Raspi aus.
   - id: switch_off_network
+    mode: restart
     alias: switch off network components
     trigger: 
       - platform: state
@@ -354,6 +162,12 @@ automation:
         entity_id: input_boolean.disable_power_automation
         state: 'off'
     action:
+      # stop switching on the network
+      - service: automation.turn_off
+        entity_id: automation.switch_on_network
+      - service: automation.turn_on
+        entity_id: automation.switch_on_network
+      # shut down Raspi1, and wait for it being offline
       - service: script.kill_raspi1
       - wait_for_trigger:
           - platform: state
@@ -362,14 +176,17 @@ automation:
         timeout:
           minutes: 1
         continue_on_timeout: true  
+      # power down Desk and wait a bit (because Fritz integration does not send 2 consecutive commands)
       - service: switch.turn_off
         entity_id: *powerswitch_gz_entityid
       - delay: '00:00:05'
+      # power down Unifi components 
       - service: switch.turn_off
         entity_id: *powerswitch_rack_entityid
 
   - id: switch_on_network
     alias: switch on network components
+    mode: restart
     trigger: 
       - platform: state
         entity_id: sensor.home_status
@@ -394,6 +211,11 @@ automation:
                 state: 'Home'
               - "{{ trigger.entity_id == 'group.entrance_door' }}"
     action:
+      # stop switching off the network
+      - service: automation.turn_off
+        entity_id: automation.switch_off_network
+      - service: automation.turn_on
+        entity_id: automation.switch_off_network
       # power up Unifi components and wait for them to initialize
       - service: switch.turn_on
         entity_id: *powerswitch_rack_entityid

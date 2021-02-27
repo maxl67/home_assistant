@@ -585,11 +585,3 @@ cards:
             name: Unifi-Netzwerk
           - entity: sensor.fritz_switch2_currentpower
             name: Schreibtisch M
-      - type: history-graph
-        title: 'Temperatur'
-        hours_to_show: 24
-        entities:
-          - entity: sensor.fritz_switch1_temperature
-            name: Netzwerk-Rack
-          - entity: sensor.fritz_switch2_temperature
-            name: Schreibtisch M

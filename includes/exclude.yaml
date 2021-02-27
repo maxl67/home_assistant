@@ -26,9 +26,9 @@ entities:
   # network
   - sensor.speedtest_ping
   # plants
-  - sensor.test_button
-  - sensor.button_lastwatered_mandarinenbaum
-  - sensor.button_lastwatered_orchideen
+#  - sensor.test_button
+#  - sensor.button_lastwatered_mandarinenbaum
+#  - sensor.button_lastwatered_orchideen
   # vacuum
   - sensor.vacuum_operation
   - sensor.vacuum_accessories
