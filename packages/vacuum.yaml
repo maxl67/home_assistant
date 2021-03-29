@@ -67,11 +67,12 @@ homeassistant:
 ################################################
 ##   Platforms
 ################################################
-vacuum:
-  - platform: xiaomi_miio
-    host: !secret xiaomi_vacuum_ip
-    token: !secret xiaomi_vacuum_token
-    #name: xiaomi_vacuum_cleaner
+#v2021.3: Integration added through UI
+#vacuum:
+#  - platform: xiaomi_miio
+#    host: !secret xiaomi_vacuum_ip
+#    token: !secret xiaomi_vacuum_token
+#    #name: xiaomi_vacuum_cleaner
 
 
 ###############################################################################

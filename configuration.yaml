@@ -33,6 +33,8 @@ homeassistant:
 config:
 # 'System Health' integration data can be viewed in Developer Tools on the 'Info' tab
 system_health:
+# My Home Assistant Service allows redirect to own HA-instance from external documentation.
+# my:
 
 # activate SSL
 # Source: https://community.home-assistant.io/t/ssl-and-home-assistant-running-on-a-synology-docker/32102
@@ -152,7 +154,7 @@ lovelace:
       type: module
     - url: /hacsfiles/lovelace-card-mod/card-mod.js
       type: module
-# test: für Caed-Breite in Weather. not working
+# test: für Card-Breite in Weather. not working
 #    - url: /hacsfiles/lovelace-layout-card/layout-card.js
 #      type: module
     - url: /hacsfiles/lovelace-slider-entity-row/slider-entity-row.js
@@ -162,9 +164,9 @@ lovelace:
     # Repo: https://github.com/sgttrs/lovelace-weather-card-chart
     - url: /hacsfiles/lovelace-weather-card-chart/weather-card-chart.js
       type: module
-    # Repo: https://github.com/dmulcahey/zha-network-visualization-card
-    - url: /hacsfiles/zha-network-visualization-card/zha-network-visualization-card.js
-      type: module
+#    # Repo: https://github.com/dmulcahey/zha-network-visualization-card
+#    - url: /hacsfiles/zha-network-visualization-card/zha-network-visualization-card.js
+#      type: module
     # repo: https://github.com/Yolandavdvegt/lovelace-flower-card
     - url: /hacsfiles/lovelace-flower-card/flower-card.js 
       type: module
@@ -186,11 +188,12 @@ hacs:
   token: !secret hacs_token
 
 breaking_changes:
-  scan_interval: 3600 #sec. default 60.
+  scan_interval: 3600 #sec between updates. default 300.
 
 python_script:
 
-zha_map:
+#deprecated
+#zha_map:
 
 ################################################################
 ## Test / Development
@@ -314,8 +317,6 @@ logbook: #recorded Entities, that will be displayed in Logbook
       - binary_sensor.hera
       - sensor.vacuum_operation
       - sensor.vacuum_accessories
-      - sensor.hera_dsm_avg_processes_15_min
-      - sensor.hera_dsm_avg_processes_5_min
       - sensor.geocoded_location
       - sensor.hm_thermo_wz_actor_state
       - automation.update_requested_temp

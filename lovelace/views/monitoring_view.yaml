@@ -95,7 +95,6 @@ anchors:
         from: 75
         to: 100
 
-
   dataset_internet_ping: &dataset_internet_ping
     name: ping
     y_axis: secondary
@@ -104,11 +103,12 @@ anchors:
     show_line: false
 
   style_entitycard_header: &style_header
-    style: |
-      .card-header {
-        font-size: 20px;
-        padding: 10px 16px;
-      }
+    card_mod: 
+      style: |
+        .card-header {
+          font-size: 20px;
+          padding: 10px 16px;
+        }
 
 #---------------------------------
 #id: network
@@ -122,6 +122,7 @@ cards:
       - type: entities
         title: FritzBox (6490)
         show_header_toggle: false
+        <<: *style_header
         entities:
           - type: custom:fold-entity-row
             head:
@@ -232,13 +233,13 @@ cards:
           icon: mdi:certificate
         - entity: sensor.hera_cpu_load_total
           type: custom:multiple-entity-row
-          name: CPU Load
+          name: CPU Usage
           secondary_info: last-changed
           entities:
-          #- entity: sensor.hera_dsm_avg_processes_5_min
-          #  name: proc load 5' 
-          - entity: sensor.hera_dsm_avg_processes_15_min
-            name: proc load 15' 
+          #- entity: sensor.hera_cpu_load_5_min
+          #  name: proc load 5'
+          - entity: sensor.hera_cpu_load_15_min
+            name: proc load 15'
         - entity: sensor.hera_memory_usage_real
           name: Memory Usage
           secondary_info: last-changed
@@ -580,6 +581,7 @@ cards:
       - type: history-graph
         title: 'Leistung'
         hours_to_show: 24
+        <<: *style_header
         entities:
           - entity: sensor.fritz_switch1_currentpower
             name: Unifi-Netzwerk

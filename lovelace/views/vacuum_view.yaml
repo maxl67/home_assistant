@@ -73,11 +73,12 @@ anchors:
     font-weight: bold
 
   style_entitycard_header: &style_header
-    style: |
-      .card-header {
-        font-size: 20px;
-        padding: 10px 16px;
-      }
+    card_mod:
+      style: |
+        .card-header {
+          font-size: 20px;
+          padding: 10px 16px;
+        }
 #---------------------------------
 #id: vacuum
 title: Dust-E

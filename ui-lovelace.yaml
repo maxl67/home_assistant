@@ -81,15 +81,15 @@ views:
   # 7: view to monitor internet-connection, network, network devices
   - !include lovelace/views/monitoring_view.yaml
 
-  # 8: table with zigbee devices and network params
+  # 8: table with zigbee devices
   - !include lovelace/views/zigbee_view.yaml
 
-  - title: Zigbee-Karte
-    path: zha_map
-    icon: mdi:map-marker-path
-    panel: true
-    cards:
-      - type: 'custom:zha-network-visualization-card'
+#  - title: Zigbee-Karte
+#    path: zha_map
+#    icon: mdi:map-marker-path
+#    panel: true
+#    cards:
+#      - type: 'custom:zha-network-visualization-card'
   
   # 9: HA-Administration
   - title: Wartung

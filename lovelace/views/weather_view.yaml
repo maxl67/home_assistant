@@ -80,10 +80,11 @@ cards:
         # show the text of all DWD warnings
         - type: divider
         - type: markdown
-          style: |
-            ha-card {
-              border: 0px solid green;
-            }
+          card_mod:
+            style: |
+              ha-card {
+                border: 0px solid green;
+              }
           content: >
               <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.region_name }}</h3>
               Aktuell 

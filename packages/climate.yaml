@@ -150,19 +150,19 @@ script:
         data:
           entity_id: *thermostat_entityid_wz
           temperature: "{{ my_temperature }}"
-          hvac_mode: heat #'off' does not work
+          hvac_mode: heat
       # Küche
       - service: climate.set_temperature
         data:
           entity_id: *thermostat_entityid_ku
           temperature: "{{ my_temperature }}"
-          hvac_mode: heat #'off' does not work
+          hvac_mode: heat
       # Gästezimmer
       - service: climate.set_temperature
         data:
           entity_id: *thermostat_entityid_gz
           temperature: "{{ my_temperature }}"
-          hvac_mode: heat #'off' does not work
+          hvac_mode: heat
 
   set_mode_all:
     # Sets mode <my_hvac_mode> for all thermostats.

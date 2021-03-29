@@ -201,7 +201,8 @@ sensor:
     state_topic: 'monitor/ost/iphone_max_bt'
     value_template: "{{ value_json.confidence }}"
     unit_of_measurement: '%'
-    availability_topic: 'monitor/ost/status'
+    availability:
+      - topic: 'monitor/ost/status'
     payload_available: 'online'
     payload_not_available: 'offline'
     json_attributes_topic: 'monitor/ost/iphone_max_bt'
@@ -210,7 +211,8 @@ sensor:
     state_topic: 'monitor/west/iphone_max_bt'
     value_template: "{{ value_json.confidence }}"
     unit_of_measurement: '%'
-    availability_topic: 'monitor/west/status'
+    availability:
+      - topic: 'monitor/west/status'
     payload_available: 'online'
     payload_not_available: 'offline'
     json_attributes_topic: 'monitor/west/iphone_max_bt'
@@ -293,7 +295,7 @@ automation:
     trigger:
       - platform: numeric_state
         entity_id: sensor.max_home_confidence
-        above: *int_confidence_threshold_home
+        above: 10 #*int_confidence_threshold_home
     action:
       - service: device_tracker.see
         data:
@@ -304,7 +306,7 @@ automation:
     trigger:
       - platform: numeric_state
         entity_id: sensor.max_home_confidence
-        below: *int_confidence_threshold_home
+        below: 10 #*int_confidence_threshold_home
     action:
       - service: device_tracker.see
         data:
