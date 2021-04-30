@@ -13,9 +13,12 @@ anchors:
 
   #https://github.com/nervetattoo/simple-thermostat
   simple_thermostat: &simple_thermostat
-    step_layout: row #row (-/+)|column (pfeile)
+    layout:
+      step: row #row (-/+)|column (pfeile)
     label:
       temperature: Temperatur
+    control:
+      - hvac
 
   #https://github.com/kalkih/mini-graph-card
   graphs_range: &graphs_range
@@ -99,17 +102,12 @@ cards:
         name: Wohnzimmer Thermostat
         <<: *simple_thermostat
         sensors:
-          #- entity: sensor.000c9a499b5808_humidity
-          #  name: Luftfeuchte
           - entity: sensor.hm_thermo_wz_actor_state
             name: Heizventile
           - entity: sensor.hm_thermo_wz_window_state
             name: Fenster
           - entity: sensor.hm_thermo_wz_active_profile
             name: Profil
-        control:
-          - hvac
-          #- preset       
       - type: divider
 
       # temperature living room
@@ -148,9 +146,6 @@ cards:
             name: Fenster
           - entity: sensor.hm_thermo_ku_active_profile
             name: Profil
-        control:
-          - hvac
-          #- preset       
       - type: divider
 
       # temperature kitchen
@@ -189,9 +184,6 @@ cards:
             name: Fenster
           - entity: sensor.hm_thermo_gz_active_profile
             name: Profil
-        control:
-          - hvac
-          #- preset       
       - type: divider
 
       # temperature guest room

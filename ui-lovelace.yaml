@@ -22,12 +22,12 @@ custom_header:
 
   tab_icons:
     #NOTE: only in one line, no multiple lines with '>'!!
-    home: '{% if is_state("input_boolean.open_backdoor_alert", "on") or is_state("input_boolean.open_window_alert", "on") %}mdi:home-alert{% endif %}'
-    weather: '{% if is_state("input_boolean.dwd_weather_alert", "on") %}{% if is_state("sensor.dwd_current_warn_gewitter", "True") %}mdi:weather-lightning-rainy{% elif is_state("sensor.dwd_current_warn_sturm", "True") %}mdi:weather-windy{% elif is_state("sensor.dwd_current_warn_level_glaette", "True") %}mdi:snowflake-alert{% elif is_state("sensor.dwd_current_warn_frost", "True") or states.sensor.dwd_max_warn_level.state|int > 10 %}mdi:thermometer-alert{% else %}mdi:weather-lightning{% endif %}{% endif %}'
+    home: "{% if is_state('input_boolean.open_backdoor_alert', 'on') or is_state('input_boolean.open_window_alert', 'on') %}mdi:home-alert{% endif %}"
+    weather: "{% if is_state('input_boolean.dwd_weather_alert', 'on') %}{% if is_state('sensor.dwd_current_warn_gewitter', 'True') %}mdi:weather-lightning-rainy{% elif is_state('sensor.dwd_current_warn_sturm', 'True') %}mdi:weather-windy{% elif is_state('sensor.dwd_current_warn_level_glaette', 'True') %}mdi:snowflake-alert{% elif is_state('sensor.dwd_current_warn_frost', 'True') or states('sensor.dwd_max_warn_level')|int > 10 %}mdi:thermometer-alert{% else %}mdi:weather-lightning{% endif %}{% endif %}"
   tabs_color:
-    home: '{% if is_state("input_boolean.open_backdoor_alert", "on") %}red{% elif is_state("input_boolean.open_window_alert", "on") %}yellow{% endif %}'
-    weather: '{% if states.sensor.dwd_max_warn_level.state|int >= 3 and states.sensor.dwd_max_warn_level.state|int <10 %}red{% elif states.sensor.dwd_max_warn_level.state|int >= 2 %}yellow{% endif %}'
-    vacuum: '{% if is_state("binary_sensor.vacuum_error_alert", "on") %}red{% elif is_state("input_boolean.dustbin_full_alert", "on") %}yellow{% elif states.vacuum.xiaomi_vacuum_cleaner.state.startswith("cleaning") %}green{% elif is_state("input_boolean.disable_automatic_vacuum", "on") %}gray{% endif %}'
+    home: "{% if is_state('input_boolean.open_backdoor_alert', 'on') %}red{% elif is_state('input_boolean.open_window_alert', 'on') %}yellow{% endif %}"
+    weather: "{% if states('sensor.dwd_max_warn_level')|int >= 3 and states('sensor.dwd_max_warn_level')|int <10 %}red{% elif states('sensor.dwd_max_warn_level')|int >= 2 %}yellow{% endif %}"
+    vacuum: "{% if is_state('binary_sensor.vacuum_error_alert', 'on') %}red{% elif is_state('input_boolean.dustbin_full_alert', 'on') %}yellow{% elif states('vacuum.xiaomi_vacuum_cleaner').startswith('cleaning') %}green{% elif is_state('input_boolean.disable_automatic_vacuum', 'on') %}gray{% endif %}"
   exceptions:
     - conditions:
         user: !secret username_ing
@@ -35,7 +35,7 @@ custom_header:
       config:
         menu_hide: true
         disabled_mode: false
-        show_tabs: "home,weather,vacuum,climate" #,plants,climate"
+        show_tabs: 'home,weather,vacuum,climate' #,plants,climate'
         hide_help: true
         hide_config: true
         hide_unused: true
@@ -45,7 +45,7 @@ custom_header:
       config:
         menu_hide: false
         disabled_mode: false
-        hide_tabs: "maintenance,media"
+        hide_tabs: 'maintenance,media'
         hide_help: true
         hide_config: true
         hide_unused: false
@@ -84,13 +84,6 @@ views:
   # 8: table with zigbee devices
   - !include lovelace/views/zigbee_view.yaml
 
-#  - title: Zigbee-Karte
-#    path: zha_map
-#    icon: mdi:map-marker-path
-#    panel: true
-#    cards:
-#      - type: 'custom:zha-network-visualization-card'
-  
   # 9: HA-Administration
   - title: Wartung
     icon: mdi:tools

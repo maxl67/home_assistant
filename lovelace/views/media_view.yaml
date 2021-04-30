@@ -36,6 +36,7 @@ cards:
         entities:
           - entity: switch.osram_plug_01_a1bf020a_3
             name: Power-Plug
+          - type: divider
           - entity: group.mediadevices_in_use
             name: TV an oder Music spielt
       # device status (for testing)
@@ -46,10 +47,12 @@ cards:
     title: Licht
     show_header_toggle: false
     state_color: true
+    <<: *style_header
     entities:
-      - entity: switch.enable_light_automation
       - type: custom:slider-entity-row
         entity: light.0008da499c8dbd
         name: Ambiente-Licht
         toggle: true
         hide_when_off: true
+      - type: divider
+      - entity: switch.enable_light_automation

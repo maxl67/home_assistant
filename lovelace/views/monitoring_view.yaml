@@ -339,6 +339,40 @@ cards:
         name: Recorder Database
         icon: mdi:database
 
+  # ======= AdGuard Home ===========
+  # AdGuard Home Status und Config
+#  - !include ../cards/ad_guard.yaml
+  - type: entities
+    title: AdGuard Home
+    show_header_toggle: false
+    state_color: true
+    <<: *style_header
+    entities:
+      - entity: switch.adguard_protection
+      - type: conditional
+        conditions:
+          - entity: switch.adguard_protection
+            state: 'on'
+        row:
+          type: buttons
+          entities:
+            - entity: switch.adguard_filtering
+              name: Filter
+              icon: mdi:filter
+            - entity: switch.adguard_safe_browsing
+              name: Safe Browsing
+              icon: mdi:web
+            - entity: switch.adguard_safe_search
+              name: Safe Search
+              icon: mdi:shield-search
+      - type: divider
+      - entity: sensor.adguard_average_processing_speed
+        name: Avg. Processing Speed
+      - entity: sensor.adguard_dns_queries
+        name: DNS Queries
+      - entity: sensor.adguard_dns_queries_blocked_ratio
+        name: DNS Queries Blocked Ratio
+
   # ========== Login ==============
   - type: entities
     title: Login
@@ -370,6 +404,10 @@ cards:
             name: HomeMatic piVCCU3
             #url: http://ccu3-webui
             #name: RaspberryMatic
+          - type: weblink
+            url: http://hera:3000 #todo: https://
+            icon: mdi:shield-check
+            name: AdGuard Home (int)
       - type: custom:fold-entity-row
         head:
           type: section

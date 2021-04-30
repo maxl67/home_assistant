@@ -142,7 +142,7 @@ automation:
   #----------------------------------------------------------------------------------
   # Ampelschaltung auf der Lichtleiste Küche
   # Lightstrip kitchen - signals open door/window status
-  - id: LL_signal_status
+  - id: show_doorstatus_signal_light
     alias: Lichtband zeigt Status
     mode: single #Do not start a new run, if running already.
     #mode: restart #Start a new run, after stopping the previous run.
@@ -215,7 +215,7 @@ automation:
             rgb_color:  [0, 255, 0] #grün
             transition: 0.2
 
-  - id: LL_status_signal_off
+  - id: clear_doorstatus_signal_light
     alias: Lichtband Status löschen
     mode: single #Do not start a new run, if running already. 
     trigger: 
@@ -256,6 +256,7 @@ automation:
   # Benachrichtigungen & Alarm
   # Notifications and alarm
   - alias: Notify all - Open Doors
+    id: send_notification_open_doors
     trigger:
       # niemand zuhause und mindestens eine Tür offen 
       platform: template
@@ -290,6 +291,7 @@ automation:
             clickAction: '/lovelace/home'
 
   - alias: Notify all - Open Windows
+    id: send_notification_open_windows
     trigger:
       # niemand zuhause und mindestens ein Fenster offen (und keine Tür offen)
       platform: template
@@ -325,6 +327,7 @@ automation:
             clickAction: '/lovelace/home'
   
   - alias: Reset alert - Open Doors
+    id: reset_notification_open_doors
     trigger:
       # jemand zuhause oder alle Türen zu 
       platform: template
@@ -349,6 +352,7 @@ automation:
               'apns-collapse-id': 'open-doors-detected'
             clickAction: '/lovelace/home'
   - alias: Reset alert - Open Windows
+    id: reset_notification_open_windows
     trigger:
       # jemand zuhause oder alle Fenster zu 
       platform: template
@@ -377,6 +381,7 @@ automation:
 #----------------------------------------------------------------------------------
 #Test
   - alias: Test Zone Notify
+    id: send_notification_zone_test
     trigger:
       - platform: zone
         entity_id: person.max #group.phone_max

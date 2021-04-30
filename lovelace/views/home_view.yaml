@@ -119,7 +119,7 @@ cards:
       - type: divider
       - entity: switch.enable_light_automation
 
-  # device tracking status (for testing)
+  # device tracking status (fosr testing)
   - !include ../cards/devicetracker_debug.yaml
 
   # all door- and window sensors (while implementing)

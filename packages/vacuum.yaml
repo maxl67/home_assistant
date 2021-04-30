@@ -201,9 +201,9 @@ binary_sensor:
   - platform: template
     sensors:
       vacuum_paused:
-        value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.status in ['Paused'] }}"    
+        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','status') in ['Paused'] }}"    
       vacuum_started:
-        value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.status in ['Cleaning', 'Definition missing for state 18'] }}"    
+        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','status') in ['Cleaning', 'Definition missing for state 18'] }}"    
 
       vacuum_error_alert:
         icon_template: mdi:alert-octagon
@@ -222,14 +222,14 @@ sensor:
       vacuum_status:
         friendly_name: Vacuum status
         value_template: >
-          {% set val =  states.vacuum.xiaomi_vacuum_cleaner.attributes.status  %}
+          {% set val =  state_attr('vacuum.xiaomi_vacuum_cleaner','status')  %}
           {% if val == 'Definition missing for state 18' %}
             Cleaning room
           {% else %}
-            {{ states.vacuum.xiaomi_vacuum_cleaner.attributes.status }}
+            {{ state_attr('vacuum.xiaomi_vacuum_cleaner','status') }}
           {% endif %}
         icon_template: >
-          {% set val =  states.vacuum.xiaomi_vacuum_cleaner.attributes.status  %}
+          {% set val =  state_attr('vacuum.xiaomi_vacuum_cleaner','status')  %}
           {% if val == 'Charging' or val == 'Angedockt' %}
             mdi:battery-charging
           {% elif val == 'Cleaning' or val == 'Reinigen' %}
@@ -245,48 +245,48 @@ sensor:
           {% endif %}
       vacuum_fan_speed:
         friendly_name: Fan Speed
-        value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.fan_speed }}"
+        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','fan_speed') }}"
         icon_template: 'mdi:speedometer'
       vacuum_battery:
         friendly_name: Vacuum Battery
-        value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.battery_level }}"
+        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','battery_level') }}"
         unit_of_measurement: '%'
-        icon_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.battery_icon }}"
+        icon_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','battery_icon') }}"
       vacuum_cleaning_time:
         friendly_name: Time of Last Cycle
-        value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.cleaning_time }}"
+        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','cleaning_time') }}"
         unit_of_measurement: 'min'
         icon_template: 'mdi:timer'
       vacuum_cleaned_area:
         friendly_name: Area of Last Cycle
         unit_of_measurement: 'm²'
-        value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.cleaned_area }}"
+        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','cleaned_area') }}"
         icon_template: 'mdi:ruler'
       vacuum_cleanmainbrush:
         friendly_name: Replace main brush
         unit_of_measurement: 'h'
-        value_template: "Hauptbürste: {{ states.vacuum.xiaomi_vacuum_cleaner.attributes.main_brush_left }}" #Main Brush: 
+        value_template: "Hauptbürste: {{ state_attr('vacuum.xiaomi_vacuum_cleaner','main_brush_left') }}" #Main Brush: 
         icon_template: 'mdi:screwdriver'
       vacuum_cleansidebrush:
         friendly_name: Replace side brush
         unit_of_measurement: 'h'
-        value_template: "Seitenbürste: {{ states.vacuum.xiaomi_vacuum_cleaner.attributes.side_brush_left }}" #Side brush:
+        value_template: "Seitenbürste: {{ state_attr('vacuum.xiaomi_vacuum_cleaner','side_brush_left') }}" #Side brush:
         icon_template: 'mdi:screwdriver'
       vacuum_cleanfilter:
         friendly_name: Replace filter
         unit_of_measurement: 'h'
-        value_template: "Filter: {{ states.vacuum.xiaomi_vacuum_cleaner.attributes.filter_left }}"
+        value_template: "Filter: {{ state_attr('vacuum.xiaomi_vacuum_cleaner','filter_left') }}"
         icon_template: 'mdi:screwdriver'
       vacuum_sensordirtyleft:
         friendly_name: Clean sensors
         unit_of_measurement: 'h'
-        value_template: "Sensor: {{ states.vacuum.xiaomi_vacuum_cleaner.attributes.sensor_dirty_left }}"
+        value_template: "Sensor: {{ state_attr('vacuum.xiaomi_vacuum_cleaner','sensor_dirty_left') }}"
         icon_template: 'mdi:screwdriver'
       vacuum_do_not_disturb:
         friendly_name: Do Not Disturb
-        value_template: "{{ states.vacuum.xiaomi_vacuum_cleaner.attributes.do_not_disturb }}"
+        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','do_not_disturb') }}"
         icon_template: >
-          {% set val =  states.vacuum.xiaomi_vacuum_cleaner.attributes.do_not_disturb  %}
+          {% set val =  state_attr('vacuum.xiaomi_vacuum_cleaner','do_not_disturb') %}
           {% if val == 'on' %}
             mdi:do-not-disturb
           {% else %}
@@ -552,7 +552,7 @@ automation:
 
   #-------------------------------
   ## Send a notification to the first person arriving at home after an automatic cleanup was triggered
-  - id: send_alert_after_automatic_vacuum_to_empty_the_dustbin
+  - id: send_alert_after_automatic_vacuum_to_empty_dustbin
     alias: Send alert after automatic vacuum to empty the dustbin
     trigger:
       - platform: state
@@ -621,6 +621,7 @@ automation:
   #-------------------------------
   # Notify devices if vacuum reports error status
   - alias: Notify all - Vacuum Error
+    id: send_notification_vacuum_error
     trigger:
       # vacuum has state 'error'
       - platform: state
@@ -647,6 +648,7 @@ automation:
             clickAction: '/lovelace/vacuum'
 
   - alias: Reset alert - Vacuum Error
+    id: reset_notification_vacuum_error
     trigger:
       - platform: state
         entity_id: binary_sensor.vacuum_error_alert 

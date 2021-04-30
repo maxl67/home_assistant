@@ -34,7 +34,7 @@ config:
 # 'System Health' integration data can be viewed in Developer Tools on the 'Info' tab
 system_health:
 # My Home Assistant Service allows redirect to own HA-instance from external documentation.
-# my:
+my:
 
 # activate SSL
 # Source: https://community.home-assistant.io/t/ssl-and-home-assistant-running-on-a-synology-docker/32102
@@ -164,16 +164,13 @@ lovelace:
     # Repo: https://github.com/sgttrs/lovelace-weather-card-chart
     - url: /hacsfiles/lovelace-weather-card-chart/weather-card-chart.js
       type: module
-#    # Repo: https://github.com/dmulcahey/zha-network-visualization-card
-#    - url: /hacsfiles/zha-network-visualization-card/zha-network-visualization-card.js
-#      type: module
     # repo: https://github.com/Yolandavdvegt/lovelace-flower-card
     - url: /hacsfiles/lovelace-flower-card/flower-card.js 
       type: module
 
     # deprecated, not maintained anymore
     - url: /hacsfiles/calendar-card/calendar-card.js
-      type: js #module
+      type: js 
 
 frontend:
   themes: !include_dir_merge_named themes

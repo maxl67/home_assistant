@@ -292,6 +292,7 @@ automation:
   # ...and I like the idea, that the monitor.sh scripts are just a better source for the intended bluetooth device_trackers.
   # Person 1
   - alias: Max Occupancy On
+    id:  turm_occupancy_on_max
     trigger:
       - platform: numeric_state
         entity_id: sensor.max_home_confidence
@@ -303,6 +304,7 @@ automation:
           location_name: home
           source_type: bluetooth
   - alias: Max Occupancy Off
+    id: turn_occupancy_off_max
     trigger:
       - platform: numeric_state
         entity_id: sensor.max_home_confidence
@@ -316,6 +318,7 @@ automation:
 
   # Person 2
   - alias: Ing Occupancy On
+    id: turn_occupancy_on_ing
     trigger:
       - platform: numeric_state
         entity_id: sensor.ing_home_confidence
@@ -327,6 +330,7 @@ automation:
           location_name: home
           source_type: bluetooth
   - alias: Ing Occupancy Off
+    id: turn_occupancy_off_ing
     trigger:
       - platform: numeric_state
         entity_id: sensor.ing_home_confidence
@@ -342,6 +346,7 @@ automation:
   # if confidence starts to drop in one area, we trigger a arrival scan in the other area 
   #   (in case of movement inside the house)
   - alias: Start BT Arrival Scan Ost
+    id: start_bt_arrival_scan_ost
     trigger:
       - platform: numeric_state
         entity_id: 
@@ -354,6 +359,7 @@ automation:
           topic: 'monitor/scan/arrive' 
           payload: "{'data' : 'west'}" #this monitor publisher will NOT respond!
   - alias: Start BT Arrival Scan West
+    id: start_bt_arrival_scan_west
     trigger:
       - platform: numeric_state
         entity_id: 
@@ -369,6 +375,7 @@ automation:
   # if confidence dropped to almost 0 in one area, we trigger a departure scan in the other area 
   #   (to speed things up, in case the 2nd monitor missed the departure)
   - alias: Start BT Departure Scan Ost
+    id: start_bt_departure_scan_ost
     trigger:
       - platform: numeric_state
         entity_id: 
@@ -383,6 +390,7 @@ automation:
           topic: 'monitor/scan/depart' 
           payload: "{'data' : 'west'}" #this monitor publisher will NOT respond!
   - alias: Start BT Departure Scan West
+    id: start_bt_departure_scan_west
     trigger:
       - platform: numeric_state
         entity_id: 
@@ -400,6 +408,7 @@ automation:
   # if WiFi detects an arrival, we trigger a BT arrival scan (in case monitor.sh missed that)
   # if frontdoor opens too.
   - alias: Start BT Arrival Scan
+    id: start_bt_arrival_scan
     trigger: 
       - platform: state
         entity_id: 
@@ -423,6 +432,7 @@ automation:
   # if frontdoor is closed (and stays closed for some time) too.
   # we do a depart scan 20secs, 1min and 2 min after frontdoor is closed.
   - alias: Start BT Departure Scan
+    id: start_bt_departure_scan
     trigger: 
       - platform: state
         entity_id: 
@@ -454,7 +464,7 @@ automation:
 
   # save the time a status was changed last, because these values will be reset every time HA is rebooted.
   #   we need that time to trigger status changes (e.g 'extended_away')
-  - alias: personstatus_last_changed_date_and_time #Person-Status and home-status last changed date and time
+  - id: personstatus_last_changed_date_and_time #Person-Status and home-status last changed date and time
     trigger:
       platform: state
       entity_id: 
@@ -473,6 +483,7 @@ automation:
 # We also do that once a day (00:30 at night) in case a trigger was missed.
 # Becasue *.last_changed value is reset at boot time, we use a persistent variable 'input_datetime.*_status_dropdown_last_changed'.
   - alias: Person- and Home-Status correction
+    id: person_and_homestatus_correction
     trigger: 
       - platform: homeassistant
         event: start
@@ -577,6 +588,7 @@ automation:
 #   Extended Away  ---[DeviceTracker: home]---/
 #
   - alias: Mark person as just arrived
+    id: mark_person_as_just_arrived
     mode: queued
     trigger:
       - platform: state
@@ -608,6 +620,7 @@ automation:
             {% endif %}
   
   - alias: Mark person as just left
+    id: mark_person_as_just_left
     mode: queued
     trigger:
       - platform: state
@@ -628,6 +641,7 @@ automation:
           option: Just Left
   
   - alias: Mark person as home #('Just Arrived' vor 10min) oder ('Just Arrived' nach 'Just Left')
+    id: mark_person_as_home
     mode: queued
     trigger:
       - platform: state
@@ -649,7 +663,8 @@ automation:
           entity_id: "{{ trigger.entity_id }}"
           option: Home
   
-  - alias: Mark person as away  #('Just Left' vor 10min) 
+  - alias: Mark person as away  #('Just Left' vor 10min)
+    id: mark_person_as_away
     mode: queued
     trigger:
       - platform: state
@@ -665,7 +680,8 @@ automation:
           entity_id: "{{ trigger.entity_id }}"
           option: Away
   
-  - alias: Mark person as extended away  #('Away' für 24h) 
+  - alias: Mark person as extended away  #('Away' für 24h)
+    id: mark_person_as_extended_away
     mode: queued
     trigger:
       - platform: state
@@ -695,6 +711,7 @@ automation:
 #   Extended Away  ---[n_people_home >0]---/
 #
   - alias: Home Status - Leaving # (n_people_home <=0) UND (Home-Status='Home')
+    id: set_home_status_leaving
     trigger:
       platform: numeric_state
       entity_id: sensor.n_people_home
@@ -709,7 +726,8 @@ automation:
       data:
         option: Away
 
-  - alias: Home Status - Arriving #n_people_home ++
+  - alias: Home Status - Arriving #n_people_home 
+    id: set_home_status_arriving
     trigger:
       platform: state
       entity_id: sensor.n_people_home
@@ -721,6 +739,7 @@ automation:
         option: Home
 
   - alias: Home Status - Vacation  #('Away' für 24h) 
+    id: set_home_status_vacation
     trigger:
       platform: state
       entity_id: input_select.home_status_dropdown
