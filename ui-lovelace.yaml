@@ -45,7 +45,7 @@ custom_header:
       config:
         menu_hide: false
         disabled_mode: false
-        hide_tabs: 'maintenance,media'
+        hide_tabs: 'maintenance' #,media
         hide_help: true
         hide_config: true
         hide_unused: false

@@ -24,7 +24,7 @@ My XIAOMI Roborock S6 will automatically clean the appartment when the last pers
 - Views: [vacuum_view](lovelace/views/vacuum_view.yaml)
 
 ### Automation of Heating
-Radiators will be turned off as soon as the last person leaves the appartment. Heating will also be stopped in a room, whenever a window/door is opened in that room. Different heating shedules (profiles) will be set automatically for regular work days, home office days and guest presence. I use HomeMatic IP thermostats. The virtual HomeMatic CCU (piVCCU) runs on one of my raspis.
+Radiators will be turned off as soon as the last person leaves the appartment. Heating will also be turned off in a room, whenever a window/door is opened in that room. Different heating shedules (profiles) will be set automatically for regular work days, home office days or when guests are present. I use HomeMatic IP thermostats. The virtual HomeMatic CCU (piVCCU) runs on one of my raspis.
 - Packages:   [climate](packages/climate.yaml), [HomeMatic](packages/homematic.yaml)
 - Views: [climate_view](lovelace/views/climate_view.yaml)
 
@@ -34,12 +34,11 @@ Warnings from the german weather service (DWD integration) are analysed and in c
 - Views: [weather_view](lovelace/views/weather_view.yaml)
 
 ### Automation of Power Consumption and Lights
-A welcome light is automatically turned on upon arriving at home or at sunset and turned off when leaving the appartment. Some power plugs are also turned on and off depending on presence. Devices use zigbee or DECT protocoll.
+A welcome light is automatically turned on upon arriving at home or at sunset and turned off when leaving the appartment. Some power plugs are also turned on and off depending on presence. Devices use Zigbee or DECT protocoll.
 - Packages:   [power](packages/power.yaml)
 - Views: [home_view](lovelace/views/home_view.yaml)
 
 ### Monitoring Devices
-Information about internet connection and the status of some network devices is monitored. I also use [NotoriousBDG's Battery Alert Package](https://raw.githubusercontent.com/notoriousbdg/Home-AssistantConfig/master/packages/battery_alert.yaml).
-
+Information about internet connection and the status of some network devices is monitored. I also use [NotoriousBDG's Battery Alert Package](https://raw.githubusercontent.com/notoriousbdg/Home-AssistantConfig/master/packages/battery_alert.yaml) for battery state monitoring.
 - Packages:   [synology](packages/synology.yaml), [network](packages/network.yaml), [fritzbox](packages/fritzbox.yaml)
 - Views: [monitoring_view](lovelace/views/monitoring_view.yaml)

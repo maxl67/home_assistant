@@ -496,7 +496,7 @@ input_text:
 ################################################
 automation:
 - alias: battery_persistent_notification
-  initial_state: 'on'
+  initial_state: true
   trigger:
     - platform: time_pattern
       minutes: '/15'
@@ -570,7 +570,7 @@ automation:
           {{ battery_level() }}
 
 - alias: battery_persistent_notification_clear
-  initial_state: 'on'
+  initial_state: true
   trigger:
     - platform: time_pattern
       minutes: '/15'
@@ -616,7 +616,7 @@ automation:
         notification_id: low_battery_alert
 
 - alias: battery_notification_default
-  initial_state: 'on'
+  initial_state: true
   trigger:
     - platform: time
       at: '10:00:00'
@@ -631,7 +631,7 @@ automation:
       value_template: *low_battery_check
     - condition: template
       value_template: "{{ states.input_select.notifier_format.state == 'Default' }}"
-    - service_template: >
+    - service: >
         {% if "notify." in states.input_text.notifier_name.state %}
           {{ states.input_text.notifier_name.state }}
         {% else %}
@@ -642,7 +642,7 @@ automation:
         message: *message
 
 - alias: battery_notification_slack
-  initial_state: 'on'
+  initial_state: true
   trigger:
     - platform: time
       at: '10:00:00'
@@ -657,7 +657,7 @@ automation:
       value_template: *low_battery_check
     - condition: template
       value_template: "{{ states.input_select.notifier_format.state == 'Slack' }}"
-    - service_template: >
+    - service: >
         {% if states.input_text.notifier_name.state != "" %}
           {{ states.input_text.notifier_name.state }}
         {% else %}
@@ -672,7 +672,7 @@ automation:
             text: *message
 
 - alias: battery_sensor_from_attributes
-  initial_state: 'on'
+  initial_state: true
   trigger:
     - platform: event
       event_type: state_changed
@@ -823,7 +823,7 @@ automation:
           }
 
 - alias: update_battery_status_group_members
-  initial_state: 'on'
+  initial_state: true
   trigger:
     - platform: time_pattern
       minutes: '/1'
@@ -858,7 +858,7 @@ automation:
           {%- endfor -%}
 
 - alias: delete_battery_sensor
-  initial_state: 'on'
+  initial_state: true
   trigger:
     - platform: state
       entity_id:

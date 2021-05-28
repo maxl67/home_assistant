@@ -148,6 +148,8 @@ lovelace:
       type: module
 #    - url: /hacsfiles/check-button-card/check-button-card.js
 #      type: js #module
+    - url: /hacsfiles/button-card/button-card.js
+      type: module
     - url: /hacsfiles/simple-thermostat/simple-thermostat.js
       type: module
     - url: /hacsfiles/bar-card/bar-card.js

@@ -26,6 +26,15 @@ homeassistant:
       icon: mdi:music-box
       <<: *common
   # automations
+    script.start_bd_show:
+      <<: *common
+    script.start_tv_show:
+      <<: *common
+    script.start_radio:
+      <<: *common
+    script.start_cd:
+      <<: *common
+  # automations
     automation.power_off_unused_mediarack:
       <<: *common
     automation.power_on_mediarack_for_use:
@@ -39,16 +48,16 @@ homeassistant:
 ################################################
 # problem: if receiver is turned of while HA restarts, entity will be deleted
 media_player:
-# todo: reaktivieren, wenn log und restart-fehler behoben
-#  - platform: yamaha_musiccast
-#    host: !secret yamaha_netreceiver
-#    interval_seconds: 30
+# todo: reaktivieren, wenn log und restart-fehler behoben. Isue: https://github.com/home-assistant/core/issues/49911
+  - platform: yamaha_musiccast #platform 'yamaha' does not work
+    host: !secret yamaha_netreceiver
+    interval_seconds: 30
   
   - platform: samsungtv_tizen
     name: samsungtv
     host: !secret samsung_tv_ip
     mac: !secret samsung_tv_mac
-    source_list: '{"TV": "KEY_DTV", "HDMI": "KEY_HDMI"}'
+    source_list: '{"TV": "KEY_TV", "HDMI": "KEY_HDMI"}'
 #app_list klappt auch nicht.
     #app_list: "{'DS video': '111399002250', 'YouTube': '111299001912'}"
     #app_list: "{'ARD Mediathek':'??', 'ZDF mediathek':'??', 'DS video': '111399002250', 'YouTube': '111299001912', 'Rakuten TV': '??'}"
@@ -57,7 +66,12 @@ media_player:
 #    api_key: "b3c028ad-affd-4f18-9369-643cb355d8a2"
 #    device_id: "f1a1ad77-5565-4406-bdae-4192b1fc6525" #oder: 48c3c7a0-f7f3-45a7-b497-a81d5ebf21af
 
-  # Zugriff Radio Bad geht, wird aber nicht gebraucht
+#Panasonic DP-UB424 (ohne Funktion)
+  #- platform: panasonic_bluray
+  #  host: !secret panasonic_bluray
+  #  #name: panasonic_blu_ray
+
+# Zugriff Radio Bad geht, wird aber nicht gebraucht
   #- platform: frontier_silicon
   #  name: Radio Bad
   #  host: !secret radio_bad_ip
@@ -102,6 +116,127 @@ sensor:
           {%- else -%}
             off
           {%-  endif -%}
+
+###############################################################################
+##  Scripts
+###############################################################################
+script:
+  start_bd_show:
+    alias: Blue-Ray anschauen
+    sequence:
+      # TV und Receiver einschalten
+      - service: media_player.turn_on
+        data:
+          entity_id: media_player.samsungtv
+      - service: media_player.turn_on
+        data:
+          entity_id: media_player.r_n803d_86ae28_main
+      - delay: '00:00:03'
+      # Tonausgabe: Optisch (wird nicht mehr umgestellt)
+      #- service: media_player.play_media
+      #  data:
+      #    entity_id: media_player.samsungtv
+      #    media_content_id: KEY_HOME+KEY_LEFT+KEY_LEFT+KEY_LEFT+KEY_LEFT+KEY_LEFT+KEY_ENTER+KEY_DOWN+KEY_RIGHT+KEY_RIGHT+KEY_UP+KEY_UP+KEY_DOWN+KEY_RETURN
+      #    media_content_type: "send_key"
+      # Lautstärke TV ausschalten
+      - service: media_player.volume_set
+        data:
+          volume_level: 0
+        target:
+          entity_id: media_player.samsungtv
+      # Quelle: HDMI1=BlueRay-Player
+      - service: media_player.play_media
+        data:
+          entity_id: media_player.samsungtv
+          media_content_id: KEY_HDMI
+          media_content_type: "send_key"
+      # Verstärker
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.r_n803d_86ae28_main
+        data:
+          source: optical1
+      - delay: '00:00:05'
+      # BlueRay-Player: Netzwerk > Hera > Video auswählen
+      #- service: media_player.play_media
+      #  data:
+      #    entity_id: media_player.samsungtv
+#todo: das klappt noch nicht
+      #    media_content_id: KEY_RIGHT+KEY_RIGHT+KEY_RIGHT+KEY_RETURN+KEY_RETURN+500+KEY_RETURN+KEY_DOWN+KEY_DOWN+KEY_ENTER
+      #    media_content_type: "send_key"
+
+  start_tv_show:
+    alias: TV anschauen
+    sequence:
+      # TV einschalten
+      - service: media_player.turn_on
+        data:
+          entity_id: media_player.samsungtv
+      - delay: '00:00:03'
+      # Tonausgabe: TV (wird nicht mehr umgestellt)
+      #- service: media_player.play_media
+      #  data:
+      #    entity_id: media_player.samsungtv
+      #    media_content_id: KEY_HOME+KEY_LEFT+KEY_LEFT+KEY_LEFT+KEY_LEFT+KEY_LEFT+KEY_ENTER+KEY_DOWN+KEY_RIGHT+KEY_RIGHT+KEY_UP+KEY_UP+KEY_RETURN
+      #    media_content_type: "send_key"
+      # Lautstärke TV auf 20 einstellen
+      - service: media_player.volume_set
+        data:
+          volume_level: 0.2
+        target:
+          entity_id: media_player.samsungtv
+      # Quelle: TV (todo: geht noch nicht)
+      - service: media_player.play_media
+        data:
+          entity_id: media_player.samsungtv
+          media_content_id: KEY_TV
+          media_content_type: "send_key"
+      # Verstärker ausschalten
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.r_n803d_86ae28_main
+        data:
+          source: tuner
+      - delay: '00:00:02'
+      - service: media_player.turn_off
+        data:
+          entity_id: media_player.r_n803d_86ae28_main
+
+  start_radio:
+    alias: Radio hören
+    sequence:
+      # Receeiver ein- & TV ausschalten 
+      - service: media_player.turn_off
+        data:
+          entity_id: media_player.samsungtv
+      - service: media_player.turn_on
+        data:
+          entity_id: media_player.r_n803d_86ae28_main
+      - delay: '00:00:03'
+      # Verstärker umstellen auf Radio
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.r_n803d_86ae28_main
+        data:
+          source: tuner
+
+  start_cd:
+    alias: CD hören
+    sequence:
+      # Receeiver ein- & TV ausschalten 
+      - service: media_player.turn_off
+        data:
+          entity_id: media_player.samsungtv
+      - service: media_player.turn_on
+        data:
+          entity_id: media_player.r_n803d_86ae28_main
+      - delay: '00:00:03'
+      # Verstärker umstellen auf CD
+      - service: media_player.select_source
+        target:
+          entity_id: media_player.r_n803d_86ae28_main
+        data:
+          source: coaxial1 #or line_cd
 
 ###############################################################################
 #                               Automations
@@ -168,7 +303,6 @@ automation:
     action:
       - service: switch.turn_on
         entity_id: switch.osram_plug_01_a1bf020a_3
-
 
   #----------------------------------------------------------------------------------
   # Licht-Szene für Fernsehen

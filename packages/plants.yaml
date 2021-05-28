@@ -157,28 +157,28 @@ sensor:
     go_unavailable_timeout: *int_seconds_ago_unavailable_timeout
 
   # Sensors derived from MQTT, data send by plantgateway or miflora-mqtt-daemon 
-  - platform: mqtt
-    name: kiwi_moisture
-    state_topic: plants/miflora
-    value_template: '{{ value_json.moisture | int }}'
-    unit_of_measurement: '%'
-  - platform: mqtt
-    name: kiwi_battery
-    state_topic: plants/miflora
-    value_template: '{{ value_json.battery | int }}'
-    unit_of_measurement: '%'
-  - platform: mqtt
-    name: kiwi_temperature
-    state_topic: plants/miflora
-    value_template: '{{ value_json.temperature | float }}'
-    unit_of_measurement: '°C'
-  - platform: mqtt
-    name: kiwi_conductivity
-    state_topic: plants/miflora
-    value_template: '{{ value_json.conductivity | int }}'
-    unit_of_measurement: 'µS/cm'
-  - platform: mqtt
-    name: kiwi_brightness
-    state_topic: plants/miflora
-    value_template: '{{ value_json.brightness | int }}'
-    unit_of_measurement: 'Lux'
+#  - platform: mqtt
+#    name: kiwi_moisture
+#    state_topic: plants/miflora
+#    value_template: '{{ value_json.moisture | int }}'
+#    unit_of_measurement: '%'
+#  - platform: mqtt
+#    name: kiwi_battery
+#    state_topic: plants/miflora
+#    value_template: '{{ value_json.battery | int }}'
+#    unit_of_measurement: '%'
+#  - platform: mqtt
+#    name: kiwi_temperature
+#    state_topic: plants/miflora
+#    value_template: '{{ value_json.temperature | float }}'
+#    unit_of_measurement: '°C'
+#  - platform: mqtt
+#    name: kiwi_conductivity
+#    state_topic: plants/miflora
+#    value_template: '{{ value_json.conductivity | int }}'
+#    unit_of_measurement: 'µS/cm'
+#  - platform: mqtt
+#    name: kiwi_brightness
+#    state_topic: plants/miflora
+#    value_template: '{{ value_json.brightness | int }}'
+#    unit_of_measurement: 'Lux'

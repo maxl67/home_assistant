@@ -562,12 +562,12 @@ automation:
               {% endif %}
             {% endif %}
       # correct home status
-      # todo: dies verursacht den Log-Eintrag 'WARNING (MainThread) [homeassistant.components.input_select] Invalid option:  (possible options: Home, Away, Extended Away)'
+      # todo: dies verursacht den Log-Eintrag 'WARNING (MainThread) [homeassistant.components.input_select] Invalid option: (possible options: Home, Away, Extended Away)'
       - service: input_select.select_option
         data:
           entity_id: input_select.home_status_dropdown
           option: >
-            {% if is_state('input_select.home_status_dropdown','Away') %}
+            {% if states('input_select.home_status_dropdown') in ['Away', 'Extended Away'] %}
               {% if (as_timestamp(now()) - as_timestamp(states('input_datetime.home_status_dropdown_last_changed')))/3600 |int >=24 %}
                 Extended Away
               {% endif %}

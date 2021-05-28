@@ -17,15 +17,54 @@ cards:
     entity: media_player.samsungtv
     name: Samsung Qled60
 
-#hack
-#  - type: media-control
-#    entity: media_player.r_n803d_86ae28_main
-#    name: Yamaha R-N803D
+# todo: media_player entity not available, if device is switched off during HA restart. Issue: https://github.com/home-assistant/core/issues/49911
+  - type: media-control
+    entity: media_player.r_n803d_86ae28_main
+    name: Yamaha R-N803D
+
+# todo: media_player entity not available, if device is switched off during HA restart. 
+  #- type: media-control
+  #  entity: media_player.panasonic_blu_ray
+  #  name: Panasonic DP-UB424
 
   # Zugriff Radio Bad geht, wird aber nicht gebraucht
   #- type: media-control
   #  entity: media_player.radio_bad
   
+  - type: horizontal-stack
+    # https://github.com/custom-cards/button-card
+    cards:
+      - type: custom:button-card
+        name: Kino
+        icon: mdi:filmstrip-box-multiple
+        show_state: false
+        tap_action: 
+          action: call-service
+          service: script.start_bd_show
+      - type: custom:button-card
+        name: TV
+        icon: mdi:television-classic
+        show_state: false
+        tap_action: 
+          action: call-service
+          service: script.start_tv_show
+      - type: custom:button-card
+        name: Radio
+        icon: mdi:radio
+        show_state: false
+        tap_action: 
+          action: call-service
+          service: script.start_radio
+      - type: custom:button-card
+        name: CD
+        icon: mdi:music-circle-outline
+        show_state: false
+        tap_action: 
+          action: call-service
+          service: script.start_cd
+      #- type: custom:button-card
+      #  color_type: blank-card
+
   - type: custom:vertical-stack-in-card
     cards:
       - type: entities
