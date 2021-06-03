@@ -106,10 +106,10 @@ sensor:
     sensors:
       netreceiver_is_used:
         friendly_name: 'Yamaha R-N803 in Benutzung'
-#hack: on statt off, wenn N803D wieder aktiv
+# 'on' statt 'off', wenn N803D wieder aktiv
         value_template: >
           {%- if states('media_player.r_n803d_86ae28_main') == 'unknown' -%}
-            off 
+            off
           {%-  elif not states('media_player.r_n803d_86ae28_main') in ['off','idle'] 
                  and is_state('binary_sensor.netreceiver_online','on') -%}
             on

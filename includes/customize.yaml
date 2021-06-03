@@ -24,6 +24,10 @@
     battery_sensor_creation_disabled: true
   device_tracker.iphoneing:
     battery_sensor_creation_disabled: true
+  device_tracker.ipad_max:
+    battery_sensor_creation_disabled: true
+  device_tracker.ipad_ing:
+    battery_sensor_creation_disabled: true
   sensor.vacuum_status:
     battery_sensor_creation_disabled: true
   plant.plant_1:
