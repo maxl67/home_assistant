@@ -49,10 +49,10 @@ homeassistant:
       friendly_name: Download Speed
       icon: mdi:cloud-download
     # Raspberries
-    sensor.raspi1cpuusage:
+    sensor.raspi1_cpu_usage:
       <<: *common
       icon: mdi:cpu-64-bit
-    sensor.raspi2cpuusage:
+    sensor.raspi2_cpu_usage:
       <<: *common
       icon: mdi:cpu-64-bit
     binary_sensor.rpi_ost:

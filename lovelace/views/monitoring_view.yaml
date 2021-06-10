@@ -477,7 +477,7 @@ cards:
             open: false
             padding: 0 px
             entities:
-            - entity: sensor.raspi1lastboot
+            - entity: sensor.raspi1_last_boot
               name: letzter Systemstart
               icon: mdi:restart
             - entity: sensor.raspi1_updates
@@ -500,21 +500,21 @@ cards:
           cards:
             - type: custom:mini-graph-card
               entities:
-                - sensor.raspi1cpuusage
+                - sensor.raspi1_cpu_usage
               name: CPU
               icon: mdi:cpu-64-bit
               <<: *graph_rpi_cpu
             - type: custom:mini-graph-card
               entities:
-                - sensor.raspi1temperature
+                - sensor.raspi1_temperature
               name: Temp
               <<: *graph_rpi_temp
         - type: custom:bar-card
           entities:
-            - entity: sensor.raspi1memoryuse
+            - entity: sensor.raspi1_memory_use
               name: RAM
               icon: mdi:memory
-            - entity: sensor.raspi1diskuse
+            - entity: sensor.raspi1_disk_use
               name: SD-Card
               icon: mdi:sd
           <<: *bar_rpi_ram_hdd
@@ -548,7 +548,7 @@ cards:
             open: false
             padding: 0 px
             entities:
-            - entity: sensor.raspi2lastboot
+            - entity: sensor.raspi2_last_boot
               name: letzter Systemstart
               icon: mdi:restart
             - entity: sensor.raspi2_updates
@@ -586,21 +586,21 @@ cards:
           cards:
             - type: custom:mini-graph-card
               entities:
-                - sensor.raspi2cpuusage
+                - sensor.raspi2_cpu_usage
               name: CPU
               icon: mdi:cpu-64-bit
               <<: *graph_rpi_cpu
             - type: custom:mini-graph-card
               entities:
-                - sensor.raspi2temperature
+                - sensor.raspi2_temperature
               name: Temp
               <<: *graph_rpi_temp
         - type: custom:bar-card
           entities:
-            - entity: sensor.raspi2memoryuse
+            - entity: sensor.raspi2_memory_use
               name: RAM
               icon: mdi:memory
-            - entity: sensor.raspi2diskuse
+            - entity: sensor.raspi2_disk_use
               name: SD-Card
               icon: mdi:sd
           <<: *bar_rpi_ram_hdd

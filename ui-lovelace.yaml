@@ -14,7 +14,6 @@ background: var(--background-image)
 # Custom Header (Nachfolger von compact-custom-header)
 #   https://maykar.github.io/custom-header/#configuration/main
 custom_header:
-#  background: 'rgba(155, 155, 155, 0.25)'
   compact_mode: true
   menu_hide: false
   voice_hide: true

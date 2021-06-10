@@ -259,16 +259,29 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - binary_sensor.radiobad
       - binary_sensor.rpi_west
       - binary_sensor.rpi_ost
-      - sensor.raspi1memoryuse
-      - sensor.raspi2memoryuse
-      - sensor.raspi1DiskUse
-      - sensor.raspi2DiskUse
-      - sensor.raspi1_lastmessage
-      - sensor.raspi2_lastmessage
-      - sensor.raspi1lastboot
-      - sensor.raspi2lastboot
+      - sensor.raspi1_memory_use
+      - sensor.raspi2_memory_use
+      - sensor.raspi1_disk_use
+      - sensor.raspi2_disk_use
+      - sensor.raspi1_last_message
+      - sensor.raspi2_last_message
+      - sensor.raspi1_last_boot
+      - sensor.raspi2_last_boot
       - sensor.raspi1_updates
       - sensor.raspi2_updates
+      - sensor.raspi1_load_1m
+      - sensor.raspi1_load_5m
+      - sensor.raspi1_load_15m
+      - sensor.raspi1_network_upload
+      - sensor.raspi1_network_download
+      - sensor.raspi1_swap_usage
+      - sensor.raspi2_load_1m
+      - sensor.raspi2_load_5m
+      - sensor.raspi2_load_15m
+      - sensor.raspi2_network_upload
+      - sensor.raspi2_network_download
+      - sensor.raspi2_swap_usage
+
     # Home Assistant
       - sensor.latest_version
       - sensor.hacs
