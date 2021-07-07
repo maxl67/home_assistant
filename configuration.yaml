@@ -47,6 +47,7 @@ http:
 ################################################################
 ## Includes (mostly moved to packages)
 ################################################################
+automation: !include automations.yaml #used for blueprints
 binary_sensor: !include includes/binary_sensors.yaml
 zone: !include includes/zones.yaml
 
@@ -163,6 +164,9 @@ lovelace:
       type: module
     - url: /hacsfiles/zha-network-card/zha-network-card.js
       type: module
+    - url: /hacsfiles/lovelace-xiaomi-vacuum-map-card/xiaomi-vacuum-map-card.js
+      type: module
+
     # Repo: https://github.com/sgttrs/lovelace-weather-card-chart
     - url: /hacsfiles/lovelace-weather-card-chart/weather-card-chart.js
       type: module

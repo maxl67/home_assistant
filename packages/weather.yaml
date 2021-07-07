@@ -153,6 +153,7 @@ sensor:
 
   - platform: dwd_weather_warnings
     region_name: !secret dwd_region_name
+    # https://www.home-assistant.io/integrations/dwd_weather_warnings/
     # Typen der Warnungen
     # 0: Gewitter, Starkes Gewitter
     # 1: Windböen, Sturmböen, schwere Sturmböen

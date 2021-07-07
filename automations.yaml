@@ -1,0 +1,8 @@
+- id: '1625656745841'
+  alias: Disable vacuum camera update when docked
+  description: ''
+  use_blueprint:
+    path: PiotrMachowski/disable_vacuum_camera_update_when_docked.yaml
+    input:
+      vacuum: vacuum.xiaomi_vacuum_cleaner
+      camera: camera.xiaomi_cloud_map_extractor

@@ -464,7 +464,8 @@ automation:
 
   # save the time a status was changed last, because these values will be reset every time HA is rebooted.
   #   we need that time to trigger status changes (e.g 'extended_away')
-  - id: personstatus_last_changed_date_and_time #Person-Status and home-status last changed date and time
+  - alias: Save last time person status changed
+    id: personstatus_last_changed_date_and_time #Person-Status and home-status last changed date and time
     trigger:
       platform: state
       entity_id: 

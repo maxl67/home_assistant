@@ -86,15 +86,15 @@ cards:
                 border: 0px solid green;
               }
           content: >
-              <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes.region_name }}</h3>
+              <h3>{{ state_attr('sensor.dwd_weather_warnings_current_warning_level','region_name') }}</h3>
               Aktuell 
-              {% if states.sensor.dwd_current_warn_count.state|int == 1 %}
-                besteht {{states.sensor.dwd_current_warn_count.state}} Warnung 
+              {% if states('sensor.dwd_current_warn_count')|int == 1 %}
+                besteht {{ states('sensor.dwd_current_warn_count') }} Warnung 
               {% else %}
-                bestehen {{states.sensor.dwd_current_warn_count.state}} Warnungen 
+                bestehen {{ states('sensor.dwd_current_warn_count') }} Warnungen 
               {% endif %}
-              mit der maximalen Stufe {{states.sensor.dwd_max_warn_level.state}}.
-              {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
+              mit der maximalen Stufe {{ states('sensor.dwd_max_warn_level') }}.
+              {%- for i in range(0, state_attr('sensor.dwd_weather_warnings_current_warning_level','warning_count')) -%}
                 {%- set type_attr=  "warning_"+loop.index|string + "_type" -%}
                 {%- set lvl_attr=   "warning_"+loop.index|string + "_level" -%}
                 {%- set head_attr=  "warning_"+loop.index|string + "_headline" -%}
@@ -103,7 +103,7 @@ cards:
                 {%- set desc_attr=  "warning_"+loop.index|string + "_description" -%}
                 <hr/>
                 <em>
-                {%- set start_time= states.sensor.dwd_weather_warnings_current_warning_level.attributes[start_attr] -%}
+                {%- set start_time= state_attr('sensor.dwd_weather_warnings_current_warning_level',start_attr) -%}
                 {%- set days = (start_time.strftime('%j') | int) - (now().strftime('%j')) | int  -%}
                 {% if as_timestamp(start_time) <= as_timestamp(now()) %}
                 jetzt
@@ -115,14 +115,14 @@ cards:
                 in {{days}} Tagen
                 {% endif %}
                 </em>
-                <h3>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes[head_attr] }}</h3>
-                <em>Warnstufe:</em> <strong>{{ states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr] }}</strong>
+                <h3>{{ state_attr('sensor.dwd_weather_warnings_current_warning_level',head_attr) }}</h3>
+                <em>Warnstufe:</em> <strong>{{ state_attr('sensor.dwd_weather_warnings_current_warning_level',lvl_attr) }}</strong>
                 <br>
-                <em>Von:</em> {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes[start_attr]) | timestamp_custom("%a %d.%m %H:%M",true) }}
+                <em>Von:</em> {{ as_timestamp(state_attr('sensor.dwd_weather_warnings_current_warning_level',start_attr)) | timestamp_custom('%a %d.%m %H:%M',true) }}
                 <br>
-                <em>Bis:</em> {{ as_timestamp(states.sensor.dwd_weather_warnings_current_warning_level.attributes[end_attr]) | timestamp_custom("%a %d.%m %H:%M",true) }}
+                <em>Bis:</em> {{ as_timestamp(state_attr('sensor.dwd_weather_warnings_current_warning_level',end_attr)) | timestamp_custom('%a %d.%m %H:%M',true) }}
                 <br>
-                {{ states.sensor.dwd_weather_warnings_current_warning_level.attributes[desc_attr] }}
+                {{ state_attr('sensor.dwd_weather_warnings_current_warning_level',desc_attr) }}
                 <br>
                 <br>
               {%- endfor -%}

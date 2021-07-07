@@ -286,8 +286,15 @@ cards:
       entities:
       - entity: input_select.vacuum_room
         name: 'welchen Raum reinigen:'
-      - type: section
-        label: automatisches Saugen #automatic cleanup
+      # hack: separate Card
+      #- type: section
+      #  label: automatisches Saugen #automatic cleanup
+  - type: custom:vertical-stack-in-card
+    cards:
+    - type: entities
+      state_color: true
+      entities:
+      # end hack
       - entity: switch.enable_automatic_vacuum
         toggle: true
         name: Automatisches Saugen aktivieren #enable Daily Cleanup
@@ -340,6 +347,15 @@ cards:
             - entity: sensor.vacuum_cleaned_room
               name: Bereich
 
+  #------------------------------------------------------------
+  # Vacuum map card using data from Xiaomi Cloud Map Extractor
+  - type: custom:xiaomi-vacuum-map-card
+    entity: vacuum.xiaomi_vacuum_cleaner
+    map_camera: camera.xiaomi_cloud_map_extractor
+    camera_calibration: true
+    language: de
+
+  #------------------------------------------------------------
   # DEBUG: show some additional infos (while implementing)
   - type: conditional
     conditions:

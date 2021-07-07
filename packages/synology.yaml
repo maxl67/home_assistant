@@ -35,13 +35,13 @@ homeassistant:
 ################################################
 ##   Platforms
 ################################################
-  # Synology DSM integration
-synology_dsm:
-  host: !secret DS_local_IP
-  port: !secret DSM_port
-  ssl: true
-  username: !secret DSM_sensor_username
-  password: !secret DSM_sensor_password
+  # Synology DSM integration (YAML Config deprecated in v2021.6)
+#synology_dsm:
+#  host: !secret DS_local_IP
+#  port: !secret DSM_port
+#  ssl: true
+#  username: !secret DSM_sensor_username
+#  password: !secret DSM_sensor_password
 #  monitored_conditions:
 #    - cpu_total_load
 #    - cpu_5min_load  # Leistung: avg. # of processes + length queue (not %)

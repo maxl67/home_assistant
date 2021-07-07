@@ -74,6 +74,30 @@ homeassistant:
 #    token: !secret xiaomi_vacuum_token
 #    #name: xiaomi_vacuum_cleaner
 
+# https://community.home-assistant.io/t/xiaomi-cloud-vacuum-map-extractor/231292
+# https://github.com/PiotrMachowski/Home-Assistant-custom-components-Xiaomi-Cloud-Map-Extractor
+camera:
+  - platform: xiaomi_cloud_map_extractor
+    host: !secret xiaomi_vacuum_ip
+    token: !secret xiaomi_vacuum_token
+    username: !secret xiaomi_cloud_username
+    password: !secret xiaomi_cloud_password
+    draw: ['all']
+    auto_update: true
+    store_map: false
+    scan_interval:
+      seconds: 5
+    attributes:
+      - calibration_points
+    map_transformation:
+      scale: 1.3
+      trim:
+        top: 15
+        bottom: 18
+        left: 20
+        right: 22
+    colors:
+      color_map_outside: [225, 225, 225]
 
 ###############################################################################
 ##  Variables

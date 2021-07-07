@@ -95,13 +95,14 @@ homeassistant:
 ##   Platforms
 ################################################
 # uses the Speedtest.net web service to measure network bandwidth performance
-speedtestdotnet:
-  scan_interval:
-    minutes: 30
-  monitored_conditions:
-    - ping
-    - download
-    - upload
+# (YAML Config deprecated in v2021.6)
+#speedtestdotnet:
+#  scan_interval:
+#    minutes: 30
+#  monitored_conditions:
+#    - ping
+#    - download
+#    - upload
 
 sensor:
   # raspi1Sensors, raspi2Sensors: 
