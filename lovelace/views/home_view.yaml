@@ -1,3 +1,13 @@
+anchors:
+  style_entitycard_header: &style_header
+    card_mod: 
+      style: |
+        .card-header {
+          font-size: 20px;
+          padding: 10px 16px;
+        }
+
+#---------------------------------
 #id: home
 title: Home
 icon: mdi:home
@@ -82,9 +92,9 @@ cards:
     entities:
       - entity: switch.osram_plug_01_a1bf020a_3
         name: HiFi-Rack
-      - entity: switch.fritz_dect_200_1
+      - entity: switch.fritz_dect_200_netz
         name: Network-Rack
-      - entity: switch.fritz_dect_200_2
+      - entity: switch.fritz_dect_200_gz
         name: Schreibtisch Max
       - type: divider
       - entity: switch.enable_power_automation

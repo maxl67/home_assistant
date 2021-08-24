@@ -335,9 +335,9 @@ cards:
             name: Gästez (HmIP)
           - entity: sensor.hm_thermo_gz_current_temp
             name: Gästez (HmIP)
-          - entity: sensor.fritz_switch1_temperature
+          - entity: sensor.fritz_dect_200_netz_temperature
             name: Netzwerk-Rack
-          - entity: sensor.fritz_switch2_temperature
+          - entity: sensor.fritz_dect_200_gz_temperature
             name: Schreibtisch M
       - type: history-graph
         hours_to_show: 24

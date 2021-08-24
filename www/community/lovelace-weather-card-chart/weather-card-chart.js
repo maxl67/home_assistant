@@ -136,7 +136,7 @@ class WeatherCardChart extends Polymer.Element {
           margin: 10px 0px 10px 0px;
         }
         .attributes div {
-          text-align: center;
+          text-align: left;
         }
         .conditions {
           display: flex;
@@ -169,10 +169,16 @@ class WeatherCardChart extends Polymer.Element {
             </div>
             <div>
               <ha-icon icon="[[getWindDirIcon(windBearing)]]"></ha-icon> [[getWindDir(windBearing)]]<br>
-              <ha-icon icon="hass:weather-windy"></ha-icon> [[computeWind(weatherObj.attributes.wind_speed)]] [[ll('uSpeed')]]
+              <ha-icon icon="hass:weather-windy"></ha-icon>
+              <template is="dom-if" if="[[windObj]]">
+                [[roundNumber(windObj.state)]] [[ll('uSpeed')]]                
+              </template>
+              <template is="dom-if" if="[[!windObj]]">
+                [[computeWind(weatherObj.attributes.wind_speed)]] [[ll('uSpeed')]]
+              </template>
             </div>
           </div>
-          <ha-chart-base hass="[[_hass]]" data="[[ChartData]]"></ha-chart-base>
+          <ha-chart-base data="[[ChartData]]" options="[[ChartOptions]]"></ha-chart-base>
           <div class="conditions">
             <template is="dom-repeat" items="[[forecast]]">
               <div>
@@ -190,6 +196,7 @@ class WeatherCardChart extends Polymer.Element {
       config: Object,
       sunObj: Object,
       tempObj: Object,
+      windObj: Object,
       mode: String,
       weatherObj: {
         type: Object,
@@ -229,6 +236,7 @@ class WeatherCardChart extends Polymer.Element {
     this.title = config.title;
     this.weatherObj = config.weather;
     this.tempObj = config.temp;
+    this.windObj = config.wind;
     this.mode = config.mode;
     if (!config.weather) {
       throw new Error('Please define "weather" entity in the card config');
@@ -241,6 +249,7 @@ class WeatherCardChart extends Polymer.Element {
     this.weatherObj = this.config.weather in hass.states ? hass.states[this.config.weather] : null;
     this.sunObj = 'sun.sun' in hass.states ? hass.states['sun.sun'] : null;
     this.tempObj = this.config.temp in hass.states ? hass.states[this.config.temp] : null;
+    this.windObj = this.config.wind in hass.states ? hass.states[this.config.wind] : null;
     this.forecast = this.weatherObj.attributes.forecast.slice(0,9);
     this.windBearing = this.weatherObj.attributes.wind_bearing;
   }
@@ -295,6 +304,9 @@ class WeatherCardChart extends Polymer.Element {
   }
 
   drawChart() {
+    if (!this.weatherObj.attributes || !this.weatherObj.attributes.forecast) {
+      return [];
+    }
     var data = this.weatherObj.attributes.forecast.slice(0,9);
     var locale = this._hass.selectedLanguage || this._hass.language;
     var tempUnit = this._hass.config.unit_system.temperature;
@@ -302,9 +314,6 @@ class WeatherCardChart extends Polymer.Element {
     var precipUnit = lengthUnit === 'km' ? this.ll('uPrecip') : 'in';
     var mode = this.mode;
     var i;
-    if (!this.weatherObj.attributes.forecast) {
-      return [];
-    }
     var dateTime = [];
     var tempHigh = [];
     var tempLow = [];
@@ -319,59 +328,93 @@ class WeatherCardChart extends Polymer.Element {
     var style = getComputedStyle(document.body);
     var textColor = style.getPropertyValue('--primary-text-color');
     var dividerColor = style.getPropertyValue('--divider-color');
+    const chartData = {
+      labels: dateTime,
+      datasets: [
+        {
+          label: this.ll('tempHi'),
+          type: 'line',
+          data: tempHigh,
+          xAxisID: "xAxes",
+          yAxisID: 'yTempAxis',
+          borderWidth: 2.0,
+          lineTension: 0.4,
+          pointRadius: 0.0,
+          pointHitRadius: 5.0,
+          borderColor: "#ff0029",
+          backgroundColor: "#ff0029",
+          fill: false,
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                var label = context.dataset.label || '';
+                return label += ': ' + context.parsed.y + tempUnit;
+              }
+            }
+          }
+          },
+        {
+          label: this.ll('tempLo'),
+          type: 'line',
+          data: tempLow,
+          xAxisID: "xAxes",
+          yAxisID: 'yTempAxis',
+          borderWidth: 2.0,
+          lineTension: 0.4,
+          pointRadius: 0.0,
+          pointHitRadius: 5.0,
+          borderColor: "#66a61e",
+          backgroundColor: "#66a61e",
+          fill: false,
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                var label = context.dataset.label || '';
+                return label += ': ' + context.parsed.y + tempUnit;
+              }
+            }
+          }
+        },
+        {
+          label: this.ll('precip'),
+          type: 'bar',
+          barThickness: 8,
+          maxBarThickness: 15,
+          data: precip,
+          xAxisID: "xAxes",
+          yAxisID: 'yPrecipAxis',
+          borderColor: "#262889",
+          backgroundColor: "#262889",
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                var label = context.dataset.label || '';
+                return label += ': ' + context.parsed.y + precipUnit;
+              }
+            }
+          }
+        },
+      ]
+    }
     const chartOptions = {
-      type: 'bar',
-      data: {
-        labels: dateTime,
-        datasets: [
-          {
-            label: this.ll('tempHi'),
-            type: 'line',
-            data: tempHigh,
-            yAxisID: 'TempAxis',
-            borderWidth: 2.0,
-            lineTension: 0.4,
-            pointRadius: 0.0,
-            pointHitRadius: 5.0,
-            fill: false,
-          },
-          {
-            label: this.ll('tempLo'),
-            type: 'line',
-            data: tempLow,
-            yAxisID: 'TempAxis',
-            borderWidth: 2.0,
-            lineTension: 0.4,
-            pointRadius: 0.0,
-            pointHitRadius: 5.0,
-            fill: false,
-          },
-          {
-            label: this.ll('precip'),
-            type: 'bar',
-            data: precip,
-            yAxisID: 'PrecipAxis',
-          },
-        ]
-      },
-      options: {
         animation: {
           duration: 300,
           easing: 'linear',
-          onComplete: function () {
-            var chartInstance = this.chart,
+          onComplete: function (animation) {
+            var chartInstance = animation.chart,
               ctx = chartInstance.ctx;
             ctx.fillStyle = textColor;
             var fontSize = 10;
             var fontStyle = 'normal';
             var fontFamily = 'Roboto';
-            ctx.font = Chart.helpers.fontString(fontSize, fontStyle, fontFamily);
+            ctx.font = fontStyle + ' ' + fontSize + 'px ' + fontFamily;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'bottom';
-            var meta = chartInstance.controller.getDatasetMeta(2);
+            var meta = chartInstance.getDatasetMeta(2);
             meta.data.forEach(function (bar, index) {
               var data = (Math.round((chartInstance.data.datasets[2].data[index]) * 10) / 10).toFixed(1);
-              ctx.fillText(data, bar._model.x, bar._model.y - 5);
+              if (data > 0)
+                ctx.fillText(data, bar.x, bar.y - 5);
             });
           },
         },
@@ -379,21 +422,30 @@ class WeatherCardChart extends Polymer.Element {
           display: false,
         },
         scales: {
-          xAxes: [{
+          xAxes: {
             type: 'time',
-            maxBarThickness: 15,
+            adapters: {
+              date: {
+                locale: this.lang,
+              },
+            },
             display: false,
             ticks: {
               display: false,
             },
-            gridLines: {
+            grid: {
               display: false,
             },
           },
-          {
-            id: 'DateAxis',
+          xDateAxis: {
+            type: 'time',
             position: 'top',
-            gridLines: {
+            adapters: {
+              date: {
+                locale: this.lang,
+              },
+            },
+            grid: {
               display: true,
               drawBorder: false,
               color: dividerColor,
@@ -405,21 +457,23 @@ class WeatherCardChart extends Polymer.Element {
               fontColor: textColor,
               maxRotation: 0,
               callback: function(value, index, values) {
-                var data = new Date(value).toLocaleDateString(locale,
-                  { weekday: 'short' });
-                var time = new Date(value).toLocaleTimeString(locale,
-                  { hour: 'numeric' });
+                var date = new Date(0);
+                date.setUTCMilliseconds(values[index].value);
                 if (mode == 'hourly') {
-                  return time;
+                  return date.toLocaleTimeString(locale, { hour: 'numeric' });
                 }
-                return data;
+                return date.toLocaleDateString(locale, { weekday: 'short' });;
               },
             },
-          }],
-          yAxes: [{
-            id: 'TempAxis',
+          },
+          yTempAxis: {
             position: 'left',
-            gridLines: {
+            adapters: {
+              date: {
+                locale: this.lang ,
+              },
+            },
+            grid: {
               display: true,
               drawBorder: false,
               color: dividerColor,
@@ -430,13 +484,19 @@ class WeatherCardChart extends Polymer.Element {
               fontColor: textColor,
             },
             afterFit: function(scaleInstance) {
-              scaleInstance.width = 28;
+              scaleInstance.width = 37;
             },
           },
-          {
-            id: 'PrecipAxis',
+          yPrecipAxis: {
+            display: false,
             position: 'right',
-            gridLines: {
+            suggestedMax: 20,
+            adapters: {
+              date: {
+                locale: this.lang,
+              },
+            },
+            grid: {
               display: false,
               drawBorder: false,
               color: dividerColor,
@@ -444,41 +504,37 @@ class WeatherCardChart extends Polymer.Element {
             ticks: {
               display: false,
               min: 0,
-              suggestedMax: 20,
               fontColor: textColor,
             },
             afterFit: function(scaleInstance) {
               scaleInstance.width = 15;
             },
-          }],
-        },
-        tooltips: {
-          mode: 'index',
-          callbacks: {
-            title: function (items, data) {
-              const item = items[0];
-              const date = data.labels[item.index];
-              return new Date(date).toLocaleDateString(locale, {
-                month: 'long',
-                day: 'numeric',
-                weekday: 'long',
-                hour: 'numeric',
-                minute: 'numeric',
-              });
-            },
-            label: function(tooltipItems, data) {
-              var label = data.datasets[tooltipItems.datasetIndex].label || '';
-              if (data.datasets[2].label == label) {
-                return label + ': ' + (tooltipItems.yLabel ?
-                  (tooltipItems.yLabel + ' ' + precipUnit) : ('0 ' + precipUnit));
-              }
-              return label + ': ' + tooltipItems.yLabel + ' ' + tempUnit;
-            },
           },
         },
-      },
-    };
-    this.ChartData = chartOptions;
+        plugins: {
+          tooltip: {
+            callbacks: {
+              title: function(context) {
+                var date = new Date(context[0].label);
+                if (mode == 'hourly') {
+                  return date.toLocaleTimeString(locale, { 
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    });
+                }
+                return date.toLocaleDateString(locale, {
+                  month: 'long',
+                  day: 'numeric',
+                  weekday: 'long',
+                });;
+              }
+            }
+          }
+        },
+ 
+      }
+    this.ChartData = chartData;
+    this.ChartOptions = chartOptions;
   }
 
   _fire(type, detail, options) {

@@ -1,8 +1,30 @@
-title: Wetter
+anchors:
+  style_entitycard_header: &style_header
+    card_mod: 
+      style: |
+        .card-header {
+          font-size: 20px;
+          padding: 10px 16px;
+        }
+
+#---------------------------------title: Wetter
 path: weather
 icon: mdi:weather-partly-cloudy
 cards:
   # show weather alerts (if current_warn_count > 0)
+  # current weather info and forcast
+  - type: custom:weather-card-chart
+    title: #Woche (DWD)
+    weather: weather.dwd_weather_ak_stuttgart
+    #sun: sun.sun
+    mode: daily #hourly|daily  - hourly display is not good.
+    #locale: 'de-DE'
+    style: |
+      .card-header {
+        padding: 20px 16px 10px;
+        line-height: 32px;
+      }
+
   - type: conditional
     conditions:
       - entity: sensor.dwd_current_warn_count
@@ -47,6 +69,13 @@ cards:
               icon: mdi:weather-pouring
               entities:
               - entity: sensor.dwd_current_warn_level_regen
+                name: Level            
+            - entity: sensor.dwd_current_warn_hagel
+              type: custom:multiple-entity-row
+              name: Hagel-Warnung
+              icon: mdi:weather-hail
+              entities:
+              - entity: sensor.dwd_current_warn_level_hagel
                 name: Level
             - entity: sensor.dwd_current_warn_schnee
               type: custom:multiple-entity-row
@@ -127,29 +156,35 @@ cards:
                 <br>
               {%- endfor -%}
 
-  # current weather info and forcast
-  - type: custom:weather-card-chart
-    #title: Woche (DWD)
-    weather: weather.dwd_weather_ak_stuttgart
-    temp: sensor.tem
-    wind:
-    #sun: sun.sun
-    mode: daily #hourly|daily  - hourly display is not good.
-    #locale: 'de-DE'
-
   # MeteoBlue Meteogram
   - type: picture
-    image: 'http://my.meteoblue.com/visimage/meteogram_web?look=KILOMETER_PER_HOUR%2CCELSIUS%2CMILLIMETER&apikey=5838a18e295d&temperature=C&windspeed=kmh&precipitationamount=mm&winddirection=3char&city=Stuttgart&iso2=de&lat=48.782299&lon=9.177020&asl=252&tz=Europe%2FBerlin&lang=de&sig=a86db103ee5f9645c8cf6d515d53a90b'
+    image: !secret meteogram_image
     tap_action:
       action: url
-      url_path: https://www.meteoblue.com/de/wetter/woche/stuttgart_deutschland_2825297
-  
+      url_path: !secret meteogram_url
+
+  # Sonnenschein
   - type: entities
+    title: Sonnenstand & -schein
     show_header_toggle: false
+    <<: *style_header
     entities:
       - entity: weather.dwd_weather_ak_stuttgart
-      - entity: sensor.sun_direction
+        name: Temperatur (DWD)
+      - type: section
+        label: Sonnenstand
       - entity: sensor.sun_elevation
+        type: custom:multiple-entity-row
+        name: Azimut
+        icon: mdi:weather-sunset #.orbit
+        state_header: Höhe
+        entities:
+        - entity: sensor.sun_direction
+          name: Richtung
+      - entity: sun.sun
+        icon: mdi:theme-light-dark
+      - type: section
+        label: Sonnenschein
       - entity: sensor.sun_is_shining
       - entity: sensor.sunshine_intensity
 

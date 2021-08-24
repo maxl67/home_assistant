@@ -127,26 +127,28 @@ cards:
           - type: custom:fold-entity-row
             head:
               type: section
+              label: System
+            padding: 0 px
+            open: false
+            entities:
+              - entity: sensor.fritz_box_6490_cable_device_uptime
+                name: letzter Reboot
+          - type: custom:fold-entity-row
+            head:
+              type: section
               label: Provider
             padding: 0 px
             open: false
             entities:
-            - entity: sensor.fritz_last_boot
-              type: custom:multiple-entity-row
-              name: letzter Connect
-              entities:
-              - entity: sensor.fritz_uptime
-                name: uptime 
-            - entity: sensor.fritzbox #fritz_is_linked
-              name: Verbindung
-              icon: mdi:wan
-            - entity: sensor.fritz_external_ip
-              type: custom:multiple-entity-row
-              name: IPv4
-              secondary_info: last-changed
-              entities:
-              - entity: sensor.fritz_is_connected
-                name: internet
+              - entity: sensor.fritz_box_6490_cable_connection_uptime
+                name: letzter Connect
+              - entity: binary_sensor.fritz_box_6490_cable_connectivity #fritz_is_linked
+                name: Verbindung
+                icon: mdi:wan
+              - entity: sensor.fritz_box_6490_cable_external_ip
+                type: custom:multiple-entity-row
+                name: IPv4
+                secondary_info: last-changed
           - type: section
             #- entity: sensor.fritz_rate_up
             #- entity: sensor.fritz_rate_down
@@ -621,7 +623,7 @@ cards:
         hours_to_show: 24
         <<: *style_header
         entities:
-          - entity: sensor.fritz_switch1_currentpower
+          - entity: sensor.fritz_dect_200_netz_power_consumption
             name: Unifi-Netzwerk
-          - entity: sensor.fritz_switch2_currentpower
+          - entity: sensor.fritz_dect_200_gz_power_consumption
             name: Schreibtisch M

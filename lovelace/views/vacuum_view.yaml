@@ -195,6 +195,9 @@ cards:
           style:
             left: 1%
             <<: *style_label_column
+          tap_action:
+            action: call-service
+            service: script.vacuum_update_map
         - type: state-label
           entity: sensor.vacuum_accessories
           style:

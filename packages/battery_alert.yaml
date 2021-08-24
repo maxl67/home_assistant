@@ -19,6 +19,14 @@
 #              or (item.entity_id | lower).endswith('_bat')
 #              or (item.name | lower).endswith('_bat')
 #              ) or (
+#
+## MR 08.07.21: Zeile ergänzt:
+## - alias: battery_sensor_from_attributes
+#    initial_state: true
+#    mode: queued #MR: added to suppress LOG messages
+#    trigger:
+#      ...
+
 ################################################################
 
 ################################################################
@@ -673,6 +681,7 @@ automation:
 
 - alias: battery_sensor_from_attributes
   initial_state: true
+  mode: queued  # MR: added to suppress LOG messages
   trigger:
     - platform: event
       event_type: state_changed

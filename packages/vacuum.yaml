@@ -84,7 +84,7 @@ camera:
     password: !secret xiaomi_cloud_password
     draw: ['all']
     auto_update: true
-    store_map: false
+    store_map_image: true
     scan_interval:
       seconds: 5
     attributes:
@@ -97,7 +97,8 @@ camera:
         left: 20
         right: 22
     colors:
-      color_map_outside: [225, 225, 225]
+      color_map_outside: [28,28,28]
+      color_map_wall_v2: [225, 225, 225]
 
 ###############################################################################
 ##  Variables
@@ -416,6 +417,14 @@ script:
           entity_id: vacuum.xiaomi_vacuum_cleaner
           fan_speed: "{{ new_fanspeed }}"
 
+  vacuum_update_map:
+    sequence:
+      - service: camera.turn_on
+        data:
+          entity_id: camera.xiaomi_cloud_map_extractor
+      - service: camera.turn_off
+        data:
+          entity_id: camera.xiaomi_cloud_map_extractor
 
 ###############################################################################
 ##  Automations

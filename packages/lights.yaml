@@ -155,6 +155,8 @@ automation:
       - condition: state  # from sunset until sunrise
         entity_id: sun.sun
         state: 'below_horizon'
+      # und nicht nach systemstart
+      # todo
     action:
       - service: scene.turn_on
         data:

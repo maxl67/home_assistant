@@ -138,7 +138,7 @@ sensor:
         unit_of_measurement: '°'
         friendly_name: Sonnenhöhe
       sun_is_shining:
-        value_template: "{{ states('weather.dwd_weather_ak_stuttgart') in ('sunny','partlycloudy') }}"
+        value_template: "{{ states('weather.dwd_weather_ak_stuttgart') in ('sunny','partlycloudy') and state_attr('sun.sun', 'elevation') > 1 }}"
         friendly_name: Sonne scheint
       sunshine_intensity:
         value_template: >
@@ -154,6 +154,7 @@ sensor:
   - platform: dwd_weather_warnings
     region_name: !secret dwd_region_name
     # https://www.home-assistant.io/integrations/dwd_weather_warnings/
+    # https://www.dwd.de/DE/leistungen/opendata/help/warnungen/warning_codes_pdf.pdf?__blob=publicationFile&v=5
     # Typen der Warnungen
     # 0: Gewitter, Starkes Gewitter
     # 1: Windböen, Sturmböen, schwere Sturmböen
@@ -189,7 +190,7 @@ sensor:
         value_template: >
           {% set ns = namespace(found=false) %}
           {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith('_type') -%}
-              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr]==0 %}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr] in [0, 31, 33, 34, 36, 38, 40, 41, 42, 44, 45, 46, 48, 49, 90, 91, 92 ,93, 95, 96] %}
                   {% set ns.found = true %}
               {% endif %}
           {% endfor %}
@@ -200,7 +201,7 @@ sensor:
           {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
             {%- set type_attr= 'warning_'+loop.index|string + '_type' -%}
             {%- set lvl_attr=  'warning_'+loop.index|string + '_level' -%}
-            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] == 0 -%}
+            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] in [0, 31, 33, 34, 36, 38, 40, 41, 42, 44, 45, 46, 48, 49, 90, 91, 92 ,93, 95, 96] -%}
                {%- set ns.level = (ns.level, states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr])|max  -%}
             {%- endif -%}
           {%- endfor -%}
@@ -210,7 +211,7 @@ sensor:
         value_template: >
           {% set ns = namespace(found=false) %}
           {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith('_type') -%}
-              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr]==1 %}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr] in [1, 40, 41, 44, 45, 48, 51, 52, 53, 54, 55, 56, 96] %}
                   {% set ns.found = true %}
               {% endif %}
           {% endfor %}
@@ -221,7 +222,7 @@ sensor:
           {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
             {%- set type_attr= 'warning_'+loop.index|string + '_type' -%}
             {%- set lvl_attr=  'warning_'+loop.index|string + '_level' -%}
-            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] == 1 -%}
+            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] in [1, 40, 41, 44, 45, 48, 51, 52, 53, 54, 55, 56, 96] -%}
                {%- set ns.level = (ns.level, states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr])|max  -%}
             {%- endif -%}
           {%- endfor -%}
@@ -231,7 +232,7 @@ sensor:
         value_template: >
           {% set ns = namespace(found=false) %}
           {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith('_type') -%}
-              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr]==2 %}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr] in [2, 42, 44, 45, 46, 48, 49, 61, 62, 63, 64, 65, 66, 95, 96] %}
                   {% set ns.found = true %}
               {% endif %}
           {% endfor %}
@@ -242,7 +243,7 @@ sensor:
           {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
             {%- set type_attr= 'warning_'+loop.index|string + '_type' -%}
             {%- set lvl_attr=  'warning_'+loop.index|string + '_level' -%}
-            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] == 2 -%}
+            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] in [2, 42, 44, 45, 46, 48, 49, 61, 62, 63, 64, 65, 66, 95, 96] -%}
                {%- set ns.level = (ns.level, states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr])|max  -%}
             {%- endif -%}
           {%- endfor -%}
@@ -252,7 +253,7 @@ sensor:
         value_template: >
           {% set ns = namespace(found=false) %}
           {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith('_type') -%}
-              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr]==3 %}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr] in [3, 70, 71, 72, 73, 74, 75, 76] %}
                   {% set ns.found = true %}
               {% endif %}
           {% endfor %}
@@ -263,7 +264,7 @@ sensor:
           {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
             {%- set type_attr= 'warning_'+loop.index|string + '_type' -%}
             {%- set lvl_attr=  'warning_'+loop.index|string + '_level' -%}
-            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] == 3 -%}
+            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] in [3, 70, 71, 72, 73, 74, 75, 76] -%}
                {%- set ns.level = (ns.level, states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr])|max  -%}
             {%- endif -%}
           {%- endfor -%}
@@ -273,7 +274,7 @@ sensor:
         value_template: >
           {% set ns = namespace(found=false) %}
           {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith('_type') -%}
-              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr]==6 %}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr] in [6, 24, 84, 85, 87] %}
                   {% set ns.found = true %}
               {% endif %}
           {% endfor %}
@@ -284,7 +285,7 @@ sensor:
           {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
             {%- set type_attr= 'warning_'+loop.index|string + '_type' -%}
             {%- set lvl_attr=  'warning_'+loop.index|string + '_level' -%}
-            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] == 6 -%}
+            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] in [6, 24, 84, 85, 87] -%}
                {%- set ns.level = (ns.level, states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr])|max  -%}
             {%- endif -%}
           {%- endfor -%}
@@ -294,7 +295,7 @@ sensor:
         value_template: >
           {% set ns = namespace(found=false) %}
           {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith('_type') -%}
-              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr]==5 %}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr] in [5, 22, 82] %}
                   {% set ns.found = true %}
               {% endif %}
           {% endfor %}
@@ -305,18 +306,39 @@ sensor:
           {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
             {%- set type_attr= 'warning_'+loop.index|string + '_type' -%}
             {%- set lvl_attr=  'warning_'+loop.index|string + '_level' -%}
-            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] == 5 -%}
+            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] in [5, 22, 82] -%}
                {%- set ns.level = (ns.level, states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr])|max  -%}
             {%- endif -%}
           {%- endfor -%}
           {{ns.level}}
 
+      dwd_current_warn_hagel:
+        value_template: >
+          {% set ns = namespace(found=false) %}
+          {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith('_type') -%}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr] in [46, 48, 49, 95, 96] %}
+                  {% set ns.found = true %}
+              {% endif %}
+          {% endfor %}
+          {{ns.found}}
+      dwd_current_warn_level_hagel:
+        value_template: >
+          {%- set ns = namespace(level=0) -%}
+          {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
+            {%- set type_attr= 'warning_'+loop.index|string + '_type' -%}
+            {%- set lvl_attr=  'warning_'+loop.index|string + '_level' -%}
+            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] in [46, 48, 49, 95, 96] -%}
+               {%- set ns.level = (ns.level, states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr])|max  -%}
+            {%- endif -%}
+          {%- endfor -%}
+          {{ns.level}}          
 
 ###############################################################################
 ##  Automations
 ###############################################################################
 automation:
   - id: send_notification_dwd_warning
+    alias: send_notification_dwd_warning
     initial_state: True
     trigger:
       - platform: state
@@ -345,6 +367,7 @@ automation:
         entity_id: script.send_dwd_warn_mail
   
   - id: reset_notification_dwd_warning
+    alias: reset_notification_dwd_warning
     trigger:
       # keine DWD Warnungen mehr und Wetter-Alarm=an
       platform: template

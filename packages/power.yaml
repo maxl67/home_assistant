@@ -20,8 +20,8 @@ homeassistant:
       int_minutes_away_for_power_down: &int_minutes_away_for_power_down 20
       int_minutes_home_for_power_up: &int_minutes_home_for_power_up 2
       # entity-id's
-      powerswitch_rack_entityid: &powerswitch_rack_entityid switch.fritz_dect_200_1
-      powerswitch_gz_entityid: &powerswitch_gz_entityid switch.fritz_dect_200_2
+      powerswitch_rack_entityid: &powerswitch_rack_entityid switch.fritz_dect_200_netz
+      powerswitch_gz_entityid: &powerswitch_gz_entityid switch.fritz_dect_200_gz
       powerswitch_tv_entityid: &powerswitch_tv_entityid switch.osram_plug_01_a1bf020a_3
   # entities
     switch.osram_plug_01_a1bf020a_3:

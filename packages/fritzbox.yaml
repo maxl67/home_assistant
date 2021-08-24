@@ -16,17 +16,7 @@ homeassistant:
       common: &common
         package: "fritzbox"
   # sensors
-    sensor.fritzbox:
-      <<: *common
-    sensor.fritz_is_linked:
-      <<: *common
-    sensor.fritz_is_connected:
-      <<: *common
-    sensor.fritz_external_ip:
-      <<: *common
-    sensor.fritz_uptime:
-      <<: *common
-    sensor.fritz_last_boot:
+    sensor.fritzbox_uptime:
       <<: *common
     sensor.fritz_rate_up:
       <<: *common
@@ -35,14 +25,6 @@ homeassistant:
     sensor.fritz_rate_up_max:
       <<: *common
     sensor.fritz_rate_down_max:
-      <<: *common
-    sensor.fritz_switch1_currentpower:
-      <<: *common
-    sensor.fritz_switch2_currentpower:
-      <<: *common
-    sensor.fritz_switch1_temperature:
-      <<: *common
-    sensor.fritz_switch2_temperature:
       <<: *common
         
 ################################################
@@ -55,87 +37,44 @@ homeassistant:
 #      username: !secret fritz_home_username
 #      password: !secret fritz_home_password 
 
-## Fritzbox Network Monitoring 
+## Fritzbox Network Monitoring (now Config > Integrations)
 # this option must be activated in FritzBox
 #   Heimnetz > Netzwerk > Netzwerkeinstellungen > Heimnetzfreigaben
 #     > Statusinformationen über UPnP übertragen
-sensor:
-  - platform: fritzbox_netmonitor
-    host: !secret fritz_host_ip
-    name: fritzbox
+#sensor:
+#  - platform: fritzbox_netmonitor
+#    host: !secret fritz_host_ip
+#    name: fritzbox
 
 
 ###############################################################################
 ##  Sensors
 ###############################################################################
+sensor:
   - platform: template
     sensors:
-      fritz_switch1_currentpower:
-        friendly_name: aktuelle Leistung
-        value_template: "{{ state_attr('switch.fritz_dect_200_1', 'current_power_w') | float }}"
-        unit_of_measurement: 'Watt'
-        icon_template: 'mdi:power-plug-outline'
-      fritz_switch2_currentpower:
-        friendly_name: aktuelle Leistung
-        value_template: "{{ state_attr('switch.fritz_dect_200_2', 'current_power_w') | float }}"
-        unit_of_measurement: 'Watt'
-        icon_template: 'mdi:power-plug-outline'
-      fritz_switch1_temperature:
-        friendly_name: aktuelle Temperatur
-        value_template: "{{ state_attr('switch.fritz_dect_200_1', 'temperature') | float }}"
-        unit_of_measurement: '°C'
-        icon_template: 'mdi:thermometer-lines'
-      fritz_switch2_temperature:
-        friendly_name: aktuelle Temperatur
-        value_template: "{{ state_attr('switch.fritz_dect_200_2', 'temperature') | float }}"
-        unit_of_measurement: '°C'
-        icon_template: 'mdi:thermometer-lines'
-
-  - platform: template
-    sensors:
-      fritz_is_linked:
-        friendly_name: "Status"
-        value_template: "{{ states.sensor.fritzbox.attributes.is_linked }}"
-        icon_template: mdi:network-router
-        #device_class: connectivity
-      fritz_is_connected:
-        friendly_name: "Online"
-        value_template: "{{ states.sensor.fritzbox.attributes.is_connected }}"
-        icon_template: mdi:wan
-        #device_class: connectivity
-      fritz_external_ip:
-        friendly_name: "IP"
-        value_template: "{{ states.sensor.fritzbox.attributes.external_ip }}"
-        icon_template: mdi:ip-network-outline
-      fritz_uptime:
+      fritzbox_uptime:
         friendly_name: "Uptime"
-        value_template: "{{ (states.sensor.fritzbox.attributes.uptime|int / (60*60*24)) | round(0) }}"
+        value_template: "{{ ( (as_timestamp(now())|int - as_timestamp(states('sensor.fritz_box_6490_cable_device_uptime'))|int) / (60*60*24)) | round(0) }}"
         unit_of_measurement: "days"
-#        value_template: "{{ as_timestamp(states.sensor.fritzbox.attributes.uptime) }}"
-#        unit_of_measurement: "secs"
         icon_template: mdi:restart
-      fritz_last_boot:
-        friendly_name: "Last boot"
-        value_template: "{{ (as_timestamp(now())|int - states.sensor.fritzbox.attributes.uptime) | 
-                              timestamp_custom('%d.%m %H:%M') | timestamp_local }}"
-        icon_template: mdi:restart
-      fritz_rate_up: #Current upstream speed in bytes/s
+      fritz_rate_up: #Current upstream speed in Kbytes/s
         friendly_name: "Upload"
-        value_template: "{{ (states.sensor.fritzbox.attributes.transmission_rate_up|int / 1024**2)|round(1) }}"
+        value_template: "{{ (states('sensor.fritz_box_6490_cable_kb_s_sent')|int / 1024)|round(1) }}"
         icon_template: mdi:cloud-upload
         unit_of_measurement: "MB/sec"
-      fritz_rate_down: #Current downstream speed in bytes/s
+      fritz_rate_down: #Current downstream speed in Kbytes/s
         friendly_name: "Download"
-        value_template: "{{ (states.sensor.fritzbox.attributes.transmission_rate_down|int / 1024**2)|round(1) }}"
+        value_template: "{{ (states('sensor.fritz_box_6490_cable_kb_s_received')|int / 1024)|round(1) }}"
         icon_template: mdi:cloud-download
         unit_of_measurement: "MB/sec"
       fritz_rate_up_max: #Maximum upstream-rate in bytes/s
         friendly_name: "Upload Max"
-        value_template: "{{ (states.sensor.fritzbox.attributes.max_byte_rate_up|int / 1024**2)|round(0) }}"
+        value_template: "{{ (states('sensor.fritz_box_6490_cable_max_kbit_s_sent')|int / 1024)|round(1) }}"
         icon_template: mdi:transfer-up
         unit_of_measurement: "MB/sec"
       fritz_rate_down_max: #Maximum downstream-rate in bytes/s
         friendly_name: "Download Max"
-        value_template: "{{ (states.sensor.fritzbox.attributes.max_byte_rate_down|int / 1024**2)|round(0) }}"
+        value_template: "{{ (states('sensor.fritz_box_6490_cable_max_kbit_s_received')|int / 1024)|round(1) }}"
         icon_template: mdi:transfer-down
         unit_of_measurement: "MB/sec"

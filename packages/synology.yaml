@@ -90,6 +90,7 @@ sensor:
 ###############################################################################
 automation:
   - id: update_cert_expiry_on_reboot
+    alias: update_cert_expiry_on_reboot
     trigger:
       - platform: homeassistant
         event: start
