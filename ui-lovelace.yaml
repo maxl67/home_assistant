@@ -34,7 +34,7 @@ custom_header:
       config:
         menu_hide: true
         disabled_mode: false
-        show_tabs: 'home,weather,vacuum,climate' #,plants,climate'
+        show_tabs: 'home,weather,vacuum,climate,media' 
         hide_help: true
         hide_config: true
         hide_unused: true
@@ -71,11 +71,11 @@ views:
   # 4: view for room climate control
   - !include lovelace/views/climate_view.yaml
 
-  # 5: view for plant sensors and care taking
-  - !include lovelace/views/plants_view.yaml
-
-  # 6:view to operate TV (doesn't work yet)
+  # 5:view to operate TV (doesn't work yet)
   - !include lovelace/views/media_view.yaml
+
+  # 6: view for plant sensors and care taking
+  - !include lovelace/views/plants_view.yaml
 
   # 7: view to monitor internet-connection, network, network devices
   - !include lovelace/views/monitoring_view.yaml

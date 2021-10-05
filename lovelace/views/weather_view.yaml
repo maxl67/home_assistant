@@ -7,15 +7,17 @@ anchors:
           padding: 10px 16px;
         }
 
-#---------------------------------title: Wetter
+#---------------------------------
+title: Wetter
 path: weather
 icon: mdi:weather-partly-cloudy
 cards:
-  # show weather alerts (if current_warn_count > 0)
   # current weather info and forcast
   - type: custom:weather-card-chart
     title: #Woche (DWD)
     weather: weather.dwd_weather_ak_stuttgart
+    show_main: false
+    show_attributes: false
     #sun: sun.sun
     mode: daily #hourly|daily  - hourly display is not good.
     #locale: 'de-DE'
@@ -25,6 +27,7 @@ cards:
         line-height: 32px;
       }
 
+  # show weather alerts (if current_warn_count > 0)
   - type: conditional
     conditions:
       - entity: sensor.dwd_current_warn_count
@@ -163,7 +166,7 @@ cards:
       action: url
       url_path: !secret meteogram_url
 
-  # Sonnenschein
+  # Sonnenstand und Sonnenschein
   - type: entities
     title: Sonnenstand & -schein
     show_header_toggle: false

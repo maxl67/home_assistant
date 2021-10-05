@@ -133,6 +133,11 @@ cards:
             entities:
               - entity: sensor.fritz_box_6490_cable_device_uptime
                 name: letzter Reboot
+              - type: button
+                name: Reboot!
+                tap_action: 
+                  action: call-service
+                  service: script.fritzbox_reboot
           - type: custom:fold-entity-row
             head:
               type: section
@@ -140,8 +145,6 @@ cards:
             padding: 0 px
             open: false
             entities:
-              - entity: sensor.fritz_box_6490_cable_connection_uptime
-                name: letzter Connect
               - entity: binary_sensor.fritz_box_6490_cable_connectivity #fritz_is_linked
                 name: Verbindung
                 icon: mdi:wan
@@ -149,6 +152,13 @@ cards:
                 type: custom:multiple-entity-row
                 name: IPv4
                 secondary_info: last-changed
+              - entity: sensor.fritz_box_6490_cable_connection_uptime
+                name: letzter Connect
+              - type: button
+                name: Reconnect
+                tap_action: 
+                  action: call-service
+                  service: script.fritzbox_reconnect
           - type: section
             #- entity: sensor.fritz_rate_up
             #- entity: sensor.fritz_rate_down

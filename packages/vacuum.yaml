@@ -38,6 +38,12 @@ homeassistant:
   # constants 
       no_selection_text: &no_selection_text Bitte auswählen
       int_minutes_delay_AutoCleanup_after_departure: &int_minutes_delay_AutoCleanup_after_departure 2 #default: 2
+  # colours:
+      bg_gray: &bg_gray "#3d3d3d"
+      bg_yellow: &bg_yellow [249, 197, 54] #xiaomi-app: [254, 206, 78]
+      bg_blue: &bg_blue [82, 147, 226] #xiaomi-app:[130, 190, 254]
+      bg_red: &bg_red [254, 148, 119]
+      bg_green: &bg_green [42, 204, 186]
   # groups, variables
     input_boolean.automatic_vacuum_when_home:
       icon: mdi:account-multiple-check #todo: off: mdi:account-cancel
@@ -97,8 +103,19 @@ camera:
         left: 20
         right: 22
     colors:
-      color_map_outside: [28,28,28]
+      color_map_outside: [67,73,84] 
       color_map_wall_v2: [225, 225, 225]
+      color_path: [28,28,28]
+      color_goto_path: [0, 255, 0]
+    room_colors:
+      1:  *bg_blue   #'Bad' : [1], blau
+      16: *bg_red    #'Küche' : [16], rot
+      17: *bg_blue   #'Wohnzimmer' : [17], blau
+      18: *bg_yellow #'Gästezimmer' : [18], gelb
+      19: *bg_yellow #'Esszimmer' : [19], gelb
+      20: *bg_yellow #'Schlafzimmer' : [20], gelb
+      21: *bg_green  #'Diele & Flur' : [21], grün
+      22: *bg_blue   #'Gästebad' : [22], blau
 
 ###############################################################################
 ##  Variables
@@ -502,7 +519,7 @@ automation:
               entity_id: input_boolean.automatic_vacuum_when_home
               state: 'on'
     variables: 
-# todo: we have to set the variables here, because setting values insite choose block will not reflect outside
+    # we have to set the variables here, because setting values insite choose block will not reflect outside
       cleanup_area: "{{ 'full' if (now().weekday() in [0,1]) else 'partly'}}"
       messagetext: >
         {{ 'wöchentliches Saugen der gesamten Wohnung wurde gestartet.' if (cleanup_area=='full') 
@@ -521,7 +538,7 @@ automation:
               - tue
           sequence:
             - service: script.vacuum_all
-            #todo: does not word here (v2020.12.0)
+            #does not work here (v2020.12.0)
             #- variables:
             #    messagetext: 'wöchentliches Saugen der gesamten Wohnung wurde gestartet.'
             #    cleanup_duration: '01:50:00'
@@ -535,7 +552,7 @@ automation:
             - service: script.vacuum_room
               data:
                 my_roomname: 'Kü,Sz,B (auto)'
-            #todo: does not word here (v2020.12.0)
+            #does not work here (v2020.12.0)
             #- variables:
             #    messagetext: 'wöchentliches Saugen von Küche, Schlafzimmer und Bad wurde gestartet.'
             #    cleanup_duration: '00:45:00'

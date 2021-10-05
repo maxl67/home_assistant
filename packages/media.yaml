@@ -296,7 +296,7 @@ automation:
         entity_id: sensor.home_status
         state: 'Home'
       - condition: state
-        entity_id: switch.fritz_dect_200_1
+        entity_id: switch.fritz_dect_200_netz
         state: 'on'
     action:
       - service: switch.turn_on

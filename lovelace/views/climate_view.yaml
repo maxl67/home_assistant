@@ -333,8 +333,6 @@ cards:
             name: Wohnz (HmIP)
           - entity: sensor.hm_thermo_gz_current_temp
             name: Gästez (HmIP)
-          - entity: sensor.hm_thermo_gz_current_temp
-            name: Gästez (HmIP)
           - entity: sensor.fritz_dect_200_netz_temperature
             name: Netzwerk-Rack
           - entity: sensor.fritz_dect_200_gz_temperature
@@ -344,3 +342,13 @@ cards:
         entities:
           - entity: sensor.outside_temperature
             name: aussen
+
+#todo: sensoren unterstuetzen noch nicht longterm statistics 
+#  - type: statistics-graph
+#    days_to_show: 3
+#    stat_types: line
+#    entities:
+#      - entity: sensor.hm_thermo_wz_current_temp
+#        name: Wohnz (HmIP)
+#      - entity: sensor.outside_temperature
+#        name: aussen

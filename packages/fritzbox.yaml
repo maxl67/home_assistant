@@ -78,3 +78,21 @@ sensor:
         value_template: "{{ (states('sensor.fritz_box_6490_cable_max_kbit_s_received')|int / 1024)|round(1) }}"
         icon_template: mdi:transfer-down
         unit_of_measurement: "MB/sec"
+
+###############################################################################
+##  Scripts
+###############################################################################
+script:
+  fritzbox_reconnect:
+    alias: "Reconnect Fritz!Box"
+    sequence:
+      - service: fritz.reconnect
+        target:
+          entity_id: binary_sensor.fritz_box_6490_cable_connectivity
+
+  fritzbox_reboot:
+    alias: "Reboot Fritz!Box"
+    sequence:
+      - service: fritz.reboot
+        target:
+          entity_id: binary_sensor.fritz_box_6490_cable_connectivity
