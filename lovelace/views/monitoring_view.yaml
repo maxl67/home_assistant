@@ -216,14 +216,6 @@ cards:
               - value: 9.5
                 color: *green
 
-#      - type: entities
-#        title: Speedtest.Net
-#        show_header_toggle: false
-#        entities:
-#          - entity: sensor.speedtest_ping
-#          - entity: sensor.speedtest_upload
-#          - entity: sensor.speedtest_download
-
   # ========== DISK STATION ==============
   - type: entities
     title: Hera (DS916+)
@@ -284,8 +276,8 @@ cards:
           entities:
           - entity: sensor.hera_volume_1_used_space
             name: Used
-          #- entity: sensor.hera_volume_1_total_size
-          #  name: Size
+          - entity: sensor.hera_volume_1_total_size
+            name: Size
       # List of Disks
       - type: custom:fold-entity-row
         head:
@@ -338,7 +330,6 @@ cards:
           name: latest
       - entity: sensor.hacs
         name: HACS updates
-#todo: gesehen bei knapoc https://community.home-assistant.io/t/stack-in-card-drop-in-replacement-for-vertical-stack-in-card/180072
       - entity: sensor.potential_breaking_changes
         type: custom:multiple-entity-row
         name: Breaking changes
@@ -350,10 +341,11 @@ cards:
       - entity: sensor.historydb_size
         name: Recorder Database
         icon: mdi:database
+      #- type: section
+      #  label: Statistics
 
   # ======= AdGuard Home ===========
   # AdGuard Home Status und Config
-#  - !include ../cards/ad_guard.yaml
   - type: entities
     title: AdGuard Home
     show_header_toggle: false
@@ -414,10 +406,8 @@ cards:
             url: https://homematic-raspi/ #.fritz.box/
             icon: mdi:raspberry-pi
             name: HomeMatic piVCCU3
-            #url: http://ccu3-webui
-            #name: RaspberryMatic
           - type: weblink
-            url: http://hera:3000 #todo: https://
+            url: https://hera:3001
             icon: mdi:shield-check
             name: AdGuard Home (int)
       - type: custom:fold-entity-row
@@ -449,10 +439,6 @@ cards:
     title: Geräte
     <<: *style_header
     entities:
-#      - entity: binary_sensor.router
-#        name: Modem
-#      - entity: binary_sensor.hera
-#        name: Hera
       - entity: binary_sensor.rpi_ost
         name: RPi-1
         icon: mdi:raspberry-pi
@@ -461,7 +447,8 @@ cards:
         icon: mdi:home-automation
       - entity: binary_sensor.roborock
         name: Dusti-E
-      - entity: binary_sensor.hpdrucker
+      - entity: binary_sensor.hp_laserjet_connectivity #sensor from HP integration
+        #entity: binary_sensor.hpdrucker #ping sensor
         name: Drucker
       - entity: binary_sensor.smarttv
         name: TV
@@ -637,3 +624,75 @@ cards:
             name: Unifi-Netzwerk
           - entity: sensor.fritz_dect_200_gz_power_consumption
             name: Schreibtisch M
+
+  # ========== Drucker ==============
+  # ---- HP Color Laserjet 400 ----
+  - type: 'custom:stack-in-card'
+    title: HP Color LaserJet 400
+    <<: *style_header
+    mode: vertical
+    keep:
+      background: false
+      border_radius: false
+      box_shadow: false
+      margin: false
+      outer_padding: false
+    cards:
+      - type: entities
+        <<: *style_header
+        entities:
+          - entity: sensor.hp_laserjet_status
+            icon: 'mdi:information-variant'
+            name: 'Status'
+            secondary_info: last-changed
+          - entity: sensor.hp_laserjet_printer
+            type: custom:multiple-entity-row
+            name: Seiten gedruckt
+            icon: 'mdi:counter'
+            state_header: Gesamt
+            unit: ' '
+            entities:
+              - attribute: Color
+                name: color
+              - attribute: Monochrome
+                name: s/w
+          - type: section
+            label: Toner
+      - type: 'custom:bar-card'
+#        title: 'Toner-Level:'
+#        <<: *style_header
+        entities:
+          - entity: sensor.hp_laserjet_toner_black
+            color: '#333333'
+            name: Schwarz
+          - entity: sensor.hp_laserjet_toner_cyan
+            entity_config: null
+            name: Cyan
+            color: '#00FFFF'
+          - entity: sensor.hp_laserjet_toner_magenta
+            entity_config: null
+            name: Magenta
+            color: '#FF00FF'
+          - entity: sensor.hp_laserjet_toner_yellow
+            entity_config: null
+            name: Gelb
+            color: '#FFFf00'
+        animation:
+          speed: 1
+          delay: 2
+          state: 'on'
+        direction: up
+        entity_row: false
+        height: 120px
+        width: 70%
+        limit_value: true
+        min: 0
+        max: 100
+        stack: horizontal
+        target: 15
+        positions:
+          icon: 'off'
+          indicator: 'off'
+          title: outside
+          minmax: 'off'
+          value: inside

@@ -289,15 +289,12 @@ cards:
       entities:
       - entity: input_select.vacuum_room
         name: 'welchen Raum reinigen:'
-      # hack: separate Card
-      #- type: section
-      #  label: automatisches Saugen #automatic cleanup
+
   - type: custom:vertical-stack-in-card
     cards:
     - type: entities
       state_color: true
       entities:
-      # end hack
       - entity: switch.enable_automatic_vacuum
         toggle: true
         name: Automatisches Saugen aktivieren #enable Daily Cleanup
@@ -318,6 +315,7 @@ cards:
           - entity: input_boolean.automatic_vacuum_when_home
             type: custom:multiple-entity-row
             toggle: true
+            state_color: true
             entities:
             - entity: sensor.home_status
               name: Home Status
@@ -330,6 +328,7 @@ cards:
             name: Staubbehälter leeren
             type: custom:multiple-entity-row
             toggle: true
+            state_color: true
             entities:
             - entity: input_boolean.dustbin_full_alert
               name: Alarm

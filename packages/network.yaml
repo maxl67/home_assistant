@@ -60,9 +60,6 @@ homeassistant:
     binary_sensor.rpi_west:
       <<: *common
     # other devices
-    binary_sensor.hpdrucker:
-      <<: *common
-      icon: mdi:printer # mdi:printer-wireless
     binary_sensor.smarttv:
       <<: *common
       icon: mdi:television  #television-classic-off
@@ -72,38 +69,13 @@ homeassistant:
     binary_sensor.radiobad:
       <<: *common
       icon: mdi:radio
-    binary_sensor.router:
-      <<: *common
-      icon: mdi:router-network
-
-
-# Network sensors. todo: Not working!
-#    binary_sensor.hpdrucker:
-#      templates:
-#        icon: >
-#          {% if is_state('binary_sensor.hpdrucker', 'on') %}
-#            mdi:printer
-#          {% else %}
-#            mdi:printer-off
-#          {% endif %}
-#        icon_color: >
-#          if (is_state('binary_sensor.hpdrucker', 'off')) return 'rgb(251, 210, 41)'; 
-#          else return 'rgb(54, 95, 140)';
-
+#    binary_sensor.router:
+#      <<: *common
+#      icon: mdi:router-network
 
 ################################################
 ##   Platforms
 ################################################
-# uses the Speedtest.net web service to measure network bandwidth performance
-# (YAML Config deprecated in v2021.6)
-#speedtestdotnet:
-#  scan_interval:
-#    minutes: 30
-#  monitored_conditions:
-#    - ping
-#    - download
-#    - upload
-
 sensor:
   # raspi1Sensors, raspi2Sensors: 
     # werden automatisch erzeugt (MQTT)
@@ -139,20 +111,10 @@ sensor:
 binary_sensor:
   # Monitor IP-connection to systems state
 #  - platform: ping
-#    host: !secret DS_IP
-#    name: hera
-#    scan_interval: 60
+#    host: !secret fritz_host_ip
+#    name: router
+#    scan_interval: 30
 #    count: 2
-  - platform: ping
-    host: !secret fritz_host_ip
-    name: router
-    scan_interval: 30
-    count: 2
-  - platform: ping
-    host: !secret laser_printer_ip
-    name: hpdrucker
-    scan_interval: 120
-    count: 2
   - platform: ping
     host: !secret samsung_tv_ip
     name: smarttv
@@ -178,3 +140,4 @@ binary_sensor:
     name: rpi_west
     scan_interval: 60
     count: 2
+    

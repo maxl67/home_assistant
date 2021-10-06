@@ -120,6 +120,9 @@ cards:
       #- type: custom:button-card
       #  color_type: blank-card
 
+# todo: Remote
+# todo: gesehen bei knapoc https://community.home-assistant.io/t/stack-in-card-drop-in-replacement-for-vertical-stack-in-card/180072
+
   - type: custom:vertical-stack-in-card
     cards:
       - type: entities

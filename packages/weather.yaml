@@ -116,7 +116,7 @@ input_boolean:
 sensor:
   - platform: template
     sensors:
-      # todo: temp from dwd_weather, should be a own sensor outside
+      # temp: from dwd_weather, should be a own sensor outside
       outside_temperature: 
         value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'temperature')|float }}"
         unit_of_measurement: '°C'

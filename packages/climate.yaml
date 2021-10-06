@@ -31,7 +31,7 @@ homeassistant:
       hm_energy_saving_temp: &energy_saving_temp 17 #todo: wert evtl aus Thermostat auslesen
       hm_heating_off_temp: &heating_off_temp 4.5
       hm_default_profile: &default_profile 1
-      hm_home_profile: &home_profile 2 #not used yet
+      hm_home_profile: &home_profile 2
       hm_guest_profile: &guest_profile 3
       thermostat_id_wz: &thermostat_id_wz 000C9A499B5808
       thermostat_entityid_wz: &thermostat_entityid_wz climate.000C9A499B5808

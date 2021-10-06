@@ -66,7 +66,7 @@ zha:
 ################################################################
 ## Platforms & Components
 ################################################################
-# MQTT-Broker. Mosquitto-Docker MUSS vor HA gestartet werden. Todo: depend-on in Docker Config setzen
+# MQTT-Broker. Mosquitto-Docker MUSS vor HA gestartet werden. 
 # wird benötigt für Battery Status Automation (siehe Package 'battery_alert')
 # und BT-Monitor (Package 'presence_detection') und plantgateway und Raspi-Sensoren
 mqtt:
@@ -165,6 +165,8 @@ lovelace:
       type: module
     - url: /hacsfiles/lovelace-xiaomi-vacuum-map-card/xiaomi-vacuum-map-card.js
       type: module
+    - url: /hacsfiles/stack-in-card/stack-in-card.js
+      type: module
 
     # Repo: https://github.com/sgttrs/lovelace-weather-card-chart
     - url: /hacsfiles/lovelace-weather-card-chart/weather-card-chart.js
@@ -251,10 +253,8 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       #- sensor.fritz_rate_down
       #- sensor.fritz_rate_up
     # network devices
-      - binary_sensor.router
-      - binary_sensor.hera
+#      - binary_sensor.router
       - binary_sensor.roborock
-      - binary_sensor.hpdrucker
       #- binary_sensor.smarttv
       - binary_sensor.radiobad
       - binary_sensor.rpi_west

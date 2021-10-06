@@ -130,12 +130,6 @@ script:
         data:
           entity_id: media_player.r_n803d_86ae28
       - delay: '00:00:03'
-      # Tonausgabe: Optisch (wird nicht mehr umgestellt)
-      #- service: media_player.play_media
-      #  data:
-      #    entity_id: media_player.samsungtv
-      #    media_content_id: KEY_HOME+KEY_LEFT+KEY_LEFT+KEY_LEFT+KEY_LEFT+KEY_LEFT+KEY_ENTER+KEY_DOWN+KEY_RIGHT+KEY_RIGHT+KEY_UP+KEY_UP+KEY_DOWN+KEY_RETURN
-      #    media_content_type: "send_key"
       # Lautstärke TV ausschalten
       - service: media_player.volume_set
         data:
@@ -171,12 +165,6 @@ script:
         data:
           entity_id: media_player.samsungtv
       - delay: '00:00:03'
-      # Tonausgabe: TV (wird nicht mehr umgestellt)
-      #- service: media_player.play_media
-      #  data:
-      #    entity_id: media_player.samsungtv
-      #    media_content_id: KEY_HOME+KEY_LEFT+KEY_LEFT+KEY_LEFT+KEY_LEFT+KEY_LEFT+KEY_ENTER+KEY_DOWN+KEY_RIGHT+KEY_RIGHT+KEY_UP+KEY_UP+KEY_RETURN
-      #    media_content_type: "send_key"
       # Lautstärke TV auf 20 einstellen
       - service: media_player.volume_set
         data:
