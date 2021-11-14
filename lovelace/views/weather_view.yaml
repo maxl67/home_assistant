@@ -13,14 +13,15 @@ path: weather
 icon: mdi:weather-partly-cloudy
 cards:
   # current weather info and forcast
-  - type: custom:weather-card-chart
+  - type: custom:weather-chart-card
     title: #Woche (DWD)
-    weather: weather.dwd_weather_ak_stuttgart
-    show_main: false
-    show_attributes: false
-    #sun: sun.sun
-    mode: daily #hourly|daily  - hourly display is not good.
-    #locale: 'de-DE'
+    entity: weather.dwd_weather_ak_stuttgart
+    show_main: true
+    show_attributes: true
+    units:
+      #pressure: mmHg
+      speed: km/h
+    locale: 'de-DE'
     style: |
       .card-header {
         padding: 20px 16px 10px;

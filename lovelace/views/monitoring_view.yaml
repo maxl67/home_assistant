@@ -32,7 +32,7 @@ anchors:
     #  extrema: true
       icon_adaptive_color: true
 
-  graph_rpi_cpu: &graph_rpi_cpu
+  graph_cpu: &graph_cpu
     <<: *graphs_range
     points_per_hour: 12
     #formatting
@@ -95,6 +95,28 @@ anchors:
         from: 75
         to: 100
 
+  graph_disc_temp: &graph_disc_temp
+    <<: *graphs_range
+    points_per_hour: 4
+    #formatting
+    <<: *graphs_format
+    group: false
+    show:
+      state: true
+      labels: true
+      icon_adaptive_color: true
+    show_points: false
+    decimals: 0
+    color_thresholds:
+      - value: 0
+        color: *green
+      - value: 37
+        color: *orange 
+      - value: 39
+        color: *dark_orange
+      - value: 41
+        color: *dark_red
+            
   dataset_internet_ping: &dataset_internet_ping
     name: ping
     y_axis: secondary
@@ -119,8 +141,8 @@ cards:
   # ========== FritzBox ==============
   - type: custom:vertical-stack-in-card
     cards:
-      - type: entities
-        title: FritzBox (6490)
+      - title: FritzBox (6490)
+        type: entities
         show_header_toggle: false
         <<: *style_header
         entities:
@@ -133,8 +155,26 @@ cards:
             entities:
               - entity: sensor.fritz_box_6490_cable_device_uptime
                 name: letzter Reboot
+              - entity: binary_sensor.fritz_box_6490_cable_firmware_update
+                type: custom:multiple-entity-row
+                name: Firmware
+                entities:
+                  - attribute: installed_version
+                    name: aktuell
+                  - attribute: latest_available_version
+                    name: neu
+                style: |
+                  :host {
+                    {% if is_state('binary_sensor.fritz_box_6490_cable_firmware_update','on') %}
+                      color: var(--paper-item-icon-active-color);
+                      --paper-item-icon-color: #FF7738;
+                    {% endif %}
+                  }
+                #      --paper-item-icon-color: var(--accent-color);
+              - type: divider
               - type: button
                 name: Reboot!
+                action_name: Reboot now
                 tap_action: 
                   action: call-service
                   service: script.fritzbox_reboot
@@ -145,7 +185,7 @@ cards:
             padding: 0 px
             open: false
             entities:
-              - entity: binary_sensor.fritz_box_6490_cable_connectivity #fritz_is_linked
+              - entity: binary_sensor.fritz_box_6490_cable_connection
                 name: Verbindung
                 icon: mdi:wan
               - entity: sensor.fritz_box_6490_cable_external_ip
@@ -154,8 +194,10 @@ cards:
                 secondary_info: last-changed
               - entity: sensor.fritz_box_6490_cable_connection_uptime
                 name: letzter Connect
+              - type: divider
               - type: button
                 name: Reconnect
+                action_name: Reconnect now
                 tap_action: 
                   action: call-service
                   service: script.fritzbox_reconnect
@@ -190,7 +232,6 @@ cards:
                 color: *light_orange
               - value: 140
                 color: *green
-
           - type: custom:mini-graph-card
             name: Upload
             icon: mdi:transfer-up
@@ -217,102 +258,142 @@ cards:
                 color: *green
 
   # ========== DISK STATION ==============
-  - type: entities
-    title: Hera (DS916+)
-    <<: *style_header
-    show_header_toggle: false
-    entities:
-      - type: custom:fold-entity-row
-        head:
-          type: section
-          label: System
-        open: true
-        padding: 0 px
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: entities
+        title: Hera (DS916+)
+        <<: *style_header
+        show_header_toggle: false
         entities:
-        - entity: sensor.last_boot
-          name: letzter Systemstart
-          icon: mdi:restart
-        - entity: sensor.cert_expiry_timestamp_hera
-          name: Ablaufdatum Zertifikat
-          icon: mdi:certificate
-        - entity: sensor.hera_cpu_load_total
-          type: custom:multiple-entity-row
-          name: CPU Usage
-          secondary_info: last-changed
-          entities:
-          #- entity: sensor.hera_cpu_load_5_min
-          #  name: proc load 5'
-          - entity: sensor.hera_cpu_load_15_min
-            name: proc load 15'
-        - entity: sensor.hera_memory_usage_real
-          name: Memory Usage
-          secondary_info: last-changed
-          type: custom:multiple-entity-row
-          entities:
-          - entity: sensor.memory_free
-            name: free
-      - type: custom:fold-entity-row
-        head:
-          type: section
-          label: Volume 1
-        open: true
-        padding: 0 px
-        entities:
-        - entity: sensor.hera_volume_1_status
-          name: Status Volume 1
-          icon: mdi:database-check
-          type: custom:multiple-entity-row
-          secondary_info: last-changed
-          state_header: state
-          entities:
-          - entity: sensor.hera_volume_1_max_disk_temp #own calculated max sensor.
-            name: max temp
-          #- entity: sensor.hera_volume_1_average_disk_temp
-          #  name: avg temp
-        - entity: sensor.hera_volume_1_volume_used
-          type: custom:multiple-entity-row
-          name: Usage Volume 1
-          icon: mdi:chart-pie
-          entities:
-          - entity: sensor.hera_volume_1_used_space
-            name: Used
-          - entity: sensor.hera_volume_1_total_size
-            name: Size
-      # List of Disks
-      - type: custom:fold-entity-row
-        head:
-          type: section
-          label: Disks
-        open: false
-        padding: 0 px
-        entities:
-        - entity: sensor.hera_drive_1_status
-          type: custom:multiple-entity-row
-          icon: mdi:harddisk
-          name: Disk1 (sda)
-          secondary_info: last-changed
-          state_header: state
-          entities:
-          - entity: sensor.hera_drive_1_temperature
-            name: temp
-        - entity: sensor.hera_drive_2_status
-          type: custom:multiple-entity-row
-          icon: mdi:harddisk
-          name: Disk2 (sdb)
-          secondary_info: last-changed
-          state_header: state
-          entities:
-          - entity: sensor.hera_drive_2_temperature
-            name: temp
-        - entity: sensor.hera_drive_3_status
-          type: custom:multiple-entity-row
-          icon: mdi:harddisk
-          name: Disk3 (sdc)
-          secondary_info: last-changed
-          state_header: state
-          entities:
-          - entity: sensor.hera_drive_3_temperature
-            name: temp
+          - type: custom:fold-entity-row
+            head:
+              type: section
+              label: System
+            open: false
+            padding: 0 px
+            entities:
+            - entity: sensor.last_boot
+              name: letzter Systemstart
+              icon: mdi:restart
+            - entity: sensor.cert_expiry_timestamp_hera
+              name: Ablaufdatum Zertifikat
+              icon: mdi:certificate
+            - entity: sensor.hera_cpu_load_total
+              type: custom:multiple-entity-row
+              name: CPU Usage
+              secondary_info: last-changed
+              entities:
+              #- entity: sensor.hera_cpu_load_5_min
+              #  name: proc load 5'
+              - entity: sensor.hera_cpu_load_15_min
+                name: proc load 15'
+            - entity: sensor.hera_memory_usage_real
+              name: Memory Usage
+              secondary_info: last-changed
+              type: custom:multiple-entity-row
+              entities:
+              - entity: sensor.memory_free
+                name: free
+          # Volume1
+          - type: custom:fold-entity-row
+            head:
+              type: section
+              label: Volume 1
+            open: false
+            padding: 0 px
+            entities:
+            - entity: sensor.hera_volume_1_status
+              name: Status Volume 1
+              icon: mdi:database-check
+              type: custom:multiple-entity-row
+              secondary_info: last-changed
+              state_header: state
+              entities:
+                - entity: sensor.hera_volume_1_max_disk_temp #own calculated max sensor.
+                  name: max temp
+                #- entity: sensor.hera_volume_1_average_disk_temp
+                #  name: avg temp
+              style: |
+                :host {
+                  {% if not is_state('sensor.hera_volume_1_status','normal') or states('sensor.hera_volume_1_max_disk_temp')|float(0)>=40 %}
+                    color: var(--paper-item-icon-active-color);
+                    --paper-item-icon-color: #FF7738;
+                  {% endif %}
+                }
+            - entity: sensor.hera_volume_1_volume_used
+              type: custom:multiple-entity-row
+              name: Usage Volume 1
+              icon: mdi:chart-pie
+              style: |
+                :host {
+                  {% if states('sensor.hera_volume_1_volume_used')|float(0)>=90 %}
+                    color: var(--paper-item-icon-active-color);
+                    --paper-item-icon-color: #FF7738;
+                  {% endif %}
+                }
+              entities:
+              - entity: sensor.hera_volume_1_used_space
+                name: Used
+              - entity: sensor.hera_volume_1_total_size
+                name: Size
+            # List of Disks
+            - type: custom:fold-entity-row
+              head:
+                type: section
+                label: Disks
+              open: false
+              padding: 0 px
+              entities:
+              - entity: sensor.hera_drive_1_status
+                type: custom:multiple-entity-row
+                icon: mdi:harddisk
+                name: Disk1 (sda)
+                secondary_info: last-changed
+                state_header: state
+                entities:
+                - entity: sensor.hera_drive_1_temperature
+                  name: temp
+              - entity: sensor.hera_drive_2_status
+                type: custom:multiple-entity-row
+                icon: mdi:harddisk
+                name: Disk2 (sdb)
+                secondary_info: last-changed
+                state_header: state
+                entities:
+                - entity: sensor.hera_drive_2_temperature
+                  name: temp
+              - entity: sensor.hera_drive_3_status
+                type: custom:multiple-entity-row
+                icon: mdi:harddisk
+                name: Disk3 (sdc)
+                secondary_info: last-changed
+                state_header: state
+                entities:
+                - entity: sensor.hera_drive_3_temperature
+                  name: temp
+          - type: section
+      - type: horizontal-stack
+        cards:
+          - type: custom:mini-graph-card
+            name: System
+            icon: mdi:memory #mdi:cpu-64-bit
+            entities:
+              - entity: sensor.hera_cpu_load_total
+                name: cpu 
+              - entity: sensor.hera_memory_usage_real
+                name: memory
+                color: *blue
+              - entity: sensor.hera_cpu_load_15_min
+                name: load
+                decimals: 1
+                <<: *dataset_internet_ping
+            <<: *graph_cpu
+          - type: custom:mini-graph-card
+            entities:
+              - sensor.hera_volume_1_max_disk_temp
+            name: Temp. Volume1
+            icon: mdi:thermometer
+            <<: *graph_disc_temp
 
   # ========== Home Assistant ==============
   - type: entities
@@ -330,6 +411,13 @@ cards:
           name: latest
       - entity: sensor.hacs
         name: HACS updates
+        style: |
+          :host {
+            {% if states('sensor.hacs')|int(0)>0 %}
+              color: var(--paper-item-icon-active-color);
+              --paper-item-icon-color: #FF7738;
+            {% endif %}
+          }
       - entity: sensor.potential_breaking_changes
         type: custom:multiple-entity-row
         name: Breaking changes
@@ -369,13 +457,24 @@ cards:
             - entity: switch.adguard_safe_search
               name: Safe Search
               icon: mdi:shield-search
-      - type: divider
-      - entity: sensor.adguard_average_processing_speed
-        name: Avg. Processing Speed
-      - entity: sensor.adguard_dns_queries
-        name: DNS Queries
-      - entity: sensor.adguard_dns_queries_blocked_ratio
-        name: DNS Queries Blocked Ratio
+      - type: conditional
+        conditions:
+          - entity: switch.adguard_protection
+            state: 'on'
+        row:
+          type: custom:fold-entity-row
+          head:
+            type: section
+            label: Statistics
+          open: false
+          padding: 0 px
+          entities:
+            - entity: sensor.adguard_average_processing_speed
+              name: Avg. Processing Speed
+            - entity: sensor.adguard_dns_queries
+              name: DNS Queries
+            - entity: sensor.adguard_dns_queries_blocked_ratio
+              name: DNS Queries Blocked Ratio
 
   # ========== Login ==============
   - type: entities
@@ -437,6 +536,7 @@ cards:
   # ========== Devices ==============
   - type: glance
     title: Geräte
+    show_state: false
     <<: *style_header
     entities:
       - entity: binary_sensor.rpi_ost
@@ -502,7 +602,7 @@ cards:
                 - sensor.raspi1_cpu_usage
               name: CPU
               icon: mdi:cpu-64-bit
-              <<: *graph_rpi_cpu
+              <<: *graph_cpu
             - type: custom:mini-graph-card
               entities:
                 - sensor.raspi1_temperature
@@ -588,7 +688,7 @@ cards:
                 - sensor.raspi2_cpu_usage
               name: CPU
               icon: mdi:cpu-64-bit
-              <<: *graph_rpi_cpu
+              <<: *graph_cpu
             - type: custom:mini-graph-card
               entities:
                 - sensor.raspi2_temperature
@@ -613,10 +713,11 @@ cards:
         <h3>Raspi2 (West)</h3>
         Ist offline!!
 
+  # ========== Power Consumption ==============
   - type: custom:vertical-stack-in-card
     cards:
       - type: history-graph
-        title: 'Leistung'
+        title: 'Energieaufnahme'
         hours_to_show: 24
         <<: *style_header
         entities:
@@ -625,7 +726,7 @@ cards:
           - entity: sensor.fritz_dect_200_gz_power_consumption
             name: Schreibtisch M
 
-  # ========== Drucker ==============
+  # ========== Printer ==============
   # ---- HP Color Laserjet 400 ----
   - type: 'custom:stack-in-card'
     title: HP Color LaserJet 400
@@ -656,43 +757,46 @@ cards:
                 name: color
               - attribute: Monochrome
                 name: s/w
-          - type: section
-            label: Toner
-      - type: 'custom:bar-card'
-#        title: 'Toner-Level:'
-#        <<: *style_header
-        entities:
-          - entity: sensor.hp_laserjet_toner_black
-            color: '#333333'
-            name: Schwarz
-          - entity: sensor.hp_laserjet_toner_cyan
-            entity_config: null
-            name: Cyan
-            color: '#00FFFF'
-          - entity: sensor.hp_laserjet_toner_magenta
-            entity_config: null
-            name: Magenta
-            color: '#FF00FF'
-          - entity: sensor.hp_laserjet_toner_yellow
-            entity_config: null
-            name: Gelb
-            color: '#FFFf00'
-        animation:
-          speed: 1
-          delay: 2
-          state: 'on'
-        direction: up
-        entity_row: false
-        height: 120px
-        width: 70%
-        limit_value: true
-        min: 0
-        max: 100
-        stack: horizontal
-        target: 15
-        positions:
-          icon: 'off'
-          indicator: 'off'
-          title: outside
-          minmax: 'off'
-          value: inside
+          - type: custom:fold-entity-row
+            head:
+              type: section
+              label: Toner-Level
+            padding: 0 px
+            open: false
+            entities:
+            - type: 'custom:bar-card'
+              entities:
+                - entity: sensor.hp_laserjet_toner_black
+                  color: '#333333'
+                  name: Schwarz
+                - entity: sensor.hp_laserjet_toner_cyan
+                  entity_config: null
+                  name: Cyan
+                  color: '#00FFFF'
+                - entity: sensor.hp_laserjet_toner_magenta
+                  entity_config: null
+                  name: Magenta
+                  color: '#FF00FF'
+                - entity: sensor.hp_laserjet_toner_yellow
+                  entity_config: null
+                  name: Gelb
+                  color: '#FFFf00'
+              animation:
+                speed: 1
+                delay: 2
+                state: 'on'
+              direction: up
+              entity_row: false
+              height: 120px
+              width: 70%
+              limit_value: true
+              min: 0
+              max: 100
+              stack: horizontal
+              target: 15
+              positions:
+                icon: 'off'
+                indicator: 'off'
+                title: outside
+                minmax: 'off'
+                value: inside

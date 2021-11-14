@@ -3,58 +3,29 @@
 #   http://thomasloven.com/blog/2018/08/YAML-For-Nonprogrammers/
 #   https://github.com/thomasloven/hass-config/wiki
 #
-# aufteilung und wiederholung
-# https://community.home-assistant.io/t/card-mod-add-css-styles-to-any-lovelace-card/120744/341
-##
+# Aufteilung und Wiederholung
+#   https://community.home-assistant.io/t/card-mod-add-css-styles-to-any-lovelace-card/120744/341
+#   https://github.com/thomasloven/lovelace-card-mod/wiki/Card-mod-Themes
+
 title: Home Max&Ing
+button_card_templates: !include_dir_merge_named ./lovelace/templates/button-card
 background: var(--background-image)
 
 # old: compact-custom-header
 #   https://maykar.github.io/compact-custom-header/
 # Custom Header (Nachfolger von compact-custom-header)
 #   https://maykar.github.io/custom-header/#configuration/main
-custom_header:
-  compact_mode: true
-  menu_hide: false
-  voice_hide: true
-  chevrons: false
-
-  tab_icons:
-    #NOTE: only in one line, no multiple lines with '>'!!
-    home: "{% if is_state('input_boolean.open_backdoor_alert', 'on') or is_state('input_boolean.open_window_alert', 'on') %}mdi:home-alert{% endif %}"
-    weather: "{% if is_state('input_boolean.dwd_weather_alert', 'on') %}{% if is_state('sensor.dwd_current_warn_gewitter', 'True') %}mdi:weather-lightning-rainy{% elif is_state('sensor.dwd_current_warn_sturm', 'True') %}mdi:weather-windy{% elif is_state('sensor.dwd_current_warn_level_glaette', 'True') %}mdi:snowflake-alert{% elif is_state('sensor.dwd_current_warn_frost', 'True') or states('sensor.dwd_max_warn_level')|int > 10 %}mdi:thermometer-alert{% else %}mdi:weather-lightning{% endif %}{% endif %}"
-  tabs_color:
-    home: "{% if is_state('input_boolean.open_backdoor_alert', 'on') %}red{% elif is_state('input_boolean.open_window_alert', 'on') %}yellow{% endif %}"
-    weather: "{% if states('sensor.dwd_max_warn_level')|int >= 3 and states('sensor.dwd_max_warn_level')|int <10 %}red{% elif states('sensor.dwd_max_warn_level')|int >= 2 %}yellow{% endif %}"
-    vacuum: "{% if is_state('binary_sensor.vacuum_error_alert', 'on') %}red{% elif is_state('input_boolean.dustbin_full_alert', 'on') %}yellow{% elif states('vacuum.xiaomi_vacuum_cleaner').startswith('cleaning') %}green{% elif is_state('input_boolean.disable_automatic_vacuum', 'on') %}gray{% endif %}"
-  exceptions:
-    - conditions:
-        user: !secret username_ing
-        user_agent: Mobile
-      config:
-        menu_hide: true
-        disabled_mode: false
-        show_tabs: 'home,weather,vacuum,climate,media' 
-        hide_help: true
-        hide_config: true
-        hide_unused: true
-    - conditions:
-        user: !secret username_max
-        user_agent: iPhone
-      config:
-        menu_hide: false
-        disabled_mode: false
-        hide_tabs: 'maintenance' #,media
-        hide_help: true
-        hide_config: true
-        hide_unused: false
+# deprecated, not maintained anymore
+#custom_header: !include lovelace/custom_header.yaml
+# replace Functionality with themes/card-mod:
+#   https://github.com/thomasloven/lovelace-card-mod/wiki/Theme-cookbook#compactcustom-header
 
 # swipe-navigation
 #   https://github.com/maykar/lovelace-swipe-navigation
 swipe_nav:
   wrap: false # ende <-> anfang
   animate: swipe  # swipe, fade, flip
-  skip_tabs: 6, zha_table
+  skip_tabs: zha_table
   prevent_default: true
   swipe_amount: 35
 
@@ -74,32 +45,23 @@ views:
   # 5:view to operate TV (doesn't work yet)
   - !include lovelace/views/media_view.yaml
 
-  # 6: view for plant sensors and care taking
-  - !include lovelace/views/plants_view.yaml
-
   # 7: view to monitor internet-connection, network, network devices
   - !include lovelace/views/monitoring_view.yaml
 
   # 8: table with zigbee devices
   - !include lovelace/views/zigbee_view.yaml
 
+  # 6: view for plant sensors and care taking
+  - !include lovelace/views/plants_view.yaml
+
   # 9: HA-Administration
   - title: Wartung
+#    visible:
+#      - user: 69c..
     icon: mdi:tools
     path: maintenance
     cards:
       - type: entities
         entities:
           - entity: input_select.debug_mode
-      - type: custom:group-card
-        card:
-          type: entities
-          title: Batterie Status
-          show_header_toggle: false
-        group: group.battery_status
-      - type: custom:group-card
-        card:
-          type: entities
-          title: Batterie Alert
-          show_header_toggle: false
-        group: group.battery_alert
+

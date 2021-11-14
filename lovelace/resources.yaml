@@ -1,0 +1,53 @@
+    # Community Repo
+    #   Functionality
+#    # deprecated, not maintained anymore
+#    - url: /hacsfiles/custom-header/custom-header.js
+#      type: module
+    - url: /hacsfiles/lovelace-card-mod/card-mod.js
+      type: module
+    - url: /hacsfiles/lovelace-swipe-navigation/swipe-navigation.js
+      type: module
+    #   Rows
+    - url: /hacsfiles/lovelace-fold-entity-row/fold-entity-row.js
+      type: module    
+    - url: /hacsfiles/lovelace-multiple-entity-row/multiple-entity-row.js
+      type: module 
+    - url: /hacsfiles/lovelace-slider-entity-row/slider-entity-row.js
+      type: module
+    #   Cards
+    - url: /hacsfiles/bar-card/bar-card.js
+      type: module
+    - url: /hacsfiles/button-card/button-card.js
+      type: module
+    - url: /hacsfiles/group-card/group-card.js
+      type: module
+    - url: /hacsfiles/lovelace-auto-entities/auto-entities.js
+      type: module
+    - url: /hacsfiles/lovelace-xiaomi-vacuum-map-card/xiaomi-vacuum-map-card.js
+      type: module
+    - url: /hacsfiles/mini-graph-card/mini-graph-card-bundle.js
+      type: module
+    - url: /hacsfiles/simple-thermostat/simple-thermostat.js
+      type: module
+    - url: /hacsfiles/stack-in-card/stack-in-card.js
+      type: module
+    - url: /hacsfiles/vertical-stack-in-card/vertical-stack-in-card.js
+      type: module
+    - url: /hacsfiles/weather-chart-card/weather-chart-card.js 
+      type: module
+    - url: /hacsfiles/zha-network-card/zha-network-card.js
+      type: module
+    # repo: https://github.com/Yolandavdvegt/lovelace-flower-card
+    - url: /hacsfiles/lovelace-flower-card/flower-card.js 
+      type: module
+# test: für Card-Breite in Weather. not working
+#    - url: /hacsfiles/lovelace-layout-card/layout-card.js
+#      type: module
+
+#    # deprecated, not maintained anymore
+    - url: /hacsfiles/calendar-card/calendar-card.js
+      type: js 
+
+#    # Repo: https://github.com/sgttrs/lovelace-weather-card-chart
+#    - url: /hacsfiles/lovelace-weather-card-chart/weather-card-chart.js
+#      type: module

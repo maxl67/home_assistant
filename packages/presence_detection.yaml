@@ -28,14 +28,14 @@ homeassistant:
   # constants
       # timespans for presence status shifts 
       #   (Attention: automation.person_and_home_status_correction does not use these values)
-      int_minutes_after_being_home: &int_minutes_after_being_home 10 #default: 10
-      int_minutes_after_being_away: &int_minutes_after_being_away 10 #default: 10
-      int_hours_after_being_extendedaway: &int_hours_after_being_extendedaway 24 #default: 24
-      int_minutes_after_being_extendedaway: &int_minutes_after_being_extendedaway 0 #default: 0
-      # confidence threshold values
-      int_confidence_threshold_home: &int_confidence_threshold_home 10 #default: 10
-      int_confidence_threshold_area_arrival_scan: &int_confidence_threshold_area_arrival_scan 95 #default: 95
-      int_confidence_threshold_area_departure_scan: &int_confidence_threshold_area_departure_scan 10 #default: 10
+      int_minutes_after_being_home: &int_minutes_after_being_home 10 #default: 10 [min]
+      int_minutes_after_being_away: &int_minutes_after_being_away 10 #default: 10 [min]
+      int_hours_after_being_extendedaway: &int_hours_after_being_extendedaway 24 #default: 24 [h]
+      int_minutes_after_being_extendedaway: &int_minutes_after_being_extendedaway 0 #default: 0 [min]
+      # confidence threshold values (presence detection)
+      int_confidence_threshold_home: &int_confidence_threshold_home 10 #default: 10 [%]
+      int_confidence_threshold_area_arrival_scan: &int_confidence_threshold_area_arrival_scan 95 #default: 95 [%]
+      int_confidence_threshold_area_departure_scan: &int_confidence_threshold_area_departure_scan 10 #default: 10 [%]
   # sensors
     # pictures for persons and new icons for device entities
     sensor.max_status:
@@ -52,13 +52,13 @@ homeassistant:
       <<: *device_bt
     device_tracker.iphone8_ing_bt:
       <<: *device_bt
-    sensor.max_present_e:
+    sensor.max_present_o:
       <<: *common
     sensor.max_present_w:
       <<: *common
     sensor.max_home_confidence:
       <<: *common
-    sensor.ing_present_e:
+    sensor.ing_present_o:
       <<: *common
     sensor.ing_present_w:
       <<: *common
@@ -163,10 +163,11 @@ input_boolean:
 #    Each area script reports a confidence value [0..100] via MQTT for each device.
 #    All devices that are scanned for are configured for the script locally on the raspi's (MAC and name).
 # IN HOME-ASSISTANT
-# 2) For each device 2 MQTT sensors are listening to these confidence values (sensor '<person> present {E|W}')
+# 2) For each device 2 MQTT sensors are listening to these confidence values (sensor '<person> present {O|W}')
 # 3) The 2 sensors are combined (max function) and a confidence for the device being present is calculated
 #    (sensor '<person> Home Confidence'). Range [0..100].
-# 4) 2 automations will set the device_tracker for the BT-device to 'home' or 'not_home'.
+# 4) 2 automations will set the device_tracker for the BT-device to 'home' or 'not_home' 
+#    in case the home confidence level is above/below a threshhold ('&int_confidence_threshold_home').
 #    (automation '<person> Occupancy On', '<person> Occupancy Off')
 # 5) The BT-device is part of the group 'phone_<person>' which could contain other devices_trackers.
 #    The group is turned 'on', if at least one device in the group is 'home'.
@@ -192,12 +193,12 @@ input_boolean:
 ##  Sensors
 ###############################################################################
 sensor:
-# 2 raspberry pis are located in east and west part of appartment and are running the monitor.sh script.
+# 2 raspberry pi's are located in east and west part of appartment and are running the monitor.sh script.
 # We get the BT presence confidence values via MQTT for each device which are mapped to a person here.
 # Person 1
-  # reading the MQTT messages from BlueTooth monitor.sh into confidence sensors for separate areas.
+  # reading the MQTT messages from BlueTooth monitor.sh into confidence sensors (one per area).
   - platform: mqtt
-    name: 'Max present E'
+    name: 'Max present O'
     state_topic: 'monitor/ost/iphone_max_bt'
     value_template: "{{ value_json.confidence }}"
     unit_of_measurement: '%'
@@ -222,12 +223,12 @@ sensor:
     type: max
     round_digits: 0
     entity_ids:
-      - sensor.max_present_e
+      - sensor.max_present_o
       - sensor.max_present_w
 # Person 2
-  # reading the MQTT messages from BlueTooth monitor.sh into confidence sensors for separate areas 
+  # reading the MQTT messages from BlueTooth monitor.sh into confidence sensors (one per area).
   - platform: mqtt
-    name: 'Ing present E'
+    name: 'Ing present O'
     state_topic: 'monitor/ost/iphone_ing_bt'
     value_template: "{{ value_json.confidence }}"
     unit_of_measurement: '%'
@@ -250,7 +251,7 @@ sensor:
     type: max
     round_digits: 0
     entity_ids:
-      - sensor.ing_present_e
+      - sensor.ing_present_o
       - sensor.ing_present_w
 
   # Status sensors for each person. input_select values are set by automations.
@@ -296,7 +297,7 @@ automation:
     trigger:
       - platform: numeric_state
         entity_id: sensor.max_home_confidence
-        above: 10 #*int_confidence_threshold_home
+        above: *int_confidence_threshold_home
     action:
       - service: device_tracker.see
         data:
@@ -308,7 +309,7 @@ automation:
     trigger:
       - platform: numeric_state
         entity_id: sensor.max_home_confidence
-        below: 10 #*int_confidence_threshold_home
+        below: *int_confidence_threshold_home
     action:
       - service: device_tracker.see
         data:

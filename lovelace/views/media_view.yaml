@@ -7,137 +7,422 @@ anchors:
           padding: 10px 16px;
         }
 
-button_card_templates:
-  icon_button:
-    aspect_ratio: 4/3
-    color_type: icon
-    hold_action:
-      action: none
-    layout: vertical
-    show_label: false
-    show_name: false
-    show_state: false
-    styles:
-      card:
-        - border-radius: 10px
-        - border: solid 1px var(--primary-color)
-        - box-shadow: none
-        - padding: 6px 6px
-        - margin: 0px 0px
-        - '--paper-card-background-color': 'rgba(0, 0, 0, 0)'
-      icon:
-        - width: 28px
-      name:
-        - justify-self: middle
-        - align-self: end
-        - font-size: 14px
-        - padding: 0px 0px
-        - color: var(--secondary-text-color)
-    tap_action:
-      action: call-service
-  menu_button:
-    aspect_ratio: 4/3
-    color_type: icon
-    hold_action:
-      action: none
-    layout: vertical
-    show_label: false
-    show_name: true
-    show_state: false
-    styles:
-      card:
-        - border-radius: 10px
-        - border: solid 1px var(--primary-color)
-        - box-shadow: none
-        - padding: 6px 6px
-        - margin: 0px 0px
-        - '--paper-card-background-color': 'rgba(0, 0, 0, 0)'
-      icon:
-        - width: 28px
-      name:
-        - justify-self: middle
-        - align-self: end
-        - font-size: 14px
-        - padding: 0px 0px
-        - color: var(--secondary-text-color)
-    tap_action:
-      action: call-service
-
 #---------------------------------
 #id: media
 title: Media
 path: media
 icon: mdi:filmstrip-box-multiple
+
+# https://github.com/custom-cards/button-card
+# https://community.home-assistant.io/t/fun-with-cutom-button-card/238450
 cards:
-  - type: media-control
-    entity: media_player.samsungtv
-    name: Samsung Qled60
+  - type: vertical-stack
+    cards:
+      # Power switch
+      - type: conditional
+        conditions:
+          - entity: switch.osram_plug_01_a1bf020a_3 
+            state: "off"
+        card:
+          # power status of the entertainment rack
+            type: entities
+            <<: *style_header
+            title: Entertainment-Rack
+            show_header_toggle: false
+            state_color: true
+            entities:
+              - entity: switch.osram_plug_01_a1bf020a_3
+                name: Power-Plug
 
-  - type: media-control
-    entity: media_player.r_n803d_86ae28
-    name: Yamaha R-N803D
+      # Media Players
+      - type: conditional
+        conditions:
+          - entity: switch.osram_plug_01_a1bf020a_3 
+            state: "on"
+        card:
+          type: vertical-stack
+          cards:
+            # buttons for general setup of devices
+            - type: 'custom:button-card'
+              template: container
+              color: var(--primary-color)
+              name: >
+                  [[[
+                  var bri = states['sensor.entertainment_scenario'].state;
+                  return 'Entertainment Szenario (' + bri + ')';
+                  ]]]
+              custom_fields:
+                buttons:
+                  card:
+                    type: horizontal-stack
+                    cards:
+                      - type: custom:button-card
+                        name: Kino
+                        entity: sensor.entertainment_scenario
+                        icon: mdi:filmstrip-box-multiple
+                        tap_action: 
+                          action: call-service
+                          service: script.start_bd_show
+                        state:
+                          - value: 'cinema'
+                            color: var(--paper-item-icon-active-color)
+                      - type: custom:button-card
+                        name: TV
+                        icon: mdi:television-classic
+                        entity: sensor.entertainment_scenario
+                        show_state: false
+                        tap_action: 
+                          action: call-service
+                          service: script.start_tv_show
+                        state:
+                          - value: 'tv'
+                            color: var(--paper-item-icon-active-color)
+                      - type: custom:button-card
+                        name: Radio
+                        entity: sensor.entertainment_scenario
+                        icon: mdi:radio
+                        show_state: false
+                        tap_action: 
+                          action: call-service
+                          service: script.start_radio
+                        state:
+                          - value: 'radio'
+                            color: var(--paper-item-icon-active-color)
+                      - type: custom:button-card
+                        name: CD
+                        entity: sensor.entertainment_scenario
+                        icon: mdi:music-circle-outline
+                        show_state: false
+                        tap_action: 
+                          action: call-service
+                          service: script.start_cd
+                        state:
+                          - value: 'cd'
+                            color: var(--paper-item-icon-active-color)
+                      #- type: custom:button-card
+                      #  color_type: blank-card
 
-# todo: media_player entity not available, if device is switched off during HA restart. 
-  #- type: media-control
-  #  entity: media_player.panasonic_blu_ray
-  #  name: Panasonic DP-UB424
+            - type: media-control
+              entity: media_player.samsungtv
+              name: Samsung Qled60
 
-  # Zugriff Radio Bad geht, wird aber nicht gebraucht
-  #- type: media-control
-  #  entity: media_player.radio_bad
+            - type: media-control
+              entity: media_player.r_n803d_86ae28
+              name: Yamaha R-N803D
+
+    # todo: media_player entity not available, if device is switched off during HA restart. 
+      #- type: media-control
+      #  entity: media_player.panasonic_blu_ray
+      #  name: Panasonic DP-UB424
+
+      # Zugriff Radio Bad geht, wird aber nicht gebraucht
+      #- type: media-control
+      #  entity: media_player.radio_bad
   
-  - type: horizontal-stack
-    # https://github.com/custom-cards/button-card
-    cards:
-      - type: custom:button-card
-        name: Kino
-        icon: mdi:filmstrip-box-multiple
-        show_state: false
-        tap_action: 
-          action: call-service
-          service: script.start_bd_show
-      - type: custom:button-card
-        name: TV
-        icon: mdi:television-classic
-        show_state: false
-        tap_action: 
-          action: call-service
-          service: script.start_tv_show
-      - type: custom:button-card
-        name: Radio
-        icon: mdi:radio
-        show_state: false
-        tap_action: 
-          action: call-service
-          service: script.start_radio
-      - type: custom:button-card
-        name: CD
-        icon: mdi:music-circle-outline
-        show_state: false
-        tap_action: 
-          action: call-service
-          service: script.start_cd
-      #- type: custom:button-card
-      #  color_type: blank-card
 
-# todo: Remote
-# todo: gesehen bei knapoc https://community.home-assistant.io/t/stack-in-card-drop-in-replacement-for-vertical-stack-in-card/180072
+  # Remote control
+  #   gesehen bei knapoc https://community.home-assistant.io/t/stack-in-card-drop-in-replacement-for-vertical-stack-in-card/180072
+  #   https://community.home-assistant.io/t/how-do-i-actually-make-a-tv-remote-control-work-well-in-the-gui/212392/4
+  - type: 'custom:button-card'
+    template: container
+    name: Remote Control
+    color: var(--ha-card-background)
+    custom_fields:
+      buttons:
+        card:
+          type: vertical-stack #custom:stack-in-card
+          #mode: vertical
+          cards:
+            # on/off, source
+            - type: horizontal-stack
+              cards:
+                - type: custom:button-card
+                  icon: mdi:power-standby
+                  show_name: false
+                  tap_action:
+                    action: call-service
+                    service: script.rc_power_off
+                - type: custom:button-card
+                  color_type: blank-card
+                - type: 'custom:button-card'
+                  tap_action:
+                    action: call-service
+                    service: script.rc_source_tv
+                  icon: 'mdi:keyboard-return'
+                  name: 'TV'
+                  show_name: true
+                  show_icon: false
+                - type: 'custom:button-card'
+                  tap_action:
+                    action: call-service
+                    service: script.rc_source_disc
+                  icon: 'mdi:keyboard-return'
+                  name: 'CD/DVD'
+                  show_name: true
+                  show_icon: false
+            # color buttons / function keys
+      # todo FARBTASTEN: wenn Blueray an: Menu, Option, Audio
+      # umbenennen möglich?
+            - type: 'custom:button-card'
+              template: container
+              #color: var(--ha-card-background)
+              custom_fields:
+                buttons:
+                  card:
+                    type: horizontal-stack
+                    cards:
+                      - type: 'custom:button-card'
+                        styles:
+                          icon:
+                            - color: red
+                        tap_action:
+                          action: call-service
+                          service: script.rc_key_red
+                        icon: 'mdi:card'
+                        show_name: false
+                      - type: 'custom:button-card'
+                        styles:
+                          icon:
+                            - color: green
+                        tap_action:
+                          action: call-service
+                          service: script.rc_key_green
+                        show_name: false
+                        icon: 'mdi:card'
+                      - type: 'custom:button-card'
+                        styles:
+                          icon:
+                            - color: yellow
+                        tap_action:
+                          action: call-service
+                          service: script.rc_key_yellow
+                        icon: 'mdi:card'
+                        show_name: false
+                      - type: 'custom:button-card'
+                        styles:
+                          icon:
+                            - color: blue
+                        tap_action:
+                          action: call-service
+                          service: script.rc_key_blue
+                        icon: 'mdi:card'
+                        show_name: false
 
-  - type: custom:vertical-stack-in-card
-    cards:
-      - type: entities
-        <<: *style_header
-        title: Entertainment-Rack
-        show_header_toggle: false
-        state_color: true
-        entities:
-          - entity: switch.osram_plug_01_a1bf020a_3
-            name: Power-Plug
-          - type: divider
-          - entity: group.mediadevices_in_use
-            name: TV an oder Music spielt
-      # device status (for testing)
-      - !include ../cards/mediarack_debug.yaml
+            # navigation dial
+            - type: horizontal-stack
+              cards:
+                - type: custom:button-card
+                  color_type: blank-card
+                - type: custom:button-card
+                  color_type: blank-card
+                - type: 'custom:button-card'
+                  tap_action:
+                    action: call-service
+                    service: script.rc_key_up
+                  icon: 'mdi:arrow-up'
+                  show_name: false
+                - type: custom:button-card
+                  color_type: blank-card
+                - type: custom:button-card
+                  color_type: blank-card
+            - type: horizontal-stack
+              cards:
+                - type: custom:button-card
+                  color_type: blank-card
+                - type: 'custom:button-card'
+                  tap_action:
+                    action: call-service
+                    service: script.rc_key_left
+                  icon: 'mdi:arrow-left'
+                  show_name: false
+                - type: 'custom:button-card'
+                  tap_action:
+                    action: call-service
+                    service: script.rc_key_enter
+                  icon: 'mdi:checkbox-marked-circle-outline' #'mdi:keyboard-return'
+                  name: 'ok'
+                  show_name: true
+                  show_icon: true
+                - type: 'custom:button-card'
+                  tap_action:
+                    action: call-service
+                    service: script.rc_key_right
+                  icon: 'mdi:arrow-right'
+                  show_name: false
+                - type: custom:button-card
+                  color_type: blank-card
+            - type: horizontal-stack
+              cards:
+                - type: 'custom:button-card'
+                  tap_action:
+                    action: call-service
+                    service: script.rc_key_back
+                  icon: 'mdi:undo-variant'
+                  name: 'back'
+                  show_name: true
+                  show_icon: true
+                - type: custom:button-card
+                  color_type: blank-card
+                - type: 'custom:button-card'
+                  tap_action:
+                    action: call-service
+                    service: script.rc_key_down
+                  icon: 'mdi:arrow-down'
+                  show_name: false
+                - type: custom:button-card
+                  color_type: blank-card
+                - type: 'custom:button-card'
+                  tap_action:
+                    action: call-service
+                    service: script.rc_key_home
+                  icon: 'mdi:home'
+                  name: 'home'
+                  show_name: true
+                  show_icon: true
+            # Volume & channels
+            - type: horizontal-stack
+              cards:
+                - type: custom:button-card
+                  color_type: blank-card
+                - type: 'custom:button-card'
+                  tap_action:
+                    action: call-service
+                    service: script.rc_volume_up
+                  icon: 'mdi:volume-plus'
+                  name: 'vol'
+                  show_name: true
+                  show_icon: true
+                - type: custom:button-card
+                  color_type: blank-card
+                - type: 'custom:button-card'
+                  tap_action:
+                    action: call-service
+                    service: script.rc_channel_up
+                  icon: 'mdi:plus-box-multiple-outline'
+                  name: 'ch'
+                  show_name: true
+                  show_icon: true
+                - type: custom:button-card
+                  color_type: blank-card
+            - type: horizontal-stack
+              cards:
+                - type: custom:button-card
+                  color_type: blank-card
+                - type: 'custom:button-card'
+                  tap_action:
+                    action: call-service
+                    service: script.rc_volume_down
+                  icon: 'mdi:volume-minus'
+                  name: 'vol'
+                  show_name: true
+                  show_icon: true
+                - type: custom:button-card
+                  color: auto
+                  tap_action:
+                    action: call-service
+                    service: script.rc_volume_mute
+                  icon: mdi:volume-off
+                  name: 'mute'
+                  show_name: true
+                  show_icon: true
+                - type: 'custom:button-card'
+                  tap_action:
+                    action: call-service
+                    service: script.rc_channel_down
+                  icon: 'mdi:minus-box-multiple-outline'
+                  name: 'ch'
+                  show_name: true
+                  show_icon: true
+                - type: custom:button-card
+                  color_type: blank-card
+            # Play, Stop and skip
+            - type: 'custom:button-card'
+              template: frame
+              #color: var(--ha-card-background)
+              custom_fields:
+                buttons:
+                  card:
+                    type: vertical-stack
+                    cards:
+                      - type: horizontal-stack
+                        cards:
+                          - type: custom:button-card
+                            color_type: blank-card
+                          - type: 'custom:button-card'
+                            tap_action:
+                              action: call-service
+                              service: script.rc_key_rewind
+                            icon: 'mdi:skip-backward'
+                            name: 'rewind'
+                            show_name: true
+                            show_icon: true
+                          - type: 'custom:button-card'
+                            tap_action:
+                              action: call-service
+                              service: script.rc_key_play
+                            icon: 'mdi:play'
+                            name: 'play'
+                            show_name: true
+                            show_icon: true
+                          - type: 'custom:button-card'
+                            tap_action:
+                              action: call-service
+                              service: script.rc_key_forward
+                            icon: 'mdi:skip-forward'
+                            name: 'forward'
+                            show_name: true
+                            show_icon: true
+                          - type: custom:button-card
+                            color_type: blank-card
+                      - type: horizontal-stack
+                        cards:
+                          - type: custom:button-card
+                            color_type: blank-card
+                          - type: 'custom:button-card'
+                            tap_action:
+                              action: call-service
+                              service: script.rc_key_record
+                            icon: 'mdi:record-rec'
+                            name: 'rec'
+                            show_name: true
+                            show_icon: true
+                          - type: 'custom:button-card'
+                            tap_action:
+                              action: call-service
+                              service: script.rc_key_pause
+                            icon: 'mdi:pause'
+                            name: 'pause'
+                            show_name: true
+                            show_icon: true
+                          - type: 'custom:button-card'
+                            tap_action:
+                              action: call-service
+                              service: script.rc_key_stop
+                            icon: 'mdi:stop'
+                            name: 'stop'
+                            show_name: true
+                            show_icon: true
+                          - type: custom:button-card
+                            color_type: blank-card
+
+
+  # power status of the entertainment rack
+#  - type: custom:vertical-stack-in-card
+#    cards:
+#      - type: entities
+#        <<: *style_header
+#        title: Entertainment-Rack
+#        show_header_toggle: false
+#        state_color: true
+#        entities:
+#          - entity: switch.osram_plug_01_a1bf020a_3
+#            name: Power-Plug
+#          - type: divider
+#          - entity: group.mediadevices_in_use
+#            name: TV an oder Music spielt
+#      # device status (for testing)
+#      - !include ../cards/mediarack_debug.yaml        
+
 
   # status of lights
   - type: entities

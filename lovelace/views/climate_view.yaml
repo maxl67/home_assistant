@@ -105,7 +105,8 @@ cards:
       # thermostat living room
       - type: custom:simple-thermostat
         entity: climate.000c9a499b5808
-        name: Wohnzimmer Thermostat
+        header:
+          name: Wohnzimmer Thermostat
         <<: *simple_thermostat
         sensors:
           - entity: sensor.hm_thermo_wz_actor_state
@@ -143,7 +144,8 @@ cards:
       # thermostat kitchen
       - type: custom:simple-thermostat
         entity: climate.000a1a49a10ba3
-        name: Küche Thermostat
+        header:
+          name: Küche Thermostat
         <<: *simple_thermostat
         sensors:
           - entity: sensor.hm_thermo_ku_actor_value
@@ -181,7 +183,8 @@ cards:
       # thermostat guest room
       - type: custom:simple-thermostat
         entity: climate.000a1a49a107b5
-        name: Gästezimmer Thermostat
+        header:
+          name: Gästezimmer Thermostat
         <<: *simple_thermostat
         sensors:
           - entity: sensor.hm_thermo_gz_actor_value

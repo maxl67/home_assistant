@@ -50,13 +50,13 @@ homeassistant:
       friendly_name: Glücksfeder
       <<: *common  
     plant.plant_3:
-      friendly_name: Oleander
+      friendly_name: Kannenpflanze
       <<: *common  
     sensor.pflanze_2_moisture:
       friendly_name: Feuchtigkeit
       <<: *common
     sensor.pflanze_2_battery:
-      friendly_name: Batterie
+#      friendly_name: Batterie
       <<: *common
     sensor.pflanze_2_temperature:
       friendly_name: Temperatur
@@ -71,7 +71,7 @@ homeassistant:
       friendly_name: Feuchtigkeit
       <<: *common
     sensor.pflanze_3_battery:
-      friendly_name: Batterie
+#      friendly_name: Batterie
       <<: *common
     sensor.pflanze_3_temperature:
       friendly_name: Temperatur

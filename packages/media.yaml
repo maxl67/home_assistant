@@ -16,6 +16,9 @@ homeassistant:
     package.node_anchors:
       common: &common
         package: 'media'
+  # constants 
+      receiver_entityid: &receiver_entityid media_player.r_n803d_86ae28
+      tv_entityid: &tv_entityid media_player.samsungtv
   # groups, variables
     group.mediadevices_in_use:
       <<: *common
@@ -24,6 +27,8 @@ homeassistant:
       <<: *common
     sensor.netreceiver_is_used:
       icon: mdi:music-box
+      <<: *common
+    sensor.entertainment_scenario:
       <<: *common
   # automations
     script.start_bd_show:
@@ -86,7 +91,7 @@ group:
     icon: mdi:account-music
     entities:
       - sensor.netreceiver_is_used
-      - media_player.samsungtv
+      - *tv_entityid
     #  - binary_sensor.smarttv
 
 
@@ -106,7 +111,7 @@ sensor:
       netreceiver_is_used:
         friendly_name: 'Yamaha R-N803 in Benutzung'
         value_template: >
-          {%- if states('media_player.r_n803d_86ae28') in ('unavailable','unknown') -%}
+          {%- if states('media_player.r_n803d_86ae28') in ['unavailable','unknown'] -%}
             off
           {%-  elif not states('media_player.r_n803d_86ae28') in ['off','idle'] 
                  and is_state('binary_sensor.netreceiver_online','on') -%}
@@ -114,6 +119,30 @@ sensor:
           {%- else -%}
             off
           {%-  endif -%}
+
+      entertainment_scenario:
+        friendly_name: 'Unterhaltungs Szenario'
+        value_template: >
+          {%- if states('media_player.r_n803d_86ae28') in ['unavailable','unknown','off'] 
+                and states('media_player.samsungtv') in ['unavailable','unknown','off'] -%}
+            off
+          {%-  elif not states('media_player.r_n803d_86ae28') in ['off','idle'] 
+                 and state_attr('media_player.r_n803d_86ae28','source') == 'tuner' -%}
+            radio
+          {%-  elif not states('media_player.r_n803d_86ae28') in ['off'] 
+                 and state_attr('media_player.r_n803d_86ae28','source') in ['coaxial1','line_cd'] -%}
+            cd
+          {%-  elif not states('media_player.r_n803d_86ae28') in ['off','idle'] 
+                 and state_attr('media_player.r_n803d_86ae28','source') in ['optical1'] 
+                 and not states('media_player.samsungtv') in ['off'] -%}
+            cinema
+          {%-  elif states('media_player.r_n803d_86ae28') in ['off','idle'] 
+                 and not states('media_player.samsungtv') in ['off'] -%}
+            tv
+          {%- else -%}
+            unknown
+          {%-  endif -%}
+
 
 ###############################################################################
 ##  Scripts
@@ -125,34 +154,34 @@ script:
       # TV und Receiver einschalten
       - service: media_player.turn_on
         data:
-          entity_id: media_player.samsungtv
+          entity_id: *tv_entityid
       - service: media_player.turn_on
         data:
-          entity_id: media_player.r_n803d_86ae28
+          entity_id: *receiver_entityid
       - delay: '00:00:03'
       # Lautstärke TV ausschalten
       - service: media_player.volume_set
         data:
           volume_level: 0
         target:
-          entity_id: media_player.samsungtv
+          entity_id: *tv_entityid
       # Quelle: HDMI1=BlueRay-Player
       - service: media_player.play_media
         data:
-          entity_id: media_player.samsungtv
+          entity_id: *tv_entityid
           media_content_id: KEY_HDMI
           media_content_type: "send_key"
       # Verstärker
       - service: media_player.select_source
         target:
-          entity_id: media_player.r_n803d_86ae28
+          entity_id: *receiver_entityid
         data:
           source: optical1
-      - delay: '00:00:05'
+      #- delay: '00:00:05'
       # BlueRay-Player: Netzwerk > Hera > Video auswählen
       #- service: media_player.play_media
       #  data:
-      #    entity_id: media_player.samsungtv
+      #    entity_id: *tv_entityid
 #todo: das klappt noch nicht
       #    media_content_id: KEY_RIGHT+KEY_RIGHT+KEY_RIGHT+KEY_RETURN+KEY_RETURN+500+KEY_RETURN+KEY_DOWN+KEY_DOWN+KEY_ENTER
       #    media_content_type: "send_key"
@@ -180,13 +209,13 @@ script:
       # Verstärker ausschalten
       - service: media_player.select_source
         target:
-          entity_id: media_player.r_n803d_86ae28
+          entity_id: *receiver_entityid
         data:
           source: tuner
       - delay: '00:00:02'
       - service: media_player.turn_off
         data:
-          entity_id: media_player.r_n803d_86ae28
+          entity_id: *receiver_entityid
 
   start_radio:
     alias: Radio hören
@@ -197,12 +226,12 @@ script:
           entity_id: media_player.samsungtv
       - service: media_player.turn_on
         data:
-          entity_id: media_player.r_n803d_86ae28
+          entity_id: *receiver_entityid
       - delay: '00:00:03'
       # Verstärker umstellen auf Radio
       - service: media_player.select_source
         target:
-          entity_id: media_player.r_n803d_86ae28
+          entity_id: *receiver_entityid
         data:
           source: tuner
 
@@ -215,14 +244,306 @@ script:
           entity_id: media_player.samsungtv
       - service: media_player.turn_on
         data:
-          entity_id: media_player.r_n803d_86ae28
+          entity_id: *receiver_entityid
       - delay: '00:00:03'
       # Verstärker umstellen auf CD
       - service: media_player.select_source
         target:
-          entity_id: media_player.r_n803d_86ae28
+          entity_id: *receiver_entityid
         data:
           source: coaxial1 #or line_cd
+
+#TV: Keys for remote control
+#  TV keys: https://github.com/jaruba/ha-samsungtv-tizen/blob/master/Key_codes.md
+#  Media player: https://www.home-assistant.io/integrations/media_player/
+  rc_power_off:
+    alias: power off
+    sequence:
+    - choose:
+      # IF receiver is 'on' 
+      - conditions: "{{ not is_state('media_player.r_n803d_86ae28', 'off') }}"
+        sequence:
+          service: media_player.turn_off
+          data:
+            entity_id: *receiver_entityid
+      # ELSE TV
+      default:
+      - service: script.tv_send_key
+        data:
+          my_key_code: KEY_POWER #KEY_POWERON, KEY_POWEROFF
+  rc_source_tv:
+    alias: source tv
+    sequence:
+    - choose:
+      # IF receiver is 'on' 
+      - conditions: "{{ not is_state('media_player.r_n803d_86ae28', 'off') }}"
+        sequence:
+          service: media_player.select_source
+          data:
+            entity_id: *receiver_entityid
+            source: optical1
+      # ELSE TV
+      default:
+      - service: script.tv_send_key
+        data:
+          my_key_code: KEY_TV #KEY_DTV oder KEY_ANTENA
+  rc_source_disc:
+    alias: source CD/DVD
+    sequence:
+    - choose:
+      # IF receiver is 'on' 
+      - conditions: "{{ not is_state('media_player.r_n803d_86ae28', 'off') }}"
+        sequence:
+          service: media_player.select_source
+          data:
+            entity_id: *receiver_entityid
+            source: coaxial1
+      # ELSE TV
+      default:
+      - service: script.tv_send_key
+        data:
+          my_key_code: KEY_HDMI
+  rc_volume_mute:
+    alias: mute volume
+    sequence:
+    - service: media_player.volume_mute
+      data:
+        entity_id: *receiver_entityid
+        is_volume_muted: "{{ not state_attr('media_player.r_n803d_86ae28','is_volume_muted') }}"
+    - service: script.tv_send_key
+      data:
+        my_key_code: KEY_MUTE
+  rc_volume_down:
+    alias: volume down
+    sequence:
+      - choose:
+        # IF receiver is 'on' and (set to optical=TV or TV is off)
+        - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and (state_attr('media_player.r_n803d_86ae28','source') == 'optical1' or is_state('media_player.samsungtv', 'off')) }}"
+          sequence:
+          #todo: besser in kleineren schritten
+            service: media_player.volume_down
+            data:
+              entity_id: *receiver_entityid
+        # ELSE TV
+        default:
+          - service: script.tv_send_key
+            data:
+              my_key_code: KEY_VOLDOWN
+  rc_volume_up:
+    alias: volume up
+    sequence:
+      - choose:
+        # IF receiver is 'on' and (set to optical=TV or TV is off)
+        - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and (state_attr('media_player.r_n803d_86ae28','source') == 'optical1' or is_state('media_player.samsungtv', 'off')) }}"
+          sequence:
+          #todo: besser in kleineren schritten
+            service: media_player.volume_up
+            data:
+              entity_id: *receiver_entityid
+        # ELSE TV
+        default:
+          - service: script.tv_send_key
+            data:
+              my_key_code: KEY_VOLUP
+  #todo Channel: wenn blueRay-Player an, deaktivieren.
+  rc_channel_down:
+    alias: channel down
+    sequence:
+      - choose:
+        # IF receiver is 'on' and (set to optical=Tuner)
+        - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and state_attr('media_player.r_n803d_86ae28','source') == 'tuner' }}"
+          sequence:
+          #todo: besser in kleineren schritten
+            service: media_player.media_previous_track
+            data:
+              entity_id: *receiver_entityid
+        # ELSE TV
+        default:
+          - service: script.tv_send_key
+            data:
+              my_key_code: KEY_CHDOWN
+  rc_channel_up:
+    alias: channel up
+    sequence:
+      - choose:
+        # IF receiver is 'on' and (set to optical=Tuner)
+        - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and state_attr('media_player.r_n803d_86ae28','source') == 'tuner' }}"
+          sequence:
+          #todo: besser in kleineren schritten
+            service: media_player.media_next_track
+            data:
+              entity_id: *receiver_entityid
+        # ELSE TV
+        default:
+          - service: script.tv_send_key
+            data:
+              my_key_code: KEY_CHUP
+  rc_key_blue:
+    alias: key blue
+    sequence:
+    - service: script.tv_send_key
+      data:
+        my_key_code: KEY_CYAN
+  rc_key_green:
+    alias: kex green
+    sequence:
+    - service: script.tv_send_key
+      data:
+        my_key_code: KEY_GREEN
+  rc_key_yellow:
+    alias: key yellow
+    sequence:
+    - service: script.tv_send_key
+      data:
+        my_key_code: KEY_YELLOW
+  rc_key_red:
+    alias: key red
+    sequence:
+    - service: script.tv_send_key
+      data:
+        my_key_code: KEY_RED
+  rc_key_up:
+    alias: navigation up
+    sequence:
+    - service: script.tv_send_key
+      data:
+        my_key_code: KEY_UP
+  rc_key_down:
+    alias: navigation up
+    sequence:
+    - service: script.tv_send_key
+      data:
+        my_key_code: KEY_DOWN
+  rc_key_left:
+    alias: navigation left
+    sequence:
+    - service: script.tv_send_key
+      data:
+        my_key_code: KEY_LEFT
+  rc_key_right:
+    alias: navigation right
+    sequence:
+    - service: script.tv_send_key
+      data:
+        my_key_code: KEY_RIGHT
+  rc_key_back:
+    alias: navigation back
+    sequence:
+    - service: script.tv_send_key
+      data:
+        my_key_code: KEY_RETURN
+  rc_key_enter:
+    alias: navigation enter
+    sequence:
+    - service: script.tv_send_key
+      data:
+        my_key_code: KEY_ENTER
+  rc_key_home:
+    alias: navigation home
+  #todo: wenn BR an, dann home an BR-player 
+    sequence:
+    - service: script.tv_send_key
+      data:
+        my_key_code: KEY_HOME
+
+  rc_key_rewind:
+    alias: media rewind
+    sequence:
+      - choose:
+        # IF receiver is 'on' and (set to server)
+        - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and state_attr('media_player.r_n803d_86ae28','source') == 'server' }}"
+          sequence:
+          #todo: besser in kleineren schritten
+            service: media_player.media_previous_track
+            data:
+              entity_id: *receiver_entityid
+        # ELSE TV
+        default:
+          - service: script.tv_send_key
+            data:
+              my_key_code: KEY_REWIND
+  rc_key_forward:
+    alias: media forward
+    sequence:
+      - choose:
+        # IF receiver is 'on' and (set to server)
+        - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and state_attr('media_player.r_n803d_86ae28','source') == 'server' }}"
+          sequence:
+          #todo: besser in kleineren schritten
+            service: media_player.media_next_track
+            data:
+              entity_id: *receiver_entityid
+        # ELSE TV
+        default:
+          - service: script.tv_send_key
+            data:
+              my_key_code: KEY_FF
+  rc_key_play:
+    alias: media play
+    sequence:
+      - choose:
+        # IF receiver is 'on' and (set to server)
+        - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and state_attr('media_player.r_n803d_86ae28','source') == 'server' }}"
+          sequence:
+          #todo: besser in kleineren schritten
+            service: media_player.media_play
+            data:
+              entity_id: *receiver_entityid
+        # ELSE TV
+        default:
+        - service: script.tv_send_key
+          data:
+            my_key_code: KEY_PLAY
+  rc_key_stop:
+    alias: media stop
+    sequence:
+      - choose:
+        # IF receiver is 'on' and (set to server)
+        - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and state_attr('media_player.r_n803d_86ae28','source') == 'server' }}"
+          sequence:
+          #todo: besser in kleineren schritten
+            service: media_player.media_stop
+            data:
+              entity_id: *receiver_entityid
+        # ELSE TV
+        default:
+        - service: script.tv_send_key
+          data:
+            my_key_code: KEY_STOP
+  rc_key_pause:
+    alias: media pause
+    sequence:
+      - choose:
+        # IF receiver is 'on' and (set to server)
+        - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and state_attr('media_player.r_n803d_86ae28','source') == 'server' }}"
+          sequence:
+          #todo: besser in kleineren schritten
+            service: media_player.media_pause
+            data:
+              entity_id: *receiver_entityid
+        # ELSE TV
+        default:
+        - service: script.tv_send_key
+          data:
+            my_key_code: KEY_PAUSE
+  rc_key_record:
+    alias: media record
+    sequence:
+    - service: script.tv_send_key
+      data:
+        my_key_code: KEY_REC
+
+  tv_send_key:
+    alias: send key to TV
+    sequence:
+    - service: media_player.play_media
+      data:
+        entity_id: media_player.samsungtv
+        media_content_id: "{{ my_key_code }}"
+        media_content_type: "send_key"
+#  receiver_send_key:
+#    alias: send key to receiver
+# not working
 
 ###############################################################################
 #                               Automations

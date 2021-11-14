@@ -60,14 +60,14 @@ sensor:
         icon_template: mdi:restart
       fritz_rate_up: #Current upstream speed in Kbytes/s
         friendly_name: "Upload"
-        value_template: "{{ (states('sensor.fritz_box_6490_cable_kb_s_sent')|int / 1024)|round(1) }}"
+        value_template: "{{ (states('sensor.fritz_box_6490_cable_kb_s_sent')|int / 1024 * 8)|round(1) }}"
         icon_template: mdi:cloud-upload
-        unit_of_measurement: "MB/sec"
+        unit_of_measurement: "MBit/s"
       fritz_rate_down: #Current downstream speed in Kbytes/s
         friendly_name: "Download"
-        value_template: "{{ (states('sensor.fritz_box_6490_cable_kb_s_received')|int / 1024)|round(1) }}"
+        value_template: "{{ (states('sensor.fritz_box_6490_cable_kb_s_received')|int / 1024 * 8)|round(1) }}"
         icon_template: mdi:cloud-download
-        unit_of_measurement: "MB/sec"
+        unit_of_measurement: "MBit/s"
       fritz_rate_up_max: #Maximum upstream-rate in bytes/s
         friendly_name: "Upload Max"
         value_template: "{{ (states('sensor.fritz_box_6490_cable_max_kbit_s_sent')|int / 1024)|round(1) }}"
@@ -88,11 +88,11 @@ script:
     sequence:
       - service: fritz.reconnect
         target:
-          entity_id: binary_sensor.fritz_box_6490_cable_connectivity
+          entity_id: binary_sensor.fritz_box_6490_cable_connection
 
   fritzbox_reboot:
     alias: "Reboot Fritz!Box"
     sequence:
       - service: fritz.reboot
         target:
-          entity_id: binary_sensor.fritz_box_6490_cable_connectivity
+          entity_id: binary_sensor.fritz_box_6490_cable_connection

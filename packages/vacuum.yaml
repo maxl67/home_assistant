@@ -293,7 +293,7 @@ sensor:
         friendly_name: Vacuum Battery
         value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','battery_level') }}"
         unit_of_measurement: '%'
-        icon_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','battery_icon') }}"
+        icon_template: "{{ 'mdi:battery' if (state_attr('vacuum.xiaomi_vacuum_cleaner','battery_icon') is none) else state_attr('vacuum.xiaomi_vacuum_cleaner','battery_icon') }}"
       vacuum_cleaning_time:
         friendly_name: Time of Last Cycle
         value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','cleaning_time') }}"
@@ -330,9 +330,9 @@ sensor:
         icon_template: >
           {% set val =  state_attr('vacuum.xiaomi_vacuum_cleaner','do_not_disturb') %}
           {% if val == 'on' %}
-            mdi:do-not-disturb
+            mdi:minus-circle
           {% else %}
-            mdi:do-not-disturb-off
+            mdi:minus-circle-off
           {% endif %}
       vacuum_operation:
         value_template: 'Betrieb' #'Operation'
@@ -637,8 +637,8 @@ automation:
         - condition: template
           # last time this automation was triggered is more than 1800secs=30min ago
           value_template: >
-            {% if states.automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin.last_triggered is not none %}
-              {% if as_timestamp(now()) | int - as_timestamp(states.automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin.attributes.last_triggered) | int > 1800 %} true {% else %} false
+            {% if state_attr('automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin','last_triggered') is not none %}
+              {% if as_timestamp(now()) | int - as_timestamp(state_attr('automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin','last_triggered')) | int > 1800 %} true {% else %} false
               {% endif %}
             {% else %}
               false
@@ -648,11 +648,11 @@ automation:
           state: 'docked'
     action:
       - service: >
-          {% if (states.sensor.max_status.state in ['Home', 'Just Arrived']) and (states.sensor.ing_status.state in ['Home', 'Just Arrived']) %}
+          {% if (states('sensor.max_status') in ['Home', 'Just Arrived']) and (states('sensor.ing_status') in ['Home', 'Just Arrived']) %}
             notify.family_main_devices
-          {% elif states.sensor.max_status.state in ['Home', 'Just Arrived'] %}
+          {% elif states('sensor.max_status') in ['Home', 'Just Arrived'] %}
             notify.max
-          {% elif states.sensor.ing_status.state in ['Home', 'Just Arrived'] %}
+          {% elif states('sensor.ing_status') in ['Home', 'Just Arrived'] %}
             notify.ing
           {% else %}
             notify.max          

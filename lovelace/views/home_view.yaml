@@ -11,6 +11,13 @@ anchors:
 #id: home
 title: Home
 icon: mdi:home
+#todo: does not work this way
+#icon: >
+#  {% if is_state('input_boolean.open_backdoor_alert', 'on') or is_state('input_boolean.open_window_alert', 'on') %}
+#    mdi:home-alert
+#  {% else %}
+#    mdi:home
+#  {% endif %}
 path: home
 cards:
   # show only open (or unavailable) door-/window sensors (if any...)
@@ -35,19 +42,24 @@ cards:
       show_header_toggle: false
     filter:
       exclude:
-        - entity_id: "sensor.iphone*"
-        - entity_id: "sensor.ipad*"
+        - entity_id: "sensor.*iphone*"
+        - entity_id: "sensor.*ipad*"
         - entity_id: "input*"
+        - entity_id: "sensor.plant_*_battery" #old remains of battery notification package
+        - entity_id: "plant.plant_*_battery" #old remains of battery notification package
+        - entity_id: "sensor.oleander_battery" #old remains of battery notification package
       include:
         - entity_id: "sensor.lumi_lumi_sensor_magnet_aq2*"
-          state: "<= 15" 
+          state: "<= 10" #Door- & window sensors
+        - entity_id: "sensor.lumi_lumi_weather_*_power"
+          state: "<= 10" #Climate sensor
         - entity_id: "*battery*"
-          state: "< 15"
+          state: "<= 15"
         - name: "*battery*"
           state: "< 15"
         - attributes:
             battery: "< 15"
-        - name: "*_low_bat"
+        - entity_id: "*low_bat"
           state: "on"
         #- attributes: #here the vacuum will show with status 'charging' etc.
         #    battery_level: < 20
