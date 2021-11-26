@@ -65,18 +65,6 @@ sensor:
 ###############################################################################
 ##  Sensors
 ###############################################################################
-#  - platform: template
-#    sensors:
-#      # we have to define 2 new sensors, because the value has to be divided, obsolete since 2021.3
-#      hera_dsm_avg_processes_5_min:
-#        friendly_name: Hera DSM Process Load (avg. 5min)
-#        value_template: "{{ states('sensor.hera_cpu_load_5_min')| float / 100 }}"
-#        icon_template: mdi:layers
-#      hera_dsm_avg_processes_15_min:
-#        friendly_name: Hera DSM Process Load (avg. 15min)
-#        value_template: "{{ states('sensor.hera_cpu_load_15_min')| float / 100 }}"
-#        icon_template: mdi:layers
-  # calc max temperature of all discs
   - platform: min_max
     name: hera_volume_1_max_disk_temp
     type: max

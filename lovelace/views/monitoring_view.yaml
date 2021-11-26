@@ -118,7 +118,6 @@ anchors:
         color: *dark_red
             
   dataset_internet_ping: &dataset_internet_ping
-    name: ping
     y_axis: secondary
     color: gray
     show_points: false
@@ -218,6 +217,7 @@ cards:
                 name: rate
                 color: *blue
               - entity: sensor.speedtest_ping
+                name: ping
                 <<: *dataset_internet_ping
             <<: *graph_bandwidth
             decimals: 0
@@ -242,6 +242,7 @@ cards:
                 name: rate
                 color: *blue
               - entity: sensor.speedtest_ping
+                name: ping
                 <<: *dataset_internet_ping
             <<: *graph_bandwidth
             decimals: 1
@@ -315,7 +316,7 @@ cards:
                 #  name: avg temp
               style: |
                 :host {
-                  {% if not is_state('sensor.hera_volume_1_status','normal') or states('sensor.hera_volume_1_max_disk_temp')|float(0)>=40 %}
+                  {% if not is_state('sensor.hera_volume_1_status','normal') or states('sensor.hera_volume_1_max_disk_temp')|float(default=0)>=40 %}
                     color: var(--paper-item-icon-active-color);
                     --paper-item-icon-color: #FF7738;
                   {% endif %}
@@ -326,7 +327,7 @@ cards:
               icon: mdi:chart-pie
               style: |
                 :host {
-                  {% if states('sensor.hera_volume_1_volume_used')|float(0)>=90 %}
+                  {% if states('sensor.hera_volume_1_volume_used')|float(default=0)>=90 %}
                     color: var(--paper-item-icon-active-color);
                     --paper-item-icon-color: #FF7738;
                   {% endif %}
@@ -413,7 +414,7 @@ cards:
         name: HACS updates
         style: |
           :host {
-            {% if states('sensor.hacs')|int(0)>0 %}
+            {% if states('sensor.hacs')|int(default=0)>0 %}
               color: var(--paper-item-icon-active-color);
               --paper-item-icon-color: #FF7738;
             {% endif %}
@@ -713,19 +714,6 @@ cards:
         <h3>Raspi2 (West)</h3>
         Ist offline!!
 
-  # ========== Power Consumption ==============
-  - type: custom:vertical-stack-in-card
-    cards:
-      - type: history-graph
-        title: 'Energieaufnahme'
-        hours_to_show: 24
-        <<: *style_header
-        entities:
-          - entity: sensor.fritz_dect_200_netz_power_consumption
-            name: Unifi-Netzwerk
-          - entity: sensor.fritz_dect_200_gz_power_consumption
-            name: Schreibtisch M
-
   # ========== Printer ==============
   # ---- HP Color Laserjet 400 ----
   - type: 'custom:stack-in-card'
@@ -740,7 +728,6 @@ cards:
       outer_padding: false
     cards:
       - type: entities
-        <<: *style_header
         entities:
           - entity: sensor.hp_laserjet_status
             icon: 'mdi:information-variant'

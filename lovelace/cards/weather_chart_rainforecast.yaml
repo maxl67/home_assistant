@@ -1,0 +1,79 @@
+# https://community.home-assistant.io/t/apexcharts-card-a-highly-customizable-graph-card/272877/487
+# https://github.com/RomRider/apexcharts-card#data_generator-option
+#------------------------------
+# Niederschlag - Chart
+
+type: custom:apexcharts-card
+graph_span: 5d
+span:
+  start: hour
+yaxis:
+  - id: first
+    apex_config:
+      tickAmount: 3
+      title: 
+        text: 'Regenmenge [l/m²]'
+        style:
+          color: var(--primary-color)
+    max: ~1 # ~: max of axis has a minimum of .., will be increased
+
+  - id: probability
+    opposite: true
+    min: 0
+    decimals: 0
+    apex_config:
+      tickAmount: 3
+      title: 
+        text: 'Wahrscheinlichk. [%]'
+        style:
+          color: var(--paper-toggle-button-checked-button-color)
+series:
+  - entity: sensor.precipitation_ak_stuttgart_2
+    name: Menge
+    data_generator: |
+      return entity.attributes.data.map((entry) => {
+        return [new Date(entry.datetime), entry.value];
+      });
+    extend_to_end: false
+    type: column
+    yaxis_id: first
+    color: var(--primary-color)
+  - entity: sensor.precipitation_probability_ak_stuttgart_2
+    name: Wahrscheinl. 
+    data_generator: |
+      return entity.attributes.data.map((entry) => {
+        return [new Date(entry.datetime), entry.value];
+      });
+    extend_to_end: false
+    type: line
+    yaxis_id: probability
+    opacity: 0.7
+    color: var(--paper-toggle-button-checked-button-color)
+show:
+  last_updated: true
+header:
+  show: true
+  title: Niederschlag
+  floating: true
+all_series_config:
+  stroke_width: 2
+apex_config:
+  chart:
+    zoom:
+      type: x
+      enabled: true
+      autoScaleYaxis: false
+    toolbar:
+      show: true
+      tools:
+        zoom: true
+        zoomin: true
+        zoomout: true
+        pan: true
+        reset: true
+      autoSelected: zoom
+  legend:
+    show: false
+  xaxis:
+    labels:
+      format: ddd dd.

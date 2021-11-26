@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 16.01.2020
+#   @date         : 17.11.2021
 #   @package      : weather
 #   @description  : all kinds of weather information
 #   @links        : 
@@ -60,14 +60,6 @@ homeassistant:
 ################################################
 sun: 
 
-#wird nach Kauf durch Apple 2021 abgeschaltet
-#weather:
-#  - platform: darksky
-#    api_key: !secret darksky_api_key
-#    mode: daily
-#    scan_interval: 720
-#    name: dark_sky_daily
-
 # get live satelite pictures
 camera:
 #  - platform: generic
@@ -118,38 +110,90 @@ sensor:
     sensors:
       # temp: from dwd_weather, should be a own sensor outside
       outside_temperature: 
-        value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'temperature')|float }}"
+        value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'temperature')|float(default=0) }}"
         unit_of_measurement: '°C'
         friendly_name: Außentemperatur
       outside_humidity:
-        value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'humidity')|int }}"
+        value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'humidity')|int(default=0) }}"
         unit_of_measurement: '%'
         friendly_name: Luftfeuchte außen
       #outside_visibility:
-      #  value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'visibility')|float }}"
+      #  value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'visibility')|float(default=0) }}"
       #  unit_of_measurement: '%'
       #  friendly_name: Sicht
       sun_direction:
-        value_template: "{{ state_attr('sun.sun', 'azimuth')|float }}"
+        value_template: "{{ state_attr('sun.sun', 'azimuth')|float(default=0) }}"
         unit_of_measurement: '°'
         friendly_name: Sonnenrichtung
       sun_elevation:
-        value_template: "{{ state_attr('sun.sun', 'elevation')|float }}"
+        value_template: "{{ state_attr('sun.sun', 'elevation')|float(default=0) }}"
         unit_of_measurement: '°'
         friendly_name: Sonnenhöhe
       sun_is_shining:
-        value_template: "{{ states('weather.dwd_weather_ak_stuttgart') in ('sunny','partlycloudy') and state_attr('sun.sun', 'elevation') > 1 }}"
+        value_template: "{{ (states('weather.dwd_weather_ak_stuttgart') in ('sunny','partlycloudy') and states('weather.home_hourly') in ('sunny','partlycloudy')) and state_attr('sun.sun', 'elevation') >= 3 }}"
         friendly_name: Sonne scheint
       sunshine_intensity:
         value_template: >
           {% if is_state('sensor.sun_is_shining', 'True') %}
-            {{ (state_attr('sun.sun', 'elevation')/90*100)|int }}
+            {{ (state_attr('sun.sun', 'elevation')/90*100)|int(default=0) }}
           {% else %}
             0
           {% endif %}
         unit_of_measurement: '%'
         friendly_name: Sonnenintensität
         # {{ state_attr('weather.dwd_weather_ak_stuttgart', 'visibility') }}
+
+  # Statistik-Analyse
+  - platform: history_stats
+    name: sunshine_hours_yesterday
+    #name: "Sonnenstunden gestern"
+    entity_id: sensor.sun_is_shining
+    state: true
+    type: time
+    # end today at 00:00:00
+    end: >
+      {{ now().replace(hour=0, minute=0, second=0) }}
+    # start 24h before the end time
+    duration:
+      hours: 24
+  - platform: history_stats
+    name: sunshine_hours_today
+    entity_id: sensor.sun_is_shining
+    state: true
+    type: time
+    # start today at 00:00:00
+    start: >
+      {{ now().replace(hour=0, minute=0, second=0) }}
+    # start 24h before the end time
+    end: >
+      {{ now() }}
+  - platform: template
+    sensors:
+      forcast_sunshine_hours_today:
+        friendly_name: restliche Sonnenstunden heute 
+        value_template: >
+          {% set sunH = namespace(value=0) %}
+          {% set sunset_today = today_at(as_datetime(state_attr('sun.sun', 'next_setting')).strftime('%H:%M')) %}
+          {% for h_forecast in state_attr('weather.home_hourly', 'forecast') %}
+            {% if h_forecast.condition == 'sunny' and as_datetime(h_forecast.datetime) < sunset_today %}
+              {% set sunH.value = sunH.value + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ sunH.value }}
+        unit_of_measurement: 'h'
+      forcast_sunshine_hours_tomorrow:
+        friendly_name: Sonnenstunden morgen 
+        value_template: >
+          {% set sunH = namespace(value=0) %}
+          {% set sunrise_tomorrow = today_at(as_datetime(state_attr('sun.sun', 'next_rising')).strftime('%H:%M')) + timedelta(days=1) %}
+          {% set sunset_tomorrow = today_at(as_datetime(state_attr('sun.sun', 'next_setting')).strftime('%H:%M')) + timedelta(days=1) %}
+          {% for h_forecast in state_attr('weather.home_hourly', 'forecast') %}
+            {% if h_forecast.condition == 'sunny' and as_datetime(h_forecast.datetime) > sunrise_tomorrow and as_datetime(h_forecast.datetime) < sunset_tomorrow %}
+              {% set sunH.value = sunH.value + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ sunH.value }}
+        unit_of_measurement: 'h'
 
   - platform: dwd_weather_warnings
     region_name: !secret dwd_region_name
@@ -171,10 +215,13 @@ sensor:
       # Anzahl und Gesamtlevel der DWD-Warnungen
       dwd_current_warn_count:
         value_template: "{{ state_attr('sensor.dwd_weather_warnings_current_warning_level','warning_count') }}"
+        icon_template: mdi:alert-outline
       dwd_current_warn_level:
         value_template: "{{ states('sensor.dwd_weather_warnings_current_warning_level') }}"
+        icon_template: mdi:network-strength-1-alert
       dwd_advance_warn_count:
         value_template: "{{ state_attr('sensor.dwd_weather_warnings_advance_warning_level','warning_count') }}"
+        icon_template: mdi:alert
       # maximaler Level der aktuellen Warnungen
       dwd_max_warn_level:
         value_template: >
@@ -184,18 +231,22 @@ sensor:
             {%- set ns.level = (ns.level, state_attr('sensor.dwd_weather_warnings_current_warning_level',lvl_attr))|max  -%}
           {%- endfor -%}
           {{ns.level}}
+        icon_template: mdi:network-strength-3-alert
 
       # DWD-Warnstufen nach Typen getrennt mit zugehörigem Level
       dwd_current_warn_gewitter:
+        friendly_name: "Gewitter"
         value_template: >
-          {% set ns = namespace(found=false) %}
+          {% set ns = namespace(found='off') %}
           {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith('_type') -%}
               {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr] in [0, 31, 33, 34, 36, 38, 40, 41, 42, 44, 45, 46, 48, 49, 90, 91, 92 ,93, 95, 96] %}
-                  {% set ns.found = true %}
+                  {% set ns.found = 'on' %}
               {% endif %}
           {% endfor %}
           {{ns.found}}
+        icon_template: mdi:weather-lightning-rainy
       dwd_current_warn_level_gewitter:
+        friendly_name: "Gewitter Stufe"
         value_template: >
           {%- set ns = namespace(level=0) -%}
           {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
@@ -206,17 +257,21 @@ sensor:
             {%- endif -%}
           {%- endfor -%}
           {{ns.level}}
+        icon_template: mdi:weather-lightning-rainy
 
       dwd_current_warn_sturm:
+        friendly_name: "Sturm"
         value_template: >
-          {% set ns = namespace(found=false) %}
+          {% set ns = namespace(found='off') %}
           {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith('_type') -%}
               {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr] in [1, 40, 41, 44, 45, 48, 51, 52, 53, 54, 55, 56, 96] %}
-                  {% set ns.found = true %}
+                  {% set ns.found = 'on' %}
               {% endif %}
           {% endfor %}
           {{ns.found}}
+        icon_template: mdi:weather-windy
       dwd_current_warn_level_sturm:
+        friendly_name: "Sturm Stufe"
         value_template: >
           {%- set ns = namespace(level=0) -%}
           {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
@@ -227,17 +282,21 @@ sensor:
             {%- endif -%}
           {%- endfor -%}
           {{ns.level}}
+        icon_template: mdi:weather-windy
 
       dwd_current_warn_regen:
+        friendly_name: "Regen"
         value_template: >
-          {% set ns = namespace(found=false) %}
+          {% set ns = namespace(found='off') %}
           {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith('_type') -%}
               {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr] in [2, 42, 44, 45, 46, 48, 49, 61, 62, 63, 64, 65, 66, 95, 96] %}
-                  {% set ns.found = true %}
+                  {% set ns.found = 'on' %}
               {% endif %}
           {% endfor %}
           {{ns.found}}
+        icon_template: mdi:weather-pouring
       dwd_current_warn_level_regen:
+        friendly_name: "Regen Stufe"
         value_template: >
           {%- set ns = namespace(level=0) -%}
           {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
@@ -248,17 +307,21 @@ sensor:
             {%- endif -%}
           {%- endfor -%}
           {{ns.level}}
+        icon_template: mdi:weather-pouring
 
       dwd_current_warn_schnee:
+        friendly_name: "Schnee"
         value_template: >
-          {% set ns = namespace(found=false) %}
+          {% set ns = namespace(found='off') %}
           {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith('_type') -%}
               {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr] in [3, 70, 71, 72, 73, 74, 75, 76] %}
-                  {% set ns.found = true %}
+                  {% set ns.found = 'on' %}
               {% endif %}
           {% endfor %}
           {{ns.found}}
+        icon_template: mdi:weather-snowy-heavy
       dwd_current_warn_level_schnee:
+        friendly_name: "Schnee Stufe"
         value_template: >
           {%- set ns = namespace(level=0) -%}
           {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
@@ -269,17 +332,21 @@ sensor:
             {%- endif -%}
           {%- endfor -%}
           {{ns.level}}
+        icon_template: mdi:weather-snowy-heavy
 
       dwd_current_warn_glaette:
+        friendly_name: "Glätte"
         value_template: >
-          {% set ns = namespace(found=false) %}
+          {% set ns = namespace(found='off') %}
           {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith('_type') -%}
               {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr] in [6, 24, 84, 85, 87] %}
-                  {% set ns.found = true %}
+                  {% set ns.found = 'on' %}
               {% endif %}
           {% endfor %}
           {{ns.found}}
+        icon_template: mdi:snowflake-alert
       dwd_current_warn_level_glaette:
+        friendly_name: "Glätte Stufe"
         value_template: >
           {%- set ns = namespace(level=0) -%}
           {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
@@ -290,17 +357,21 @@ sensor:
             {%- endif -%}
           {%- endfor -%}
           {{ns.level}}
+        icon_template: mdi:snowflake-alert
 
       dwd_current_warn_frost:
+        friendly_name: "Frost"
         value_template: >
-          {% set ns = namespace(found=false) %}
+          {% set ns = namespace(found='off') %}
           {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith('_type') -%}
               {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr] in [5, 22, 82] %}
-                  {% set ns.found = true %}
+                  {% set ns.found = 'on' %}
               {% endif %}
           {% endfor %}
           {{ns.found}}
+        icon_template: mdi:thermometer-alert
       dwd_current_warn_level_frost:
+        friendly_name: "Frost Stufe"
         value_template: >
           {%- set ns = namespace(level=0) -%}
           {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
@@ -311,17 +382,21 @@ sensor:
             {%- endif -%}
           {%- endfor -%}
           {{ns.level}}
+        icon_template: mdi:thermometer-alert
 
       dwd_current_warn_hagel:
+        friendly_name: "Hagel"
         value_template: >
-          {% set ns = namespace(found=false) %}
+          {% set ns = namespace(found='off') %}
           {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith('_type') -%}
               {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr] in [46, 48, 49, 95, 96] %}
-                  {% set ns.found = true %}
+                  {% set ns.found = 'on' %}
               {% endif %}
           {% endfor %}
           {{ns.found}}
+        icon_template: mdi:weather-hail
       dwd_current_warn_level_hagel:
+        friendly_name: "Hagel Stufe"
         value_template: >
           {%- set ns = namespace(level=0) -%}
           {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
@@ -332,6 +407,8 @@ sensor:
             {%- endif -%}
           {%- endfor -%}
           {{ns.level}}          
+        icon_template: mdi:weather-hail
+
 
 ###############################################################################
 ##  Automations
@@ -348,7 +425,7 @@ automation:
     condition:
       condition: and
       conditions:
-      - "{{ states.sensor.dwd_current_warn_count.state | int > 0 }}"
+      - "{{ states.sensor.dwd_current_warn_count.state | int(default=0) > 0 }}"
       - condition: state
         entity_id: input_boolean.dwd_weather_alert
         state: 'off'
@@ -357,9 +434,9 @@ automation:
 #        state: 'off'
       - condition: or
         conditions:
-        - "{{ states.sensor.dwd_max_warn_level.state | int >= 3 }}"
-        - "{{ states.sensor.dwd_current_warn_level_sturm.state | int >= 2 }}"
-        - "{{ states.sensor.dwd_current_warn_level_gewitter.state | int >= 2 }}"
+        - "{{ states.sensor.dwd_max_warn_level.state | int(default=0) >= 3 }}"
+        - "{{ states.sensor.dwd_current_warn_level_sturm.state | int(default=0) >= 2 }}"
+        - "{{ states.sensor.dwd_current_warn_level_gewitter.state | int(default=0) >= 2 }}"
     action:
       - service: input_boolean.turn_on
         entity_id: input_boolean.dwd_weather_alert
@@ -384,7 +461,7 @@ automation:
           message: delete_alert #'DWD Wetterwarnung aufgehoben.'
           data:
             push:
-              badge: "{{ states.sensor.count_notification_alerts.state|int }}"
+              badge: "{{ states.sensor.count_notification_alerts.state|int(default=0) }}"
               thread-id: 'wather-notification-group'
             apns_headers:
               'apns-collapse-id': 'dwd-weather-warning'
@@ -404,9 +481,9 @@ script:
           title: 'DWD Wetterwarnung!'
           message: 'Aktuelle Warnung kommt per Mail.'
           data:
-            subtitle: "{{ states.sensor.dwd_current_warn_count.state}} {% if states.sensor.dwd_current_warn_count.state|int == 1 %}Warnung{% else %}Warnungen {% endif %} mit max. Stufe {{states.sensor.dwd_max_warn_level.state}}."
+            subtitle: "{{ states.sensor.dwd_current_warn_count.state}} {% if states.sensor.dwd_current_warn_count.state|int(default=0) == 1 %}Warnung{% else %}Warnungen {% endif %} mit max. Stufe {{states.sensor.dwd_max_warn_level.state}}."
             push:
-              badge: "{{ states.sensor.count_notification_alerts.state|int }}"
+              badge: "{{ states.sensor.count_notification_alerts.state|int(default=0) }}"
               thread-id: 'wather-notification-group'
             apns_headers:
               'apns-collapse-id': 'dwd-weather-warning'
@@ -425,7 +502,7 @@ script:
               <!DOCTYPE html><html><head><style>a, h3, h4 {font-family: arial;}</style></head><body>
               <h3>{{ state_attr('sensor.dwd_weather_warnings_current_warning_level','region_name') }}</h3>
               Aktuell 
-              {% if states('sensor.dwd_current_warn_count')|int == 1 %}
+              {% if states('sensor.dwd_current_warn_count')|int(default=0) == 1 %}
                 besteht {{ states('sensor.dwd_current_warn_count') }} Warnung 
               {% else %}
                 bestehen {{ states('sensor.dwd_current_warn_count') }} Warnungen 
@@ -441,7 +518,7 @@ script:
                 <hr/>
                 <em>
                 {%- set start_time= state_attr('sensor.dwd_weather_warnings_current_warning_level',start_attr) -%}
-                {%- set days = (start_time.strftime('%j') | int) - (now().strftime('%j')) | int  -%}
+                {%- set days = (start_time.strftime('%j') | int(default=0)) - (now().strftime('%j')) | int(default=0)  -%}
                 {% if as_timestamp(start_time) <= as_timestamp(now()) %}
                 jetzt
                 {% elif days==0 %}

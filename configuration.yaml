@@ -25,7 +25,7 @@ homeassistant:
         - fd00::/8
       allow_bypass_login: true
   # general customization file
-  customize: !include includes/customize.yaml
+  # customize: !include includes/customize.yaml
   # load packages from directory
   packages: !include_dir_named packages
 
@@ -89,6 +89,10 @@ discovery:
 tts:
   - platform: google_translate
     service_name: google_say
+    cache: true
+    cache_dir: /tts
+    time_memory: 300
+    #base_url: http://192.168.__.__:8123
 
 ################################################################
 ## Device-Tracking Platforms
@@ -131,6 +135,10 @@ lovelace:
   resources: !include ./lovelace/resources.yaml
 frontend:
   themes: !include_dir_merge_named themes
+
+  # lovelace resources for performance improvement
+  extra_module_url:
+    - /hacsfiles/lovelace-card-mod/card-mod.js #startimg from card-mod v3.1
 #map:
 
 ################################################################
@@ -155,6 +163,8 @@ input_select:
       - none
       - all
       - home
+      - vacuum
+      - climate
       #- presence detection
       #- doors
     initial: none
@@ -179,14 +189,13 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
   exclude:
     domains:
       - weblink
-      - updater
       - input_select
       - camera
       - calendar
-      - weather
+      #- weather #wird fuer history_stats gebraucht
+      - plant
     entities:
       - sun.sun # Don't record sun data
-      - sensor.date
       - binary_sensor.workday
       - sensor.sun_direction
       - sensor.sun_elevation
@@ -199,8 +208,8 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
     # router: Fritzbox
       - sensor.fritzbox
       - sensor.fritz_last_boot
-      #- sensor.fritz_rate_down
-      #- sensor.fritz_rate_up
+      - sensor.fritz_dect_200_netz_total_energy
+      - sensor.fritz_dect_200_gz_total_energy
     # network devices
 #      - binary_sensor.router
       - binary_sensor.roborock
@@ -230,7 +239,9 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.raspi2_network_upload
       - sensor.raspi2_network_download
       - sensor.raspi2_swap_usage
-
+    # Media Player
+      - media_player.r_n803d_86ae28
+      - binary_sensor.netreceiver_online
     # Home Assistant
       - sensor.latest_version
       - sensor.hacs
@@ -259,9 +270,14 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.bssid
       - sensor.connection_type
     # DWD
-      - sensor.temperature_ak_stuttgart
-      - sensor.weather_ak_stuttgart
-      - sensor.precipitation_ak_stuttgart
+      - sensor.precipitation_probability_ak_stuttgart_2
+      - sensor.sun_duration_ak_stuttgart_2
+      - sensor.precipitation_ak_stuttgart_2
+      - sensor.temperature_ak_stuttgart_2
+    # ADguard
+      - sensor.adguard_dns_queries
+      - sensor.adguard_average_processing_speed
+      - sensor.adguard_dns_queries_blocked_ratio
 
 logbook: #recorded Entities, that will be displayed in Logbook
   exclude: #!include includes/exclude.yaml
@@ -291,7 +307,8 @@ history: #recorded Entities, that will be displayed in History
 
 logger: 
   default: warn #critical,fatal,error,warning,warn,info,debug,notset
-#  logs:
+  logs:
+    fritzconnection: info
 #    custom_components.samsungtv_custom.media_player: debug
 
 #    homeassistant.components.homematic: debug

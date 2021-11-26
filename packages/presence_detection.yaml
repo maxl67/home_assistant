@@ -26,16 +26,21 @@ homeassistant:
         icon: mdi:bluetooth-audio
         <<: *common
   # constants
-      # timespans for presence status shifts 
+    # timespans for presence status shifts 
       #   (Attention: automation.person_and_home_status_correction does not use these values)
       int_minutes_after_being_home: &int_minutes_after_being_home 10 #default: 10 [min]
       int_minutes_after_being_away: &int_minutes_after_being_away 10 #default: 10 [min]
       int_hours_after_being_extendedaway: &int_hours_after_being_extendedaway 24 #default: 24 [h]
       int_minutes_after_being_extendedaway: &int_minutes_after_being_extendedaway 0 #default: 0 [min]
-      # confidence threshold values (presence detection)
-      int_confidence_threshold_home: &int_confidence_threshold_home 10 #default: 10 [%]
-      int_confidence_threshold_area_arrival_scan: &int_confidence_threshold_area_arrival_scan 95 #default: 95 [%]
-      int_confidence_threshold_area_departure_scan: &int_confidence_threshold_area_departure_scan 10 #default: 10 [%]
+    # confidence threshold values (presence detection)
+      int_confidence_threshold_home: &int_confidence_threshold_home 10 # 10[%] 
+        #above this confidence value a device will be set to 'home', below to 'not_home'
+      int_confidence_threshold_area_arrival_scan: &int_confidence_threshold_area_arrival_scan 95 # 95[%]
+        #if confidence for a device drops below this value in one area, an arrival scan in all other areas will be triggered.
+      int_confidence_threshold_area_departure_scan: &int_confidence_threshold_area_departure_scan 10 # 10[%]
+        #if confidence for a device dropped below this value (for x seconds) in one area, an departure scan in all other areas will be triggered.
+      int_seconds_delay_before_area_departure_scan: &int_seconds_delay_before_area_departure_scan 15 # 15[sec]
+        #see last value  
   # sensors
     # pictures for persons and new icons for device entities
     sensor.max_status:
@@ -43,6 +48,9 @@ homeassistant:
       <<: *common
     sensor.ing_status:
       entity_picture: /local/ing.jpg
+      <<: *common
+    sensor.home_status:
+      entity_picture: /local/home.jpg
       <<: *common
     device_tracker.iphone8_max_wifi:
       <<: *device_wifi
@@ -65,8 +73,6 @@ homeassistant:
     sensor.ing_home_confidence:
       <<: *common
     sensor.n_people_home:
-      <<: *common
-    sensor.home_status:
       <<: *common
   # groups, variables
     group.phone_max:
@@ -113,20 +119,16 @@ group:
 input_select:
   max_status_dropdown:
     name: Max
-    options:
-      - Home
-      - Just Arrived
-      - Just Left
-      - Away
-      - Extended Away
+    <<: &person_status_list
+      options: 
+        - Home
+        - Just Arrived
+        - Just Left
+        - Away
+        - Extended Away
   ing_status_dropdown:
     name: Ingrid
-    options:
-      - Home
-      - Just Arrived
-      - Just Left
-      - Away
-      - Extended Away
+    <<: *person_status_list
   home_status_dropdown:
     name: Home Status
     options:
@@ -164,7 +166,7 @@ input_boolean:
 #    All devices that are scanned for are configured for the script locally on the raspi's (MAC and name).
 # IN HOME-ASSISTANT
 # 2) For each device 2 MQTT sensors are listening to these confidence values (sensor '<person> present {O|W}')
-# 3) The 2 sensors are combined (max function) and a confidence for the device being present is calculated
+# 3) These 2 sensors per device are combined (max function) and a confidence for the device being present is calculated
 #    (sensor '<person> Home Confidence'). Range [0..100].
 # 4) 2 automations will set the device_tracker for the BT-device to 'home' or 'not_home' 
 #    in case the home confidence level is above/below a threshhold ('&int_confidence_threshold_home').
@@ -217,7 +219,7 @@ sensor:
     payload_available: 'online'
     payload_not_available: 'offline'
     json_attributes_topic: 'monitor/west/iphone_max_bt'
-  # combining all area values into a total confidence value
+  # combining all area values into a total confidence value for the device beeing present
   - platform: min_max
     name: 'Max Home Confidence'
     type: max
@@ -245,7 +247,7 @@ sensor:
     payload_available: 'online'
     payload_not_available: 'offline'
     json_attributes_topic: 'monitor/west/iphone_ing_bt'
-  # combining all area values into a total confidence value
+  # combining all area values into a total confidence value for the device beeing present
   - platform: min_max
     name: 'Ing Home Confidence'
     type: max
@@ -282,7 +284,34 @@ sensor:
         friendly_name: 'Home Presence Status'
         value_template: "{{ states('input_select.home_status_dropdown') }}"
         icon_template: mdi:home-account 
-          
+
+
+###############################################################################
+##  Scripts
+###############################################################################
+script:
+  # This script can be called to correct the status of a BT-device. 
+  # It will toggle the device state 'home' <-> 'not_home'
+  #   my_entity: must be the home assistant entity_id
+  #   my_device: just the name without 'device_tracker.'
+  toogle_bt_device_status:
+    sequence:
+      - choose:
+          conditions: >
+            {{ is_state(my_entity,'home') }}
+          sequence:
+            - service: device_tracker.see
+              data:
+                dev_id: "{{ my_device }}"
+                location_name: not_home
+                source_type: bluetooth
+        default:
+            - service: device_tracker.see
+              data:
+                dev_id: "{{ my_device }}"
+                location_name: home
+                source_type: bluetooth
+
 
 ###############################################################################
 ##  Automations
@@ -374,7 +403,7 @@ automation:
           payload: "{'data' : 'ost'}" #this monitor publisher will NOT respond!
 
   # if confidence dropped to almost 0 in one area, we trigger a departure scan in the other area 
-  #   (to speed things up, in case the 2nd monitor missed the departure)
+  #   (to speed things up, in case the 2nd monitor missed the (potential) departure)
   - alias: Start BT Departure Scan Ost
     id: start_bt_departure_scan_ost
     trigger:
@@ -384,7 +413,7 @@ automation:
           - sensor.ing_present_w
         below: *int_confidence_threshold_area_departure_scan
         for:
-          seconds: 15
+          seconds: *int_seconds_delay_before_area_departure_scan
     action:
       - service: mqtt.publish
         data:
@@ -399,7 +428,7 @@ automation:
           - sensor.ing_present_o
         below: *int_confidence_threshold_area_departure_scan
         for:
-          seconds: 15
+          seconds: *int_seconds_delay_before_area_departure_scan
     action:
       - service: mqtt.publish
         data:
@@ -407,7 +436,7 @@ automation:
           payload: "{'data' : 'ost'}" #this monitor publisher will NOT respond!
 
   # if WiFi detects an arrival, we trigger a BT arrival scan (in case monitor.sh missed that)
-  # if frontdoor opens too.
+  # if frontdoor opens (and stays open for some time) too.
   - alias: Start BT Arrival Scan
     id: start_bt_arrival_scan
     trigger: 
@@ -463,7 +492,7 @@ automation:
           topic: 'monitor/scan/depart'
           payload: ''
 
-  # save the time a status was changed last, because these values will be reset every time HA is rebooted.
+  # save the time a presence status was changed last, because these values will be reset every time HA is rebooted.
   #   we need that time to trigger status changes (e.g 'extended_away')
   - alias: Save last time person status changed
     id: personstatus_last_changed_date_and_time #Person-Status and home-status last changed date and time
@@ -492,7 +521,7 @@ automation:
       - platform: time
         at: '00:30:00'
     # after restart only, if both Raspis are online (because of BT-Monitor script)
-    condition: "{{ states('sensor.raspi1_lastmessage') != 'unavailable' and states('sensor.raspi2_lastmessage') != 'unavailable' }}"
+    condition: "{{ states('sensor.raspi1_last_message') != 'unavailable' and states('sensor.raspi2_last_message') != 'unavailable' }}"
     action:
       # first update device status from MQTT (BlueTooth monitor.sh) 
       - service: mqtt.publish
@@ -528,7 +557,7 @@ automation:
               {% elif states('input_select.max_status_dropdown') in ['Home', 'Just Arrived'] %}
                 Just Left
               {% elif (states('input_select.max_status_dropdown') in ['Away']) and 
-                      (((as_timestamp(now()) - as_timestamp(states('input_datetime.max_status_dropdown_last_changed')))/3600) | int >=24) %}
+                      (((as_timestamp(now()) - as_timestamp(states('input_datetime.max_status_dropdown_last_changed')))/3600) | int(default=0) >=24) %}
                 Extended Away
               {% elif states('input_select.max_status_dropdown') in ['Extended Away'] %}
                 Extended Away
@@ -555,7 +584,7 @@ automation:
               {% elif states('input_select.ing_status_dropdown') in ['Home', 'Just Arrived'] %}
                 Just Left
               {% elif (states('input_select.ing_status_dropdown') in ['Away']) and 
-                      (((as_timestamp(now()) - as_timestamp(states('input_datetime.ing_status_dropdown_last_changed')))/3600) | int >=24) %}
+                      (((as_timestamp(now()) - as_timestamp(states('input_datetime.ing_status_dropdown_last_changed')))/3600) | int(default=0) >=24) %}
                 Extended Away
               {% elif states('input_select.ing_status_dropdown') in ['Extended Away'] %}
                 Extended Away
@@ -570,13 +599,13 @@ automation:
           entity_id: input_select.home_status_dropdown
           option: >
             {% if states('input_select.home_status_dropdown') in ['Away', 'Extended Away'] %}
-              {% if (as_timestamp(now()) - as_timestamp(states('input_datetime.home_status_dropdown_last_changed')))/3600 |int >=24 %}
+              {% if (as_timestamp(now()) - as_timestamp(states('input_datetime.home_status_dropdown_last_changed')))/3600 | int(default=0) >=24 %}
                 Extended Away
               {% endif %}
             {% endif %}
 
 
-# STATUS-Übergänge Personen
+# STATUS-Übergänge Personen / status transitions for persons
 #
 #         /-----------------------------------------------[10min]------------------------------------------------\
 #        |                                                                                                        |
@@ -701,7 +730,7 @@ automation:
           option: Extended Away
 
 
-# STATUS-Übergänge Home
+# STATUS-Übergänge Home / status transitions for home
 #
 #        /-------[n_people_home <1]--------\
 #        |                                  |
@@ -733,7 +762,7 @@ automation:
     trigger:
       platform: state
       entity_id: sensor.n_people_home
-    condition: "{{ trigger.to_state.state|int > trigger.from_state.state|int }}"
+    condition: "{{ trigger.to_state.state|int(default=0) > trigger.from_state.state|int(default=0) }}"
     action:
       service: input_select.select_option
       entity_id: input_select.home_status_dropdown

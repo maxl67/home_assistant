@@ -140,4 +140,3 @@ binary_sensor:
     name: rpi_west
     scan_interval: 60
     count: 2
-    

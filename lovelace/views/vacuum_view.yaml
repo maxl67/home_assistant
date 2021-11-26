@@ -1,77 +1,4 @@
 anchors:
-  colours:
-#    dark_gray: &dark_gray '#3d3d3d'
-#    dark_yellow: &dark_yellow '#91920e'
-#    dark_blue: &dark_blue '#0d0099'
-    blue: &blue '#3090C7'
-#    green: &green '#009A00'
-#    #yellow: &yellow '#f0e91f'
-#    light_orange: &light_orange '#f4ad01'
-#    orange: &orange '#e39a24'
-#    dark_orange: &dark_orange '#d35400'
-#    red: &red '#cc1800'
-    light_blue: &light_blue '#84a6ba'
-    white: &white '#ffffff'
-    light_gray: &light_gray '#cccccc'
-
-  fonts:
-    default_font: &default_font 'Trebuchet MS'
-
-  style_icon_button: &style_icon_button
-    top: 90%
-    color: *blue
-
-  style_label_header: &style_label_header
-    color: *white
-    transform: translate(0%,-50%)
-    font-family: *default_font
-    font-size: 150%
-    font-weight: bold
-    border-color: rgb(34, 154, 210)
-    border-radius: 6px
-    background-color: *light_gray
-
-  style_label_column: &style_label_column
-    top: 10%
-    color: *white
-    transform: translate(0%,-50%)
-    pointer-events: none
-    font-family: *default_font
-    font-size: 90%
-    font-weight: bold
-    border-color: rgb(34, 154, 210) #*blue?
-    background-color: *blue
-    border-radius: 6px
-
-  style_label_maintenance: &style_label_maintenance
-    right: 1%
-    color: *white
-    transform: translate(0%,-50%)
-    pointer-events: none
-    font-family: *default_font
-    font-size: 76%
-    font-weight: bold
-    border-right-style: solid
-    border-color: *blue
-
-  style_label_operation: &style_label_operation
-    left: 1%
-    color: *white
-    transform: translate(0%,-50%)
-    font-family: *default_font
-    font-size: 80%
-    font-weight: bold
-    border-left-style: solid
-    border-color: *blue
-
-  style_label_lastCleanup: &style_label_lastCleanup
-    top: 79%
-    color: *light_blue
-    transform: translate(0%,-50%)
-    font-family: *default_font
-    font-size: 80%
-    font-weight: bold
-
   style_entitycard_header: &style_header
     card_mod:
       style: |
@@ -79,6 +6,7 @@ anchors:
           font-size: 20px;
           padding: 10px 16px;
         }
+
 #---------------------------------
 #id: vacuum
 title: Dust-E
@@ -87,282 +15,196 @@ icon: mdi:robot-vacuum
 cards:
   - type: custom:vertical-stack-in-card
     cards:
-    # nice picture card with all kinds of information and buttons to operate vacuum
-    - type: picture-elements
-      #image: '/local/vacuum1.jpg'
-      image: '/local/vacuum_trans.png'
-      elements:
-        ## Command buttons (buttom)
-        - type: conditional
-          conditions:
-            - entity: binary_sensor.vacuum_started
-              state: 'off'
-            - entity: binary_sensor.vacuum_paused
-              state: 'off'
-          elements:
-            - type: icon
-              icon: mdi:play
-              tap_action: 
-                action: call-service
-                service: script.vacuum_all #new: call script, to set value for 'input_select.vacuum_last_cleaned_room'
-                # old: call service directly
-                #service: vacuum.start
-                #service_data:
-                #  entity_id: vacuum.xiaomi_vacuum_cleaner
-              style:
-                left: 20%
-                <<: *style_icon_button
-        - type: conditional
-          conditions:
-            - entity: binary_sensor.vacuum_started
-              state: 'on'
-          elements:
-            - type: icon
-              icon: mdi:pause
-              tap_action: 
-                action: call-service
-                service: script.vacuum_pause
-              style:
-                left: 21%
-                <<: *style_icon_button
-        - type: conditional
-          conditions:
-            - entity: binary_sensor.vacuum_paused
-              state: 'on'
-          elements:
-            - type: icon
-              icon: mdi:play-pause
-              tap_action: 
-                action: call-service
-                service: script.vacuum_resume
-              style:
-                left: 19%
-                <<: *style_icon_button
-
-        - type: icon
-          icon: mdi:stop
-          tap_action: 
-            action: call-service
-            service: vacuum.stop
+      - type: 'custom:vacuum-card'
+        entity: vacuum.xiaomi_vacuum_cleaner
+        compact_view: true
+        style: |
+          {% if is_state('binary_sensor.alert_vacuum_error','on') %}
+            ha-card .preview {
+              background-color: #FF7738; 
+            }
+          {% elif is_state('input_boolean.alert_dustbin_full','on') %}
+            ha-card .preview {
+              background-color: var(--paper-item-icon-active-color);
+            }
+          {% endif %}
+        stats:
+          default:
+            #todo: sollte eigentlich die originalen Sensoren sein, mit konvertierung der Einheiten
+            - entity_id: sensor.vacuum_cleanfilter #sensor.roborock_vacuum_s6_filter_left
+              unit: h
+              subtitle: Filter
+            - entity_id: sensor.vacuum_cleansidebrush #roborock_vacuum_s6_side_brush_left
+              unit: h
+              subtitle: Seitenbürste 
+            - entity_id: sensor.vacuum_cleanmainbrush #sensor.roborock_vacuum_s6_main_brush_left
+              unit: h
+              subtitle: Hauptbürste 
+            - entity_id: sensor.vacuum_sensordirtyleft #roborock_vacuum_s6_sensor_dirty_left
+              unit: h
+              subtitle: Sensoren
+          cleaning:
+            - entity_id: sensor.vacuum_cleaned_area
+            #eigentlich: - entity_id: sensor.roborock_vacuum_s6_last_clean_area
+            # ist aber nicht gerundet
+              unit: m² #^2
+              subtitle: Fläche letzte Reinigung #Cleaning area
+            - entity_id: sensor.vacuum_cleaning_time
+            #eigentlich: - entity_id: sensor.roborock_vacuum_s6_last_clean_duration
+            # ist aber in Sec
+              unit: min
+              subtitle: Dauer letzte Reinigung #Cleaning time
+        actions:
+          start:
+            service: script.vacuum_all
+        shortcuts:
+          - name: Küche,Schlafen,Bad
+            service: script.vacuum_room
             service_data:
-              entity_id: vacuum.xiaomi_vacuum_cleaner
-          style:
-            left: 35%
-            <<: *style_icon_button
-        - type: icon
-          icon: mdi:home
-          tap_action: 
-            action: call-service
-            service: vacuum.return_to_base
+              my_roomname: Kü,Sz,B
+            icon: 'mdi:floor-plan'
+          - name: Diele & Flur
+            service: script.vacuum_room
             service_data:
-              entity_id: vacuum.xiaomi_vacuum_cleaner
-          style:
-            left: 50%
-            <<: *style_icon_button
-        - type: icon
-          icon: mdi:crosshairs
-          tap_action: 
-            action: call-service
-            service: vacuum.clean_spot
+              my_roomname: Diele & Flur
+            icon: 'mdi:shoe-print'
+          - name: Küche
+            service: script.vacuum_room
             service_data:
-              entity_id: vacuum.xiaomi_vacuum_cleaner
-          style:
-            left: 65%
-            <<: *style_icon_button
-        - type: icon
-          icon: mdi:bell-ring
-          tap_action: 
-            action: call-service
-            service: vacuum.locate
+              my_roomname: Küche
+            icon: 'mdi:stove'
+          - name: Esszimmer
+            service: script.vacuum_room
             service_data:
-              entity_id: vacuum.xiaomi_vacuum_cleaner
-          style:
-            left: 80%
-            <<: *style_icon_button
-        
-        ## Labels (top)
-        - type: state-label
-          tap_action:
-            entity: vacuum.xiaomi_vacuum_cleaner
-            action: more-info
-          entity: vacuum.xiaomi_vacuum_cleaner
-          style:
-            top: 14%
-            right: 38%
-            <<: *style_label_header
-        - type: state-label
-          entity: sensor.vacuum_operation
-          style:
-            left: 1%
-            <<: *style_label_column
-          tap_action:
-            action: call-service
-            service: script.vacuum_update_map
-        - type: state-label
-          entity: sensor.vacuum_accessories
-          style:
-            right: 1%
-            <<: *style_label_column
-        
-        ## Information Maintenance (right)
-        - type: state-label
-          entity: sensor.vacuum_cleanmainbrush
-          style:
-            top: 35%
-            <<: *style_label_maintenance
-        - type: state-label
-          entity: sensor.vacuum_cleansidebrush
-          style:
-            top: 45%
-            <<: *style_label_maintenance
-        - type: state-label
-          entity: sensor.vacuum_cleanfilter
-          style:
-            top: 55%
-            <<: *style_label_maintenance
-            opacity: 0.8
-        - type: state-label
-          entity: sensor.vacuum_sensordirtyleft
-          style:
-            top: 65%
-            <<: *style_label_maintenance
-        
-        ## Information Operation (left)
-        - type: state-label
-          entity: sensor.vacuum_status
-          prefix: 'Status: '
-          style:
-            top: 40%
-            pointer-events: none
-            <<: *style_label_operation
-        - type: state-label
-          entity: sensor.vacuum_battery
-          prefix: 'Batterie: ' #'Battery: '
-          style:
-            top: 50%
-            pointer-events: none
-            <<: *style_label_operation
-        - type: state-label
-          entity: input_select.vacuum_fan_speed_list
-          prefix: 'Modus: ' #'Mode: '
-          #suffix: (sensor.vacuum_fan_speed)
-          tap_action: 
-            action: call-service
-            service: input_select.select_next
+              my_roomname: Esszimmer
+            icon: 'mdi:silverware-fork-knife'
+          - name: Schlafzimmer
+            service: script.vacuum_room
             service_data:
-              entity_id: input_select.vacuum_fan_speed_list
-          style:
-            pointer-events: auto              
-            top: 60%
-            <<: *style_label_operation
+              my_roomname: Schlafzimmer
+            icon: 'mdi:bed-empty'
 
-        ## Information last run (center)
-        - type: state-label
-          tap_action:
-            action: more-info
-            entity: sensor.vacuum_cleaned_room
-          entity: sensor.vacuum_cleaned_room
-          prefix: 'Raum: ' #'Room: '
-          style:
-            left: 14% #n/a
-            pointer-events: auto
-            <<: *style_label_lastCleanup
-        - type: state-label
-          entity: sensor.vacuum_cleaned_area
-          prefix: 'Bereich: ' #'Area: '
-          style:
-            left: 46% #31%
-            pointer-events: none
-            <<: *style_label_lastCleanup
-        - type: state-label
-          entity: sensor.vacuum_cleaning_time
-          prefix: 'Zeit: ' #'Time: '
-          style:
-            left: 68% #51%
-            pointer-events: none
-            <<: *style_label_lastCleanup
-
-    #------------------------------------------------------------
-    # options for room cleaning and automation (always displayed)
-    - type: entities
-      state_color: true
-      entities:
-      - entity: input_select.vacuum_room
-        name: 'welchen Raum reinigen:'
-
-  - type: custom:vertical-stack-in-card
-    cards:
-    - type: entities
-      state_color: true
-      entities:
-      - entity: switch.enable_automatic_vacuum
-        toggle: true
-        name: Automatisches Saugen aktivieren #enable Daily Cleanup
-
-    # options for automatic cleanup (only if activated)
-    - type: conditional
-      conditions:
-        - entity: input_boolean.disable_automatic_vacuum
-          state: 'off'
-      card:
-        type: entities
-        show_header_toggle: false
+      #------------------------------------------------------------
+      # room cleaning and options for automation (always displayed)
+      - type: entities
         state_color: true
         entities:
-          # presence status
-          - type: section
-            label: Anwesenheit #presense status
-          - entity: input_boolean.automatic_vacuum_when_home
-            type: custom:multiple-entity-row
+        - entity: input_select.vacuum_room
+          name: 'welchen Raum reinigen:'
+
+  #------------------------------------------------------------
+  # Configuration of cleaning automation
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: entities
+        state_color: true
+        entities:
+          - entity: switch.enable_automatic_vacuum
             toggle: true
-            state_color: true
-            entities:
-            - entity: sensor.home_status
-              name: Home Status
-          # notifications
-          - type: section
-            label: Benachrichtigungen & Alarm # Notifications
-          - entity: switch.disable_dustbin_notification
-            name: Staubbehälter-Mitteilungen deaktivieren #Disable notifications
-          - entity: switch.dustbin_full_alert
-            name: Staubbehälter leeren
-            type: custom:multiple-entity-row
-            toggle: true
-            state_color: true
-            entities:
-            - entity: input_boolean.dustbin_full_alert
-              name: Alarm
-          - entity: binary_sensor.vacuum_error_alert
-            name: Sauger Störung
-            type: custom:multiple-entity-row
-            entities:
-            - entity: vacuum.xiaomi_vacuum_cleaner
-              name: Status
-          # history
-          - type: section
-            label: Verlauf #History
-          - entity: input_boolean.automatic_vacuum_first_run
-            type: custom:multiple-entity-row
-            name: heute schon gereinigt?
-            state_color: false
-            entities:
-            - entity: sensor.vacuum_cleaned_room
-              name: Bereich
+            name: Automatisches Saugen #enable Daily Cleanup
+
+    # options for automatic cleanup (only if activated)
+      - type: conditional
+        conditions:
+          - entity: input_boolean.disable_automatic_vacuum
+            state: 'off'
+        card:
+          type: entities
+          title: ' '
+          show_header_toggle: false
+          state_color: true
+          card_mod:
+            style: |
+              ha-card .card-header {
+                padding: 0px;
+                display: unset;
+          entities:
+            # configuration
+            - type: custom:fold-entity-row
+              head:
+                type: section
+                label: Steuerung  # configuration
+              padding: 0 px
+              open: false
+              entities:
+                - entity: switch.automatic_vacuum_when_home
+                  type: custom:multiple-entity-row
+                  toggle: true
+                  state_color: true
+                - entity: switch.enable_dustbin_notification
+                  name: Staubbehälter-Mitteilungen #enable notifications
+            # status & notifications
+            - type: custom:fold-entity-row
+              head:
+                type: section
+                label: Mitteilungen & Status  # notifications & status
+              padding: 0 px
+              open: true
+              entities:
+                - entity: switch.alert_dustbin_full
+                  name: Staubbehälter leeren
+                  type: custom:multiple-entity-row
+                  toggle: true
+                  state_color: true
+                - type: divider
+                - entity: binary_sensor.alert_vacuum_error
+                  name: Sauger Störung
+                  type: custom:multiple-entity-row
+                  entities:
+                  - entity: vacuum.xiaomi_vacuum_cleaner
+                    name: Status
+                  secondary_info: last-changed
+                  style: |
+                    :host {
+                      {% if is_state('binary_sensor.alert_vacuum_error','on') %}
+                        color: var(--paper-item-icon-active-color);
+                        --paper-item-icon-color: #FF7738;
+                      {% endif %}
+                    }
+                - entity: input_boolean.automatic_vacuum_first_run
+                  name: heute schon gereinigt?
+                  type: custom:multiple-entity-row
+                  state_color: false
+                  secondary_info: last-changed
+                  entities:
+                  - entity: sensor.vacuum_cleaned_room
+                    name: Bereich
 
   #------------------------------------------------------------
   # Vacuum map card using data from Xiaomi Cloud Map Extractor
   - type: custom:xiaomi-vacuum-map-card
     entity: vacuum.xiaomi_vacuum_cleaner
-    map_camera: camera.xiaomi_cloud_map_extractor
-    camera_calibration: true
-    language: de
+    map_source:
+      camera: camera.xiaomi_cloud_map_extractor
+    calibration_source:
+      camera: true
+    map_locked: true
+    map_modes:
+      - template: vacuum_clean_zone
+      - template: vacuum_goto
+    icons:
+      # default icons ersetzen...
+      - icon: mdi:brush
+        # ..und diese dann unterdrueken
+        conditions:
+          - entity: sensor.vacuum_cleanmainbrush
+            above: 10
+    tiles:
+      # default tiles ersetzen...
+      - entity: sensor.vacuum_cleanmainbrush
+        label: Hauptbürste
+        unit: h
+        # ..und diese dann unterdrueken
+        conditions:
+          - entity: sensor.vacuum_cleanmainbrush
+            above: 10
 
   #------------------------------------------------------------
   # DEBUG: show some additional infos (while implementing)
   - type: conditional
     conditions:
       - entity: input_select.debug_mode
-        state_not: 'none'
+        state: 'vacuum'
     card:
       type: custom:vertical-stack-in-card
       cards:
@@ -381,14 +223,14 @@ cards:
                 name: Sauger Status
                 type: custom:multiple-entity-row
                 entities:
-                - entity: binary_sensor.vacuum_error_alert
+                - entity: binary_sensor.alert_vacuum_error
                   name: Alarm
               - entity: input_boolean.automatic_vacuum_first_run
                 name: Staubbehälter leeren
                 type: custom:multiple-entity-row
                 toggle: true
                 entities:
-                - entity: input_boolean.dustbin_full_alert
+                - entity: input_boolean.alert_dustbin_full
                   name: Alarm
               - entity: sensor.count_notification_alerts
                 name: Anz. aktiver Alarme
@@ -396,7 +238,6 @@ cards:
       - type: markdown
         content: >
           state= {{states.vacuum.xiaomi_vacuum_cleaner.state}}<br/>
-          status={{states.vacuum.xiaomi_vacuum_cleaner.attributes.status}}<br/>
-          sensor={{states.sensor.vacuum_status.state}}
+          status={{states.vacuum.xiaomi_vacuum_cleaner.attributes.status}}
           <hr/>
           <small>{{states.vacuum.xiaomi_vacuum_cleaner}}</small>

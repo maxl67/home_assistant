@@ -136,15 +136,35 @@ input_boolean:
     icon: mdi:traffic-light
 
 ###############################################################################
+##  Scripts
+###############################################################################
+script:
+  flash_light:
+    mode: restart
+    sequence:
+      - service: light.turn_on
+        target:
+          entity_id: "light.{{ light }}"
+      - alias: "Cycle light 'count' times"
+        repeat:
+          count: "{{ count|int * 2 - 1 }}"
+          sequence:
+            - delay: 2
+            - service: light.toggle
+              target:
+                entity_id: "light.{{ light }}"
+
+
+###############################################################################
 ##  Automations
 ###############################################################################
 automation:
   #----------------------------------------------------------------------------------
-  # Ampelschaltung auf der Lichtleiste Küche
+  # Ampelschaltung mit der Lichtleiste Küche
   # Lightstrip kitchen - signals open door/window status
   - id: show_doorstatus_signal_light
     alias: Lichtband zeigt Status
-    mode: single #Do not start a new run, if running already.
+    mode: single #Do not start a new run, if already running.
     #mode: restart #Start a new run, after stopping the previous run.
     trigger: 
       #wenn Eingangstür geöffnet wird oder sich der Status von Türen/Fenstern ändert.
@@ -279,7 +299,7 @@ automation:
           data:
             subtitle: "Türen offen!"
             push:
-              badge: "{{states('sensor.count_notification_alerts')|int}}"
+              badge: "{{states('sensor.count_notification_alerts')|int(default=0)}}"
               sound:
                 name: default 
                 #name: "US-EN-Daisy-Back-Door-Open.wav" 
@@ -315,7 +335,7 @@ automation:
           data:
             subtitle: "Fenster offen!"
             push:
-              badge: "{{states('sensor.count_notification_alerts')|int}}"
+              badge: "{{states('sensor.count_notification_alerts')|int(default=0)}}"
               sound:
                 name: default
                 #name: "US-EN-Daisy-Front-Window-Open.wav"
@@ -346,7 +366,7 @@ automation:
           message: "Türen Alarm aufgehoben."
           data:
             push:
-              badge: "{{states('sensor.count_notification_alerts')|int}}"
+              badge: "{{states('sensor.count_notification_alerts')|int(default=0)}}"
               thread-id: "doorswindows-notification-group"
             apns_headers:
               'apns-collapse-id': 'open-doors-detected'
@@ -371,7 +391,7 @@ automation:
           message: "Fenster Alarm aufgehoben."
           data:
             push:
-              badge: "{{states('sensor.count_notification_alerts')|int}}"
+              badge: "{{states('sensor.count_notification_alerts')|int(default=0)}}"
               thread-id: "doorswindows-notification-group"
             apns_headers:
               'apns-collapse-id': 'open-windows-detected'
@@ -411,4 +431,4 @@ automation:
           data:
             subtitle: "Türen/Fenster offen!"
             push:
-              badge: "{{states('sensor.count_notification_alerts')|int}}"
+              badge: "{{states('sensor.count_notification_alerts')|int(default=0)}}"

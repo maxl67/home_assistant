@@ -1,0 +1,88 @@
+anchors:
+  style_entitycard_header: &style_header
+    card_mod: 
+      style: |
+        .card-header {
+          font-size: 20px;
+          padding: 10px 16px;
+        }
+
+#---------------------------------
+#id: network
+title: Wartung
+path: maintenance
+icon: mdi:tools
+cards:
+  - type: entities
+    entities:
+      - entity: input_select.debug_mode
+
+# ========== Power Consumption ==============
+  - type: horizontal-stack
+    cards:
+      - type: custom:button-card
+        entity: sensor.max_status
+        aspect_ratio: 1/1
+        color_type: icon
+        show_entity_picture: true
+        show_state: true
+        styles:
+          grid:
+            - grid-template-areas: '"i batt" "i n" "s s"'
+            - grid-template-columns: 1fr min-content
+            - grid-template-rows: 1fr min-content min-content
+          name:
+            - color: white
+            - align-self: middle
+            - justify-self: start
+            - padding-bottom: 4px
+          img_cell:
+            - justify-content: start
+            - align-items: start
+            #- margin: none
+          icon:
+            - color: >
+                [[[
+                  if (entity.state in ['Home','Just arrived']) return 'lime';
+                  else return 'white';
+                ]]]
+            - width: 70%
+            - margin-top: -10%
+          custom_fields:
+            batt:
+              - align-self: start
+              - justify-self: end
+            loc:
+              - padding-bottom: 2px
+              - align-self: middle
+              - justify-self: start
+              #- --text-color-sensor: '[[[ if (states["sensor.raspi_cpu"].state > 80) return "red"; ]]]'
+        custom_fields:
+          temp: >
+            [[[
+              return `<ha-icon
+                icon="mdi:thermometer"
+                style="width: 16px; height: 16px; color: yellow;">
+                </ha-icon><span>${states['sensor.iphonemax8_battery_state_2'].state}°</span>`
+            ]]]
+
+      - type: custom:button-card
+        color_type: blank-card
+      - type: custom:button-card
+        color_type: blank-card
+      - type: custom:button-card
+        color_type: blank-card
+
+# ========== Power Consumption ==============
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: history-graph
+        title: 'Energieaufnahme'
+        hours_to_show: 24
+        <<: *style_header
+        entities:
+          - entity: sensor.fritz_dect_200_netz_power_consumption
+            name: Unifi-Netzwerk
+          - entity: sensor.fritz_dect_200_gz_power_consumption
+            name: Schreibtisch M
+

@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 15.01.2020
+#   @date         : 16.11.2021
 #   @package      : vacuum
 #   @description  : XIAOMI Roborock S6 automation
 #   @links        : 
@@ -12,19 +12,6 @@
 # Room: https://community.home-assistant.io/t/xiaomi-vacuum-s1-s60-t60-s61-t61-room-cleaning-by-room-name/122315/16
 #       Room-ID's: automatic generated rooms in XIAOMI app get id=1..15, custom defined rooms get an id starting from 16.
 ###############################################################################
-
-###### for future use, after rooting device #######
-#    binary_sensor.vacuum_room:
-#      custom_ui_state_card: state-card-floorplan
-#      config: !include ../floorplan_vacuum.yaml
-#binary_sensor:
-#  - platform: mqtt
-#    state_topic: dummy/floorplan/sensor
-#    name: Vacuum Room
-#frontend:
-#  extra_html_url:
-#    - /local/custom_ui/state-card-floorplan.html
-
 
 ################################################
 ##  Customize
@@ -55,16 +42,20 @@ homeassistant:
       <<: *common
     input_boolean.disable_dustbin_notification:
       <<: *common
-    input_boolean.dustbin_full_alert:
+    input_boolean.alert_dustbin_full:
       <<: *common
     input_select.vacuum_room:
       icon: mdi:floor-plan
       <<: *common
+    input_select.vacuum_last_cleaned_room:
+      <<: *common
     switch.enable_automatic_vacuum:
       <<: *common
-    switch.disable_dustbin_notification:
+    switch.automatic_vacuum_when_home:
       <<: *common
-    switch.dustbin_full_alert:
+    switch.enable_dustbin_notification:
+      <<: *common
+    switch.alert_dustbin_full:
       <<: *common
       
   # rest of sensors, automations, etc. not with attribute 'package' because relation to this package is clear.
@@ -98,10 +89,10 @@ camera:
     map_transformation:
       scale: 1.3
       trim:
-        top: 15
-        bottom: 18
-        left: 20
-        right: 22
+        top: 16
+        bottom: 20
+        left: 21
+        right: 23
     colors:
       color_map_outside: [67,73,84] 
       color_map_wall_v2: [225, 225, 225]
@@ -124,7 +115,7 @@ switch:
   - platform: template
     switches: ## are needed in addition to input_booleans to get a dynamic icon
       enable_automatic_vacuum:
-        friendly_name: Automatische Reinigung #enable vacuum automation    
+        friendly_name: Automatische Reinigung 
         value_template: "{% if states.input_boolean.disable_automatic_vacuum.state %}{{ is_state('input_boolean.disable_automatic_vacuum', 'off') }}{% endif %}"
         turn_on:
           service: homeassistant.turn_off
@@ -136,19 +127,36 @@ switch:
             entity_id: input_boolean.disable_automatic_vacuum
         icon_template: >-
           {% if is_state('input_boolean.disable_automatic_vacuum', 'on') %}
-            mdi:alarm-note-off
+            mdi:timer-off-outline
           {% else %}
-            mdi:alarm-note
+            mdi:timer-cog-outline
           {% endif %}
-      disable_dustbin_notification:
-        friendly_name: Staubbehälternachrichten aus #Disable Dustbin Notification    
-        value_template: "{{ is_state('input_boolean.disable_dustbin_notification', 'on') }}"
+      automatic_vacuum_when_home:
+        friendly_name: Reinigung auch wenn anwesend 
+        value_template: "{{ is_state('input_boolean.automatic_vacuum_when_home', 'on') }}"
         turn_on:
           service: homeassistant.turn_on
           data:
-            entity_id: input_boolean.disable_dustbin_notification
+            entity_id: input_boolean.automatic_vacuum_when_home
         turn_off:
           service: homeassistant.turn_off
+          data:
+            entity_id: input_boolean.automatic_vacuum_when_home
+        icon_template: >-
+          {% if is_state('input_boolean.automatic_vacuum_when_home', 'on') %}
+            mdi:account-check-outline
+          {% else %}
+            mdi:account-off-outline
+          {% endif %}
+      enable_dustbin_notification:
+        friendly_name: Staubbehälternachrichten  
+        value_template: "{{ is_state('input_boolean.disable_dustbin_notification', 'off') }}"
+        turn_on:
+          service: homeassistant.turn_off
+          data:
+            entity_id: input_boolean.disable_dustbin_notification
+        turn_off:
+          service: homeassistant.turn_on
           data:
             entity_id: input_boolean.disable_dustbin_notification
         icon_template: >-
@@ -157,19 +165,19 @@ switch:
           {% else %}
             mdi:cellphone-message
           {% endif %}
-      dustbin_full_alert:
+      alert_dustbin_full:
         friendly_name: Staubbehälter leeren   #dustbin has to be cleaned  
-        value_template: "{{ is_state('input_boolean.dustbin_full_alert', 'on') }}"
+        value_template: "{{ is_state('input_boolean.alert_dustbin_full', 'on') }}"
         turn_on:
           service: homeassistant.turn_on
           data:
-            entity_id: input_boolean.dustbin_full_alert
+            entity_id: input_boolean.alert_dustbin_full
         turn_off:
           service: homeassistant.turn_off
           data:
-            entity_id: input_boolean.dustbin_full_alert
+            entity_id: input_boolean.alert_dustbin_full
         icon_template: >-
-          {% if is_state('input_boolean.dustbin_full_alert', 'on') %}
+          {% if is_state('input_boolean.alert_dustbin_full', 'on') %}
             mdi:delete-alert
           {% else %}
             mdi:delete-outline
@@ -185,7 +193,7 @@ input_boolean:
     name: automatische Reinigung heute gestartet  #cleanup was already started today
   disable_dustbin_notification:
     name: Staubbehälternachrichten aus #disable dustbin notification
-  dustbin_full_alert:
+  alert_dustbin_full:
     name: Staubbehälter leeren  #dustbin has to be cleaned
     icon: mdi:delete-alert
 
@@ -205,14 +213,6 @@ input_select:
       - Kü,Sz,B
       - Kü,Ez,D&F
     initial: *no_selection_text #Please select
-
-  vacuum_fan_speed_list:
-    name: Fan Speed
-    options:
-      - Silent ##v105: Quiet -> Silent 
-      - Standard #Balanced -> Standard
-      - Medium #Turbo -> Medium
-      - Turbo #Max -> Turbo
 
   # remember last cleaned areas
   vacuum_last_cleaned_room: 
@@ -247,13 +247,15 @@ binary_sensor:
       vacuum_started:
         value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','status') in ['Cleaning', 'Definition missing for state 18'] }}"    
 
-      vacuum_error_alert:
-        icon_template: mdi:alert-octagon
+      alert_vacuum_error:
+        friendly_name: Saug-E Störung
+        icon_template: mdi:robot-confused-outline #alert-octagon
         value_template: "{{ is_state('vacuum.xiaomi_vacuum_cleaner','error') }}"
 
 sensor:
   - platform: template
-    sensors: #not sure if I need this sensor in addition to input_select
+    sensors: 
+      # this sensor is needed to display last cleaning area  in entity card
       vacuum_cleaned_room:
         value_template: "{{ states.input_select.vacuum_last_cleaned_room.state }}"
         friendly_name: 'cleaned room history'
@@ -261,105 +263,94 @@ sensor:
 
   - platform: template
     sensors:
-      vacuum_status:
-        friendly_name: Vacuum status
-        value_template: >
-          {% set val =  state_attr('vacuum.xiaomi_vacuum_cleaner','status')  %}
-          {% if val == 'Definition missing for state 18' %}
-            Cleaning room
-          {% else %}
-            {{ state_attr('vacuum.xiaomi_vacuum_cleaner','status') }}
-          {% endif %}
-        icon_template: >
-          {% set val =  state_attr('vacuum.xiaomi_vacuum_cleaner','status')  %}
-          {% if val == 'Charging' or val == 'Angedockt' %}
-            mdi:battery-charging
-          {% elif val == 'Cleaning' or val == 'Reinigen' %}
-            mdi:move-resize
-          {% elif val == 'Returning home' or val == 'Rückkehr zur Dockingstation' %}
-            mdi:keyboard-return
-          {% elif val == 'Idle' or val == 'Standby' %}
-            mdi:dots-horizontal
-          {% elif val == 'Paused' or val == 'Pausiert' %}
-            mdi:pause-circle 
-          {% else %}
-            mdi:help-circle
-          {% endif %}
-      vacuum_fan_speed:
-        friendly_name: Fan Speed
-        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','fan_speed') }}"
-        icon_template: 'mdi:speedometer'
-      vacuum_battery:
-        friendly_name: Vacuum Battery
-        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','battery_level') }}"
-        unit_of_measurement: '%'
-        icon_template: "{{ 'mdi:battery' if (state_attr('vacuum.xiaomi_vacuum_cleaner','battery_icon') is none) else state_attr('vacuum.xiaomi_vacuum_cleaner','battery_icon') }}"
+#      vacuum_status:
+#        friendly_name: Vacuum status
+#        value_template: >
+#          {% set val =  state_attr('vacuum.xiaomi_vacuum_cleaner','status')  %}
+#          {% if val == 'Definition missing for state 18' %}
+#            Cleaning room
+#          {% else %}
+#            {{ state_attr('vacuum.xiaomi_vacuum_cleaner','status') }}
+#          {% endif %}
+#        icon_template: >
+#          {% set val =  state_attr('vacuum.xiaomi_vacuum_cleaner','status')  %}
+#          {% if val == 'Charging' or val == 'Angedockt' %}
+#            mdi:battery-charging
+#          {% elif val == 'Cleaning' or val == 'Reinigen' %}
+#            mdi:move-resize
+#          {% elif val == 'Returning home' or val == 'Rückkehr zur Dockingstation' %}
+#            mdi:keyboard-return
+#          {% elif val == 'Idle' or val == 'Standby' %}
+#            mdi:dots-horizontal
+#          {% elif val == 'Paused' or val == 'Pausiert' %}
+#            mdi:pause-circle 
+#          {% else %}
+#            mdi:help-circle
+#          {% endif %}
+#      vacuum_fan_speed:
+#        friendly_name: Fan Speed
+#        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','fan_speed') }}"
+#        icon_template: 'mdi:speedometer'
+#      vacuum_battery:
+#        friendly_name: Vacuum Battery
+#        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','battery_level') }}"
+#        unit_of_measurement: '%'
+#        icon_template: "{{ 'mdi:battery' if (state_attr('vacuum.xiaomi_vacuum_cleaner','battery_icon') is none) else state_attr('vacuum.xiaomi_vacuum_cleaner','battery_icon') }}"
       vacuum_cleaning_time:
         friendly_name: Time of Last Cycle
-        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','cleaning_time') }}"
+        value_template: "{{ (states('sensor.roborock_vacuum_s6_last_clean_duration')|float(default=0) / 60) | round(0) }}"
         unit_of_measurement: 'min'
         icon_template: 'mdi:timer'
       vacuum_cleaned_area:
         friendly_name: Area of Last Cycle
         unit_of_measurement: 'm²'
-        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','cleaned_area') }}"
+        value_template: "{{ states('sensor.roborock_vacuum_s6_last_clean_area')|float(default=0) | round(1) }}"
         icon_template: 'mdi:ruler'
       vacuum_cleanmainbrush:
-        friendly_name: Replace main brush
+        friendly_name: Hauptbürste
         unit_of_measurement: 'h'
-        value_template: "Hauptbürste: {{ state_attr('vacuum.xiaomi_vacuum_cleaner','main_brush_left') }}" #Main Brush: 
+        value_template: "{{ (states('sensor.roborock_vacuum_s6_main_brush_left')|float(default=0) / 3600) | round(0) }}" 
         icon_template: 'mdi:screwdriver'
       vacuum_cleansidebrush:
-        friendly_name: Replace side brush
+        friendly_name: Seitenbürste
         unit_of_measurement: 'h'
-        value_template: "Seitenbürste: {{ state_attr('vacuum.xiaomi_vacuum_cleaner','side_brush_left') }}" #Side brush:
+        value_template: "{{ (states('sensor.roborock_vacuum_s6_side_brush_left')|float(default=0) / 3600) | round(0) }}" 
         icon_template: 'mdi:screwdriver'
       vacuum_cleanfilter:
-        friendly_name: Replace filter
+        friendly_name: Filter
         unit_of_measurement: 'h'
-        value_template: "Filter: {{ state_attr('vacuum.xiaomi_vacuum_cleaner','filter_left') }}"
+        value_template: "{{ (states('sensor.roborock_vacuum_s6_filter_left')|float(default=0) / 3600) | round(0) }}"
         icon_template: 'mdi:screwdriver'
       vacuum_sensordirtyleft:
-        friendly_name: Clean sensors
+        friendly_name: Sensoren
         unit_of_measurement: 'h'
-        value_template: "Sensor: {{ state_attr('vacuum.xiaomi_vacuum_cleaner','sensor_dirty_left') }}"
+        value_template: "{{ (states('sensor.roborock_vacuum_s6_sensor_dirty_left')|float(default=0) / 3600) | round(0) }}"
         icon_template: 'mdi:screwdriver'
-      vacuum_do_not_disturb:
-        friendly_name: Do Not Disturb
-        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','do_not_disturb') }}"
-        icon_template: >
-          {% set val =  state_attr('vacuum.xiaomi_vacuum_cleaner','do_not_disturb') %}
-          {% if val == 'on' %}
-            mdi:minus-circle
-          {% else %}
-            mdi:minus-circle-off
-          {% endif %}
-      vacuum_operation:
-        value_template: 'Betrieb' #'Operation'
-      vacuum_accessories:
-        value_template: 'Wartung' #'Maintenance'
-
-# wenn robot gerootet, dann kann live-map ausgelesen werden
-#  - platform: rest
-##    resource: 'http://{{sensor.xiaomi_vacuum_ip}}/api/remote/map'
-#    resource: !secret xiaomi_vacuum_resource_map
-#    name: Vacuum Map url
-#    value_template: "http://{{states('sensor.xiaomi_vacuum_ip')}}{{value_json.mapsrc}}"
+#      vacuum_do_not_disturb:
+#        friendly_name: Do Not Disturb
+#        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','do_not_disturb') }}"
+#        icon_template: >
+#          {% set val =  state_attr('vacuum.xiaomi_vacuum_cleaner','do_not_disturb') %}
+#          {% if val == 'on' %}
+#            mdi:minus-circle
+#          {% else %}
+#            mdi:minus-circle-off
+#          {% endif %}
 
 
 ###############################################################################
 ##  Scripts
 ###############################################################################
 script:
-  ## would like to have one script for that. todo: check conditions and new interface
-  vacuum_resume:
-    sequence:
-      - service: vacuum.start  #todo: this is not the resume like in the xiaomi app (lower right corner button). will not resume after pausing a room cleaning!
-        entity_id: vacuum.xiaomi_vacuum_cleaner
-  vacuum_pause:
-    sequence:
-      - service: vacuum.pause
-        entity_id: vacuum.xiaomi_vacuum_cleaner
+#  ## would like to have one script for that. todo: check conditions and new interface
+#  vacuum_resume:
+#    sequence:
+#      - service: vacuum.start  #todo: this is not the resume like in the xiaomi app (lower right corner button). will not resume after pausing a room cleaning!
+#        entity_id: vacuum.xiaomi_vacuum_cleaner
+#  vacuum_pause:
+#    sequence:
+#      - service: vacuum.pause
+#        entity_id: vacuum.xiaomi_vacuum_cleaner
 
   ## start a complete cleanup
   vacuum_all:
@@ -378,7 +369,7 @@ script:
           entity_id: input_select.vacuum_last_cleaned_room
           option: 'alles (auto)'
 
-  ## start cleaning a room (or some romms), that was selected by input_select 'vacuum_room'
+  ## start cleaning a room (or some romms), that was/were selected by input_select 'vacuum_room'
   #  this script translates a roomname into the room id for xiaomi interface
   vacuum_room:
     alias: 'Start room cleaning'
@@ -425,14 +416,6 @@ script:
           command: app_segment_clean
           params: > #e.g. [18] or [18,1,2]. needs v0.118 to work (array as param).
             {{ my_roomid }} 
-                              
-  ## set fan speed
-  vacuum_set_fanspeed:
-    sequence:
-      - service: vacuum.set_fan_speed
-        data:
-          entity_id: vacuum.xiaomi_vacuum_cleaner
-          fan_speed: "{{ new_fanspeed }}"
 
   vacuum_update_map:
     sequence:
@@ -490,7 +473,7 @@ automation:
     condition:
       condition: and
       conditions:
-        # automation is turned on and not done earlier today...
+        # automation is turned on and cleaning not done earlier today...
         - condition: state
           entity_id: input_boolean.disable_automatic_vacuum
           state: 'off'
@@ -560,7 +543,7 @@ automation:
             # nothing to do on other days
       # wait until robot has left the bay
       - delay: '00:00:10'
-      # remember, that we have done the cleaning
+      # remember, that we have already done the cleaning today
       - service: homeassistant.turn_on
         entity_id: input_boolean.automatic_vacuum_first_run
       # send notification
@@ -576,7 +559,7 @@ automation:
             clickAction: '/lovelace/vacuum'
       - delay: "{{ cleanup_duration }}"
       - service: homeassistant.turn_on
-        entity_id: input_boolean.dustbin_full_alert
+        entity_id: input_boolean.alert_dustbin_full
 
   #-------------------------------
   ## Reset the variable 'automatic_vacuum_first_run' at midnight so that a new automatic cleanup can be triggered the next day.
@@ -614,9 +597,6 @@ automation:
         entity_id: input_boolean.disable_dustbin_notification
         to: 'off'
       - platform: state
-        entity_id: input_boolean.dustbin_full_alert
-        to: 'on'
-      - platform: state
         entity_id: vacuum.xiaomi_vacuum_cleaner
         to: 'docked'
     condition:
@@ -626,7 +606,7 @@ automation:
           entity_id: sensor.home_status
           state: 'Home'
         - condition: state
-          entity_id: input_boolean.dustbin_full_alert
+          entity_id: input_boolean.alert_dustbin_full
           state: 'on'
         - condition: state
           entity_id: input_boolean.disable_dustbin_notification
@@ -636,12 +616,16 @@ automation:
           before: '23:00:00'
         - condition: template
           # last time this automation was triggered is more than 1800secs=30min ago
+# todo: 11/21. das geht nicht, da state_attr('automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin','last_triggered') immer none liefert
           value_template: >
             {% if state_attr('automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin','last_triggered') is not none %}
-              {% if as_timestamp(now()) | int - as_timestamp(state_attr('automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin','last_triggered')) | int > 1800 %} true {% else %} false
+              {% if as_timestamp(now()) | int(default=0) - as_timestamp(state_attr('automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin','last_triggered')) | int(default=0) > 1800 %} 
+                true 
+              {% else %} 
+                false
               {% endif %}
             {% else %}
-              false
+              true
             {% endif %}
         - condition: state
           entity_id: vacuum.xiaomi_vacuum_cleaner
@@ -675,13 +659,13 @@ automation:
     trigger:
       # vacuum has state 'error'
       - platform: state
-        entity_id: binary_sensor.vacuum_error_alert 
+        entity_id: binary_sensor.alert_vacuum_error 
         to: 'on'
         for:
           seconds: 6
     condition:
       - condition: state
-        entity_id: binary_sensor.vacuum_error_alert
+        entity_id: binary_sensor.alert_vacuum_error
         state: 'on'
     action:
       - service: notify.family_main_devices
@@ -691,7 +675,7 @@ automation:
           data:
             subtitle: 'Dust-E Error!'
             push:
-              badge: "{{states.sensor.count_notification_alerts.state|int}}"
+              badge: "{{states.sensor.count_notification_alerts.state|int(default=0)}}"
               thread-id: 'vacuum-notification-group'
             apns_headers:
               'apns-collapse-id': 'vacuum-error-detected'
@@ -701,11 +685,12 @@ automation:
     id: reset_notification_vacuum_error
     trigger:
       - platform: state
-        entity_id: binary_sensor.vacuum_error_alert 
+        entity_id: binary_sensor.alert_vacuum_error
+        from: 'on'
         to: 'off'
     condition:
       - condition: state
-        entity_id: binary_sensor.vacuum_error_alert
+        entity_id: binary_sensor.alert_vacuum_error
         state: 'off'
     action:
       - service: notify.family_main_devices
@@ -714,31 +699,8 @@ automation:
           message: 'Dust-E Fehler behoben.'
           data:
             push:
-              badge: "{{states.sensor.count_notification_alerts.state|int}}"
+              badge: "{{states.sensor.count_notification_alerts.state|int(default=0)}}"
               thread-id: 'vacuum-notification-group'
             apns_headers:
               'apns-collapse-id': 'vacuum-error-detected'
             clickAction: '/lovelace/vacuum'
-          
-  #-------------------------------
-  ## Changing fan speed to the value selected by 'input_select.vacuum_fan_speed_list'
-  - id: vacuum_change_fanspeed
-    alias: Change vacuum fan speed
-    trigger:
-      platform: state
-      entity_id: input_select.vacuum_fan_speed_list
-    action:
-      - service: script.vacuum_set_fanspeed
-        data:
-          new_fanspeed: >
-            {{ {
-            'Silent' : 101,
-            'Standard' : 102,
-            'Medium' : 103,
-            'Turbo' : 104, 
-            'Mop' : 105
-            } [trigger.to_state.state] }}
-# todo: eigentlich besser so (mit Zuordnung der Zahlen im Script), aber es wird scheinbar String übergeben und das klappt nicht
-#      - service: script.vacuum_set_speed
-#        data:
-#          new_fanspeed: trigger.to_state.state

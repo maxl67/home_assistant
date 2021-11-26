@@ -144,10 +144,10 @@ sensor:
     sensors:
     # Wohnzimmer
       hm_thermo_wz_current_temp:
-        value_template: "{{state_attr('climate.000c9a499b5808','current_temperature')|float}}"
+        value_template: "{{state_attr('climate.000c9a499b5808','current_temperature')|float(default=0)}}"
         friendly_name: "Wohnzimmer Ist-Temperatur"
       hm_thermo_wz_target_temp:
-        value_template: "{{state_attr('climate.000c9a499b5808','temperature')|float}}"
+        value_template: "{{state_attr('climate.000c9a499b5808','temperature')|float(default=0)}}"
         friendly_name: "Wohnzimmer Soll-Temperatur"
       hm_thermo_wz_actor_state:
         value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ')}}{% endif %}"
@@ -175,23 +175,22 @@ sensor:
         friendly_name: "Heizprofil Wohnzimmerthermostat"
       # Küche
       hm_thermo_ku_current_temp:
-        value_template: "{{state_attr('climate.000a1a49a10ba3','current_temperature')|float}}"
+        value_template: "{{state_attr('climate.000a1a49a10ba3','current_temperature')|float(default=0)}}"
         friendly_name: "Küche Ist-Temperatur"
       hm_thermo_ku_target_temp:
-        value_template: "{{state_attr('climate.000a1a49a10ba3','temperature')|float}}"
+        value_template: "{{state_attr('climate.000a1a49a10ba3','temperature')|float(default=0)}}"
         friendly_name: "Küche Soll-Temperatur"
       hm_thermo_ku_valve_status:
         #Status Adaptierfahrt. 4=ADAPTION_DONE
-        value_template: "{{state_attr('climate.000a1a49a10ba3','valve')|int}}"
+        value_template: "{{state_attr('climate.000a1a49a10ba3','valve')|int(default=0)}}"
         friendly_name: "Küche Ventilstatus"
         icon_template: "mdi:valve"
       hm_thermo_ku_actor_value:
-        value_template: "{{(state_attr('climate.000a1a49a10ba3','level')|float*100)|int}}"
+        value_template: "{{(state_attr('climate.000a1a49a10ba3','level')|float(default=0)*100)|int(default=0)}}"
         friendly_name: "Küche Ventilöffnung"
         icon_template: "mdi:valve"
       hm_thermo_ku_actor_display:  #for mini-graph
-        value_template: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.000a1a49a10ba3','level')|float==0) else state_attr('climate.000a1a49a10ba3','level')|float*20 }}"
-                       #"{{state_attr('climate.000a1a49a10ba3','level')|float*20}}"
+        value_template: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.000a1a49a10ba3','level')|float(default=0)==0) else state_attr('climate.000a1a49a10ba3','level')|float(default=0)*20 }}"
         friendly_name: "Küche Ventilöffnung"
         icon_template: "mdi:valve"
       hm_thermo_ku_window_state:
@@ -203,23 +202,22 @@ sensor:
         friendly_name: "Heizprofil Küchenthermostat"
       # Gästezimmer
       hm_thermo_gz_current_temp:
-        value_template: "{{state_attr('climate.000a1a49a107b5','current_temperature')|float}}"
+        value_template: "{{state_attr('climate.000a1a49a107b5','current_temperature')|float(default=0)}}"
         friendly_name: "Gästezimmer Ist-Temperatur"
       hm_thermo_gz_target_temp:
-        value_template: "{{state_attr('climate.000a1a49a107b5','temperature')|float}}"
+        value_template: "{{state_attr('climate.000a1a49a107b5','temperature')|float(default=0)}}"
         friendly_name: "Gästezimmer Soll-Temperatur"
       hm_thermo_gz_valve_status:
         #Status Adaptierfahrt. 4=ADAPTION_DONE
-        value_template: "{{state_attr('climate.000a1a49a107b5','valve')|int}}"
+        value_template: "{{state_attr('climate.000a1a49a107b5','valve')|int(default=0)}}"
         friendly_name: "Gästezimmer Ventilstatus"
         icon_template: "mdi:valve"
       hm_thermo_gz_actor_value:
-        value_template: "{{(state_attr('climate.000a1a49a107b5','level')|float*100)|int}}"
+        value_template: "{{(state_attr('climate.000a1a49a107b5','level')|float(default=0)*100)|int(default=0)}}"
         friendly_name: "Gästezimmer Ventilöffnung"
         icon_template: "mdi:valve"
       hm_thermo_gz_actor_display:  #for mini-graph
-        value_template: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.000a1a49a107b5','level')|float==0) else state_attr('climate.000a1a49a107b5','level')|float*20 }}"
-                      # "{{state_attr('climate.000a1a49a107b5','level')|float*20}}"
+        value_template: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.000a1a49a107b5','level')|float(default=0)==0) else state_attr('climate.000a1a49a107b5','level')|float(default=0)*20 }}"
         friendly_name: "Gästezimmer Ventilöffnung"
         icon_template: "mdi:valve"
       hm_thermo_gz_window_state:

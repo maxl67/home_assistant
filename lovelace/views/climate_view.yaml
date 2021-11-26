@@ -93,6 +93,19 @@ anchors:
     state_adaptive_color: true
     show_points: false
 
+  style_entitycard_header: &style_header
+    card_mod: 
+      style: |
+        .card-header {
+          font-size: 20px;
+          padding: 10px 16px;
+        }
+  style_entitycard_noheader: &style_noheader
+    card_mod:
+      style: |
+        ha-card .card-header {
+          padding: 0px;
+          display: unset;
 #---------------------------------
 #id: climate
 title: Klima
@@ -213,111 +226,155 @@ cards:
             name: heizen
             <<: *dataset_heizen
 
-  # parameters (and other sensors)
-#  - type: entities
-#    entities:
-#    - type: custom:hui-vertical-stack-card
-  - type: custom:vertical-stack-in-card
-    cards:
-    - type: custom:fold-entity-row
-      head:
-        type: section
-        label: Heizung
-      open: true
-      state_color: true
-      entities:
+  # Parameter der Heizugssteuerung
+  - type: entities
+    title: Heizung
+    state_color: true
+    <<: *style_header
+    entities:
+      # Heizung an/aus
       - entity: switch.heating_period
-      - entity: switch.enable_heating_automation
-      - type: custom:hui-conditional-card
-        conditions:
-          - entity: input_boolean.automate_heating
-            state: "on"
-        card:
-          type: custom:vertical-stack-in-card
-          cards:
+
+      # Automatisierung der Heizung
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Steuerung Heizung
+        open: false
+        state_color: true
+        padding: off
+        entities:
+          - entity: switch.enable_heating_automation
+          # Erklärungen zur Steuerung
+          - type: conditional
+            conditions:
+              - entity: input_boolean.automate_heating
+                state: "on"
+            row:
+                type: custom:fold-entity-row
+                head:
+                  type: section
+                  label: Info Heizsteuerung
+                open: false
+                padding: off
+                entities:
+                - type: custom:hui-markdown-card
+                  content: >
+                    Zur Erinnerung, {{user}}:
+
+                    - beim Verlassen: feste Energiespartemp. (17°C)
+                      bei Ankunft: autom. Heizprofil wieder an
+                    - Solltemperatur absenken, wenn Fenster offen (12°C)
+
+                    - wir haben Gäste: Profil 3 wird aktiv
+
+
+                    Heizprofil1: Arbeiten ausserhaus
+
+                    Heizprofil2: Homeoffice
+                    
+                    Heizprofil3: Gäste. 
+                    wie 1. nur wärmer.
+
+#          - type: custom:hui-conditional-card
+#            conditions:
+#              - entity: input_boolean.automate_heating
+#                state: "on"
+#            card:
+#              type: custom:vertical-stack-in-card
+#              cards:
+#              - type: custom:fold-entity-row
+#                head:
+#                  type: section
+#                  label: Info Heizsteuerung
+#                open: false
+#                padding: off
+#                entities:
+#                - type: custom:hui-markdown-card
+#                  content: >
+#                    - beim Verlassen: feste Energiespartemp. (17°C)
+#                      bei Ankunft: autom. Heizprofil wieder an
+#                    - Solltemperatur absenken, wenn Fenster offen (12°C)
+#
+#                    - wir haben Gäste: Profil 3 wird aktiv
+
+
+  # Luftfeuchte und Raumklima - humidity 
+  - type: custom:vertical-stack-in-card #vertical-stack
+    cards:
+      - type: custom:mini-graph-card
+        name: Luftfeuchte
+        entities: 
+          - entity: sensor.lumi_lumi_weather_95154a04_humidity
+            name: Bad (lumi)
+            <<: *dataset_humidity_inside
+          - entity: sensor.000c9a499b5808_humidity
+            name: WZ (HmIP)
+            <<: *dataset_humidity_inside
+          - entity: sensor.outside_humidity
+            name: aussen
+            y_axis: 'secondary'
+            show_state: true
+            color: *dark_gray
+            show_fill: false
+            show_points: false
+        #range
+        <<: *graphs_range
+        points_per_hour: 12
+        #formatting
+        <<: *graphs_format
+        height: 120
+        #lower_bound: 35
+        #upper_bound: 100
+        lower_bound_secondary: 30
+        upper_bound_secondary: 100
+        show:
+          labels: true #or hover (y-axis)
+          labels_secondary: hover
+          icon_adaptive_color: true
+        color_thresholds_transition: hard
+        color_thresholds:
+          - value: 0
+            color: *blue
+          - value: 40
+            color: *green
+          - value: 60
+            color: *light_orange
+          - value: 70
+            color: *dark_orange 
+
+      # Sensoren fuer Raumklima
+      - type: entities
+        title: ' '
+        <<: *style_noheader
+        entities:
           - type: custom:fold-entity-row
             head:
               type: section
-              label: Info Heizsteuerung
+              label: Raumklima Sensoren
             open: false
+            padding: false
             entities:
-            - type: custom:hui-markdown-card
-              content: >
-                - beim Verlassen: feste Energiespartemp. (17°C)
-                  bei Ankunft: autom. Heizprofil wieder an
-                - Solltemperatur absenken, wenn Fenster offen (12°C)
-
-                - wir haben Gäste: Profil 3 wird aktiv
-
-    - type: custom:fold-entity-row
-      head:
-        type: section
-        label: Raumklima
-      open: false
-      entities:
-      - entity: sensor.lumi_lumi_weather_95154a04_temperature
-        type: custom:multiple-entity-row
-        name: Bad (lumi)
-        secondary_info: last-changed
-        state_header: Temp
-        entities:
-        - entity: sensor.lumi_lumi_weather_95154a04_humidity
-          name: Feuchte 
-        - entity: sensor.lumi_lumi_weather_95154a04_pressure
-          name: Druck
-      - entity: sensor.hm_thermo_wz_current_temp
-        type: custom:multiple-entity-row
-        name: Wohnzimmer (Thermostat)
-        secondary_info: last-changed
-        state_header: Temp
-        entities:
-        - entity: sensor.000c9a499b5808_humidity
-          name: Feuchte 
-        - entity: sensor.hm_thermo_wz_target_temp
-          name: Soll
-
- 
-  # humidity 
-  - type: custom:mini-graph-card
-    name: Luftfeuchte
-    entities: 
-      - entity: sensor.lumi_lumi_weather_95154a04_humidity
-        name: Bad (lumi)
-        <<: *dataset_humidity_inside
-      - entity: sensor.000c9a499b5808_humidity
-        name: WZ (HmIP)
-        <<: *dataset_humidity_inside
-      - entity: sensor.outside_humidity
-        name: aussen
-        y_axis: 'secondary'
-        show_state: true
-        color: *dark_gray
-        show_fill: false
-        show_points: false
-    #range
-    <<: *graphs_range
-    points_per_hour: 12
-    #formatting
-    <<: *graphs_format
-    height: 120
-    #lower_bound: 35
-    #upper_bound: 100
-    lower_bound_secondary: 30
-    upper_bound_secondary: 100
-    show:
-      labels: true #or hover (y-axis)
-      labels_secondary: hover
-      icon_adaptive_color: true
-    color_thresholds_transition: hard
-    color_thresholds:
-      - value: 0
-        color: *blue
-      - value: 40
-        color: *green
-      - value: 60
-        color: *light_orange
-      - value: 70
-        color: *dark_orange 
+            - entity: sensor.lumi_lumi_weather_95154a04_temperature
+              type: custom:multiple-entity-row
+              name: Bad (lumi)
+              secondary_info: last-changed
+              state_header: Temp
+              entities:
+              - entity: sensor.lumi_lumi_weather_95154a04_humidity
+                name: Feuchte 
+              - entity: sensor.lumi_lumi_weather_95154a04_pressure
+                name: Druck
+            - entity: sensor.hm_thermo_wz_current_temp
+              type: custom:multiple-entity-row
+              name: Wohnzimmer (Thermostat)
+              secondary_info: last-changed
+              state_header: Temp
+              entities:
+              - entity: sensor.000c9a499b5808_humidity
+                name: Feuchte 
+              - entity: sensor.hm_thermo_wz_target_temp
+                name: Soll
 
 
 #-----------------------
@@ -329,17 +386,17 @@ cards:
         hours_to_show: 24
         entities:
           - entity: sensor.lumi_lumi_weather_95154a04_temperature
-            name: Bad (LUMI)
+            name: Bad #(LUMI)
           - entity: sensor.hm_thermo_ku_current_temp
-            name: Küche (HmIP)
+            name: Kü #Küche (HmIP)
           - entity: sensor.hm_thermo_wz_current_temp
-            name: Wohnz (HmIP)
+            name: WZ #Wohnz (HmIP)
           - entity: sensor.hm_thermo_gz_current_temp
-            name: Gästez (HmIP)
+            name: GZ #Gästez (HmIP)
           - entity: sensor.fritz_dect_200_netz_temperature
-            name: Netzwerk-Rack
+            name: IT #Netzwerk-Rack
           - entity: sensor.fritz_dect_200_gz_temperature
-            name: Schreibtisch M
+            name: Desk #Schreibtisch M
       - type: history-graph
         hours_to_show: 24
         entities:

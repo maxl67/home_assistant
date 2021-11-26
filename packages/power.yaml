@@ -156,35 +156,43 @@ automation:
       - platform: time
         at: '00:45:00'
     condition:
-      # 'power_automation' aktiv and Saug-E not active
+      # 'power_automation' aktiv (und Saug-E nicht aktiv für Netzwerk) 
       - condition: state
         entity_id: input_boolean.disable_power_automation
         state: 'off'
-      - condition: state
-        entity_id: vacuum.xiaomi_vacuum_cleaner
-        state: 'docked'
+      #- condition: state
+      #  entity_id: vacuum.xiaomi_vacuum_cleaner
+      #  state: 'docked'
     action:
       # stop switching on the network
       - service: automation.turn_off
         entity_id: automation.switch_on_network
       - service: automation.turn_on
         entity_id: automation.switch_on_network
-      # shut down Raspi1, and wait for it being offline
-      - service: script.kill_raspi1
-      - wait_for_trigger:
-          - platform: state
-            entity_id: binary_sensor.rpi_ost
-            to: 'off'
-        timeout:
-          minutes: 1
-        continue_on_timeout: true  
       # power down Desk and wait a bit (because Fritz integration does not send 2 consecutive commands)
       - service: switch.turn_off
         entity_id: *powerswitch_gz_entityid
       - delay: '00:00:05'
-      # power down Unifi components 
-      - service: switch.turn_off
-        entity_id: *powerswitch_rack_entityid
+      - choose:
+        # wenn Saug-E nicht aktiv...
+        - alias: "Switch of Raspi1 and network"
+          conditions:
+            - condition: state
+              entity_id: vacuum.xiaomi_vacuum_cleaner
+              state: 'docked'
+          sequence:
+            # shut down Raspi1, and wait for it being offline
+            - service: script.kill_raspi1
+            - wait_for_trigger:
+                - platform: state
+                  entity_id: binary_sensor.rpi_ost
+                  to: 'off'
+              timeout:
+                minutes: 1
+              continue_on_timeout: true  
+            # power down Unifi components 
+            - service: switch.turn_off
+              entity_id: *powerswitch_rack_entityid
 
   - id: switch_on_network
     alias: switch_on_network #switch on network components

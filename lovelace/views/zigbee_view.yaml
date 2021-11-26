@@ -15,12 +15,16 @@ cards:
         id: available
         modify: x || "false"
         name: Online
+        align: center
       - attr: rssi
         name: RSSI
+        align: right
       - attr: lqi
         name: LQI
+        align: right
       - attr: last_seen
         name: Last Seen
+        align: center
       - attr: manufacturer
         name: Manufacturer
       - attr: model

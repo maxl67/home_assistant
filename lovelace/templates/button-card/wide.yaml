@@ -1,0 +1,9 @@
+  wide:
+    template: standard
+    styles:
+      grid:
+        - position: relative
+        - grid-template-areas: '"i n"'
+        - grid-template-columns: 1fr 1fr
+        - grid-template-rows: 1fr
+        

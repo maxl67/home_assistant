@@ -22,6 +22,20 @@ cards:
       #pressure: mmHg
       speed: km/h
     locale: 'de-DE'
+    icons: /local/images/icons/weather_fill/
+    style: |
+      .card-header {
+        padding: 20px 16px 10px;
+        line-height: 32px;
+      }
+  - type: custom:weather-chart-card
+    #title: Stündlich (OWM)
+    entity: weather.home_hourly
+    show_main: true
+    show_attributes: false
+    units:
+      #pressure: mmHg
+      speed: km/h
     style: |
       .card-header {
         padding: 20px 16px 10px;
@@ -37,81 +51,7 @@ cards:
       type: custom:vertical-stack-in-card
       #title: Deutscher Wetterdienst  #title is too big here...
       cards:
-        # show warning count and status received from DWD
-        - type: custom:fold-entity-row
-          head:
-            type: section
-            label: Wetterwarnungen & Alarm
-          open: false
-          entities:
-            - entity: sensor.dwd_current_warn_count
-              type: custom:multiple-entity-row
-              name: DWD Meldungen aktuell
-              secondary_info: last-changed
-              entities:
-              - entity: sensor.dwd_current_warn_level
-                name: DWD lvl
-              - entity: sensor.dwd_max_warn_level
-                name: max lvl
-            - entity: sensor.dwd_current_warn_gewitter 
-              type: custom:multiple-entity-row
-              name: Gewitter-Warnung
-              icon: mdi:weather-lightning-rainy
-              entities:
-              - entity: sensor.dwd_current_warn_level_gewitter
-                name: Level
-            - entity: sensor.dwd_current_warn_sturm 
-              type: custom:multiple-entity-row
-              name: Sturm-Warnung
-              icon: mdi:weather-windy
-              entities:
-              - entity: sensor.dwd_current_warn_level_sturm
-                name: Level
-            - entity: sensor.dwd_current_warn_regen
-              type: custom:multiple-entity-row
-              name: Regen-Warnung
-              icon: mdi:weather-pouring
-              entities:
-              - entity: sensor.dwd_current_warn_level_regen
-                name: Level            
-            - entity: sensor.dwd_current_warn_hagel
-              type: custom:multiple-entity-row
-              name: Hagel-Warnung
-              icon: mdi:weather-hail
-              entities:
-              - entity: sensor.dwd_current_warn_level_hagel
-                name: Level
-            - entity: sensor.dwd_current_warn_schnee
-              type: custom:multiple-entity-row
-              name: Schnee-Warnung
-              icon: mdi:weather-snowy-heavy
-              entities:
-              - entity: sensor.dwd_current_warn_level_schnee
-                name: Level
-            - entity: sensor.dwd_current_warn_frost
-              type: custom:multiple-entity-row
-              name: Frost-Warnung
-              icon: mdi:thermometer-alert
-              entities:
-              - entity: sensor.dwd_current_warn_level_frost
-                name: Level
-            - entity: sensor.dwd_current_warn_glaette
-              type: custom:multiple-entity-row
-              name: Glatteis-Warnung
-              icon: mdi:snowflake-alert
-              entities:
-              - entity: sensor.dwd_current_warn_level_glaette
-                name: Level
-            - entity: input_boolean.dwd_weather_alert
-              type: custom:multiple-entity-row
-              name: Wetter Alarm
-              secondary_info: last-changed
-              entities:
-              - entity: sensor.count_notification_alerts
-                name: Anz. Alarme
-
         # show the text of all DWD warnings
-        - type: divider
         - type: markdown
           card_mod:
             style: |
@@ -121,7 +61,7 @@ cards:
           content: >
               <h3>{{ state_attr('sensor.dwd_weather_warnings_current_warning_level','region_name') }}</h3>
               Aktuell 
-              {% if states('sensor.dwd_current_warn_count')|int == 1 %}
+              {% if states('sensor.dwd_current_warn_count')|int(default=0) == 1 %}
                 besteht {{ states('sensor.dwd_current_warn_count') }} Warnung 
               {% else %}
                 bestehen {{ states('sensor.dwd_current_warn_count') }} Warnungen 
@@ -137,7 +77,7 @@ cards:
                 <hr/>
                 <em>
                 {%- set start_time= state_attr('sensor.dwd_weather_warnings_current_warning_level',start_attr) -%}
-                {%- set days = (start_time.strftime('%j') | int) - (now().strftime('%j')) | int  -%}
+                {%- set days = (start_time.strftime('%j') | int(default=0)) - (now().strftime('%j')) | int(default=0)  -%}
                 {% if as_timestamp(start_time) <= as_timestamp(now()) %}
                 jetzt
                 {% elif days==0 %}
@@ -157,8 +97,50 @@ cards:
                 <br>
                 {{ state_attr('sensor.dwd_weather_warnings_current_warning_level',desc_attr) }}
                 <br>
-                <br>
               {%- endfor -%}
+        # show warning count and status received from DWD
+        - type: custom:fold-entity-row
+          head:
+            type: section
+            label: Wetterwarnungen & Alarm
+          open: false
+          entities:
+            - entity: sensor.dwd_current_warn_count
+              type: custom:multiple-entity-row
+              name: DWD Meldungen aktuell
+              secondary_info: last-changed
+              entities:
+                - entity: sensor.dwd_current_warn_level
+                  name: DWD lvl
+                - entity: sensor.dwd_max_warn_level
+                  name: max lvl
+            - entity: input_boolean.dwd_weather_alert
+              type: custom:multiple-entity-row
+              name: Wetter Alarm
+              secondary_info: last-changed
+              entities:
+                - entity: sensor.count_notification_alerts
+                  name: Anz. Alarme
+
+            - type: divider
+            - type: custom:auto-entities
+              card: 
+                type: glance
+                state_color: true
+                show_name: false
+              entities:
+                - entity: sensor.dwd_current_warn_count
+                  name: DWD Warnstufe
+              filter:
+                include:
+                  - entity_id: 'sensor.dwd_current_warn_level_*'
+                    state: '>= 0'
+              sort:
+                method: state
+                numeric: true
+                reverse: true
+              show_empty: false
+              unique: true
 
   # MeteoBlue Meteogram
   - type: picture
@@ -167,14 +149,16 @@ cards:
       action: url
       url_path: !secret meteogram_url
 
-  # Sonnenstand und Sonnenschein
+  # Wetter-Entities
   - type: entities
-    title: Sonnenstand & -schein
+    title: Wetter, Sonne, Regen
     show_header_toggle: false
     <<: *style_header
     entities:
       - entity: weather.dwd_weather_ak_stuttgart
         name: Temperatur (DWD)
+      - entity: weather.home_hourly
+        name: Temperatur (OWM)
       - type: section
         label: Sonnenstand
       - entity: sensor.sun_elevation
@@ -190,7 +174,38 @@ cards:
       - type: section
         label: Sonnenschein
       - entity: sensor.sun_is_shining
-      - entity: sensor.sunshine_intensity
+      - entity: sensor.forcast_sunshine_hours_tomorrow
+        type: custom:multiple-entity-row
+        name: Dauer
+        icon: mdi:white-balance-sunny
+        state_header: morgen
+        entities:
+        - entity: sensor.sunshine_hours_yesterday
+          name: gestern
+          format: precision1
+        - entity: sensor.sunshine_hours_today
+          name: heute ist
+          format: precision1
+        - entity: sensor.forcast_sunshine_hours_today
+          name: heute noch
+
+
+  # https://community.home-assistant.io/t/apexcharts-card-a-highly-customizable-graph-card/272877/487
+  # https://github.com/RomRider/apexcharts-card#data_generator-option
+  #------------------------------
+  # Themperatur - Chart
+  - !include ../cards/weather_chart_temp.yaml
+
+  # Niederschlag - Chart
+  - !include ../cards/weather_chart_rainforecast.yaml
+
+  - type: history-graph
+    hours_to_show: 48
+    entities:
+      - entity: weather.dwd_weather_ak_stuttgart
+        name: DWD
+      - entity: weather.home_hourly
+        name: OWM
 
   # 3 different satelite pictures (rain, clouds, snow); can be toggled by tapping on them. 
   - type: custom:vertical-stack-in-card
@@ -237,8 +252,3 @@ cards:
           service: input_select.select_next
           service_data:
             entity_id: input_select.type_of_satelite
-  #test
-  #  - type: glance
-  #    title: Auswahl
-  #    entities:
-  #      - entity: input_select.type_of_satelite

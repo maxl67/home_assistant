@@ -160,25 +160,25 @@ sensor:
 #  - platform: mqtt
 #    name: kiwi_moisture
 #    state_topic: plants/miflora
-#    value_template: '{{ value_json.moisture | int }}'
+#    value_template: '{{ value_json.moisture | int(default=0) }}'
 #    unit_of_measurement: '%'
 #  - platform: mqtt
 #    name: kiwi_battery
 #    state_topic: plants/miflora
-#    value_template: '{{ value_json.battery | int }}'
+#    value_template: '{{ value_json.battery | int(default=0) }}'
 #    unit_of_measurement: '%'
 #  - platform: mqtt
 #    name: kiwi_temperature
 #    state_topic: plants/miflora
-#    value_template: '{{ value_json.temperature | float }}'
+#    value_template: '{{ value_json.temperature | float(default=0) }}'
 #    unit_of_measurement: '°C'
 #  - platform: mqtt
 #    name: kiwi_conductivity
 #    state_topic: plants/miflora
-#    value_template: '{{ value_json.conductivity | int }}'
+#    value_template: '{{ value_json.conductivity | int(default=0) }}'
 #    unit_of_measurement: 'µS/cm'
 #  - platform: mqtt
 #    name: kiwi_brightness
 #    state_topic: plants/miflora
-#    value_template: '{{ value_json.brightness | int }}'
+#    value_template: '{{ value_json.brightness | int(default=0) }}'
 #    unit_of_measurement: 'Lux'

@@ -102,13 +102,79 @@ cards:
                       #- type: custom:button-card
                       #  color_type: blank-card
 
-            - type: media-control
+#            - type: media-control
+#              entity: media_player.samsungtv
+#              name: Samsung Qled60
+
+#            - type: media-control
+#              entity: media_player.r_n803d_86ae28
+#              name: Yamaha R-N803D
+            
+            - type: custom:mini-media-player
               entity: media_player.samsungtv
               name: Samsung Qled60
+              min_volume: 5
+              max_volume: 70
+              hide:
+                source: false
+              artwork: cover
+              info: scroll
+              toggle_power: false
+              shortcuts:
+                buttons:
+                  - name: TV
+                    #icon: mdi:radio
+                    type: source
+                    id: TV
+                  - name: DVD
+                    type: source
+                    id: HDMI
+                  - name: ARD-Med
+                    type: source
+                    id: ARD Mediathek
+                  - name: ZDF-Med
+                    type: source
+                    id: ZDF mediathek
+                  - name: hera
+                    type: source
+                    id: DS video
+                hide_when_off: true
+                columns: 5
+                column_height: 10
 
-            - type: media-control
+            - type: custom:mini-media-player
               entity: media_player.r_n803d_86ae28
               name: Yamaha R-N803D
+              min_volume: 10
+              max_volume: 75
+              hide:
+                source: false
+                progress: false
+              artwork: cover
+              info: scroll
+              toggle_power: false
+              shortcuts:
+                buttons:
+                  - name: Radio
+                    #icon: mdi:radio
+                    type: source
+                    id: tuner
+                  - name: CD
+                    type: source
+                    id: coaxial1
+                  - name: TV
+                    type: source
+                    id: optical1
+                  - name: Netz-Radio
+                    type: source
+                    id: net_radio
+                  - name: Server
+                    type: source
+                    id: server
+                hide_when_off: true
+                columns: 5
+                column_height: 5
+
 
     # todo: media_player entity not available, if device is switched off during HA restart. 
       #- type: media-control
@@ -118,14 +184,14 @@ cards:
       # Zugriff Radio Bad geht, wird aber nicht gebraucht
       #- type: media-control
       #  entity: media_player.radio_bad
-  
+
 
   # Remote control
   #   gesehen bei knapoc https://community.home-assistant.io/t/stack-in-card-drop-in-replacement-for-vertical-stack-in-card/180072
   #   https://community.home-assistant.io/t/how-do-i-actually-make-a-tv-remote-control-work-well-in-the-gui/212392/4
   - type: 'custom:button-card'
     template: container
-    name: Remote Control
+    name: one RemoteControl for all my stuff #one Remote Control for all I need
     color: var(--ha-card-background)
     custom_fields:
       buttons:
@@ -142,8 +208,6 @@ cards:
                   tap_action:
                     action: call-service
                     service: script.rc_power_off
-                - type: custom:button-card
-                  color_type: blank-card
                 - type: 'custom:button-card'
                   tap_action:
                     action: call-service
@@ -160,6 +224,11 @@ cards:
                   name: 'CD/DVD'
                   show_name: true
                   show_icon: false
+                - type: custom:button-card
+                  entity: light.0008da499c8dbd
+                  show_name: false
+                  hold_action:
+                    action: more-info
             # color buttons / function keys
       # todo FARBTASTEN: wenn Blueray an: Menu, Option, Audio
       # umbenennen möglich?
@@ -292,6 +361,7 @@ cards:
                   name: 'vol'
                   show_name: true
                   show_icon: true
+                  repeat: 300
                 - type: custom:button-card
                   color_type: blank-card
                 - type: 'custom:button-card'
@@ -316,6 +386,7 @@ cards:
                   name: 'vol'
                   show_name: true
                   show_icon: true
+                  repeat: 300
                 - type: custom:button-card
                   color: auto
                   tap_action:
@@ -422,19 +493,3 @@ cards:
 #            name: TV an oder Music spielt
 #      # device status (for testing)
 #      - !include ../cards/mediarack_debug.yaml        
-
-
-  # status of lights
-  - type: entities
-    title: Licht
-    <<: *style_header
-    show_header_toggle: false
-    state_color: true
-    entities:
-      - type: custom:slider-entity-row
-        entity: light.0008da499c8dbd
-        name: Ambiente-Licht
-        toggle: true
-        hide_when_off: true
-      - type: divider 
-      - entity: switch.enable_light_automation

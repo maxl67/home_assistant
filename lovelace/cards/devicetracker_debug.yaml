@@ -2,32 +2,54 @@ type: custom:vertical-stack-in-card
 cards:
   - type: glance
     title: Device Tracker
+    show_name: true
+    state_color: true
+    columns: 5
     entities:
       - entity: device_tracker.iphone8_max_wifi
-        name: Max [WiFi]
+        name: Max #[WiFi]
       - entity: device_tracker.iphone8_max_bt
-        name: Max [BT]
-      - entity: sensor.max_present_o
-        name: Max [O-Mon]
-        icon: mdi:set-left
+        name: [BT]
+        double_tap_action:
+          action: call-service
+          service: script.toogle_bt_device_status
+          service_data:
+            my_device: iphone8_max_bt
+            my_entity: device_tracker.iphone8_max_bt
+          confirmation:
+            text: Der BlueTooth-Status des Geräts wird gewechselt und damit der Status der Person und von 'Home' geändert. Da die Monitor.sh Konfidenzwerte nicht verändert werden, kann ein Arrival-/Depature-Scan diese Aktiion evtl. nicht korrigieren.
       - entity: sensor.max_present_w
-        name: Max [W-Mon]
-        icon: mdi:set-right
+        name: [W-Mon]
+        icon: mdi:set-left-center
+      - entity: sensor.max_present_o
+        name: [O-Mon]
+        icon: mdi:set-center-right
       - entity: sensor.max_home_confidence
-        name: Max [Monitor]
+        name: [Monitor]
+        icon: mdi:set-all
         #icon: mdi:set-left-right
       - entity: device_tracker.iphone8_ing_wifi
-        name: Ing [WiFi]
+        name: Ing #[WiFi]
       - entity: device_tracker.iphone8_ing_bt
-        name: Ing [BT]
-      - entity: sensor.ing_present_o
-        name: Ing [O-Mon]
-        icon: mdi:set-left
+        name: [BT]
+        double_tap_action:
+          action: call-service
+          service: script.toogle_bt_device_status
+          service_data:
+            my_device: iphone8_ing_bt
+            my_entity: device_tracker.iphone8_ing_bt
+          confirmation:
+            text: Der BlueTooth-Status des Geräts wird gewechselt und damit der Status der Person und von 'Home' geändert. Da die Monitor.sh Konfidenzwerte nicht verändert werden, kann ein Arrival-/Depature-Scan diese Aktiion evtl. nicht korrigieren.
       - entity: sensor.ing_present_w
-        name: Ing [W-Mon]
-        icon: mdi:set-right
+        name: [W-Mon]
+        icon: mdi:set-left-center
+      - entity: sensor.ing_present_o
+        name: [O-Mon]
+        icon: mdi:set-center-right
       - entity: sensor.ing_home_confidence
-        name: Ing [Monitor]
+        name: [Monitor]
+        icon: mdi:set-all
+
   - type: entities
     show_header_toggle: false
     entities:
@@ -37,23 +59,73 @@ cards:
           label: Scripts
         open: false
         entities:
-          - type: button
-            name: Arrival Scan (BT)
-            secondary_info: last-triggered
-            tap_action: 
-              action: call-service
-              service: automation.trigger
-              service_data:
-                entity_id: automation.start_bt_arrival_scan
-          - type: button
-            name: Departure Scan (BT)
-            secondary_info: last-triggered
-            tap_action: 
-              action: call-service
-              service: automation.trigger
-              service_data:
-                entity_id: automation.start_bt_departure_scan
-        #  - entity: input_select.max_status_dropdown
-        #    name: Statusauswahl Max
-        #  - entity: input_select.ing_status_dropdown
-        #    name: Statusauswahl Ing
+#          - type: button
+#            name: Arrival Scan (BT)
+#            secondary_info: last-triggered
+#            tap_action: 
+#              action: call-service
+#              service: automation.trigger
+#              service_data:
+#                entity_id: automation.start_bt_arrival_scan
+#          - type: button
+#            name: Departure Scan (BT)
+#            secondary_info: last-triggered
+#            tap_action: 
+#              action: call-service
+#              service: automation.trigger
+#              service_data:
+#                entity_id: automation.start_bt_departure_scan
+          - type: custom:paper-buttons-row
+            base_config:
+                state: >
+                  {{ 'vor ' + relative_time(state_attr(config.entity, 'last_triggered')) 
+                    | replace('days', 'Tage')|replace('day', 'Tag') 
+                    | replace('hours', 'h')|replace('hour', 'h') 
+                    | replace('minutes', 'min')|replace('minute', 'min') 
+                    | replace('seconds', 'sec')  
+                  }}
+                layout: icon|name_state
+                hold_action:
+                  action: more-info
+                tap_action: 
+                  action: call-service
+                  service: automation.trigger
+                  service_data:
+                    entity_id: "{{ config.entity }}"
+                style:
+                  button:
+                    background-color: var(--table-row-alternative-background-color)
+                    border-radius: 0.4em 0.4em 0.4em 0.4em
+                    border: solid 1px gray
+                    color: var(--primary-text-color)
+                  icon: #yellow within the first 2 min
+                    color: >-
+                      {% if ((as_timestamp(now())-as_timestamp(state_attr(config.entity, 'last_triggered'))) < 2 * 60) %}
+                        var(--paper-item-icon-active-color)
+                      {% elif is_state(config.entity, 'on') %}
+                        var(--paper-item-icon-inactive-color)
+                      {% else%}
+                        var(--secondary-text-color)
+                      {% endif %}
+                  state: 
+                    color: var(--secondary-text-color)
+
+            buttons:
+              - entity: automation.start_bt_arrival_scan
+                name: Arrival Scan
+                icon: mdi:home-import-outline
+        #        state:
+        #          attribute: last_triggered
+                tap_action: 
+                  action: call-service
+                  service: automation.trigger
+                  service_data:
+                    entity_id: automation.start_bt_arrival_scan
+              - entity: automation.start_bt_departure_scan
+                name: Departure Scan
+                icon: mdi:home-export-outline
+                tap_action: 
+                  action: call-service
+                  service: automation.trigger
+                  service_data:
+                    entity_id: automation.start_bt_departure_scan

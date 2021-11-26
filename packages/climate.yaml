@@ -238,6 +238,74 @@ script:
 ###############################################################################
 automation:
   #-------------------------------
+  # Hinweis, dass bei Kälte noch eine Tür offen ist
+  - id: warning_door_open_in winter
+    alias: Lichtband Status Tür in Winter schliessen
+    mode: single #Do not start a new run, if running already. 
+    trigger: 
+      - platform: time_pattern
+        minutes: '/5'
+    condition:
+      # wenn in der Heizperiode eine Tür offen ist und es draussen kalt ist
+      condition: and
+      conditions:
+        # Heizperiode ist an
+        - condition: state
+          entity_id: input_boolean.heating_period
+          state: 'on'
+        # eine Terassentür ist offen
+        - condition: state
+          entity_id: group.all_doors
+          state: 'on'
+        # Aussentemperatur (DWD) kleiner als die im WZ gemessene Temperatur
+        - "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'temperature')|float(default=0) < state_attr('climate.000C9A499B5808', 'current_temperature')|float(default=0) }}" 
+        # Licht-Automation aktiv
+        - condition: state
+          entity_id: input_boolean.disable_light_automation
+          state: 'off'
+        # nicht wenn Eingangstür offen und die Signal-Ampel an
+        - condition: state
+          entity_id: input_boolean.ll_signals_doorstatus
+          state: 'off'
+        - condition: state
+          entity_id: group.entrance_door
+          state: 'off'
+    action:
+      # speichern des aktuellen Licht-Zustands...
+      - service: python_script.light_store
+        data:
+          store_name: dw_signal_store
+          entity_id:
+            - light.philips_lightstrip_ku
+          overwrite: false
+          all_attribs: true  #saves last color and brightness, even if state='off'. turn light on shortly
+      # Licht in blau blinken lassen
+      - service: light.turn_on
+        data:
+          entity_id: light.philips_lightstrip_ku
+          brightness: 255
+          rgb_color:  [0, 0, 255] #blau
+          transition: 0.1
+      - alias: "Lichtleiste blinken lassen"
+        service: script.flash_light
+        data:
+          light: philips_lightstrip_ku #hier ohne domain 'light.'
+          count: 8
+      - wait_template: "{{ not states('dw_signal_store.light_philips_lightstrip_ku') == 'unknown' }}"
+        timeout: '00:00:03'
+      - choose:
+        - conditions: "{{ wait.completed }}" #wait condition was met = entity existes
+          sequence:
+            - service: python_script.light_store
+              data:
+                store_name: dw_signal_store
+                operation: restore
+                all_attribs: true  #restores old color and brightness, even if state='off'
+        default: #wait condition not met = entity does not exist
+          - service: light.turn_off #just turn off light
+            entity_id: light.philips_lightstrip_ku
+
+  #-------------------------------
   # Homeoffice - Profil 2 statt 1
   - id: switch_to_homeofficeprofile
     alias: Heizprofil Home-Office
@@ -432,6 +500,7 @@ automation:
     mode: queued
     trigger:
       - platform: state
+        # id: 0
         entity_id: 
           - group.doors_wz
           - group.doors_kitchen_office
@@ -445,6 +514,24 @@ automation:
       - condition: state
         entity_id: input_boolean.heating_period
         state: 'on'
+      # nur, wenn ein Thermostat ein Fenster-offen-Flag hat (um Log Einträge alle 10min zu vermeiden)
+      - condition: or
+        conditions:
+          # in jedem Fall aufrufen, wenn Tür geschlossen wurde
+          - condition: trigger
+            id: '0'
+          # bei Time-Trigger nur aufrufen, wenn ein Fenster-Flag offen ist
+          - condition: or
+            conditions:
+              - condition: state
+                entity_id:  sensor.hm_thermo_wz_window_state
+                state: 'offen' 
+              - condition: state
+                entity_id: sensor.hm_thermo_gz_window_state
+                state: 'offen' 
+              - condition: state
+                entity_id: sensor.hm_thermo_ku_window_state
+                state: 'offen' 
     action:
       - choose:
         # WOHNZIMMER

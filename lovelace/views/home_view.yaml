@@ -20,7 +20,35 @@ icon: mdi:home
 #  {% endif %}
 path: home
 cards:
-  # show only open (or unavailable) door-/window sensors (if any...)
+# TEST: show warnings & alarms
+  - type: custom:auto-entities
+    show_empty: false
+    card:
+      type: entities
+      title: Alarme und Warnungen
+      show_header_toggle: false
+    filter:
+      include:
+        - entity_id: "binary_sensor.warn*"
+          state: 'on'
+        - entity_id: "input_boolean.alert_*"
+          state: 'on'
+        - entity_id: "binary_sensor.alert_*"
+          state: 'on'
+        - entity_id: binary_sensor.fritz_box_6490_cable_firmware_update
+          state: 'on'
+        - entity_id: binary_sensor.fritz_box_6490_cable_connection
+          state: 'off'
+        - entity_id: sensor.hacs
+          state: '> 0'
+        - entity_id: switch.adguard_protection
+          state: 'off'
+      template: |
+        {% if states('sensor.latest_version') <> states('sensor.current_version') %}
+          {{ sensor.latest_version.entity_id }}
+        {% endif %}      
+
+  # only show open (or unavailable) door-/window sensors (if any...)
   - type: custom:auto-entities
     show_empty: false
     card:
@@ -33,6 +61,7 @@ cards:
           state: "on"
         - entity_id: "binary_sensor.lumi_lumi_sensor_magnet_aq2*"
           state: "unavailable"
+
   # show low battery devices (if any...)
   - type: custom:auto-entities
     show_empty: false
@@ -65,22 +94,25 @@ cards:
         #    battery_level: < 20
 
   # show persons and home status
-  - type: entities
-    title: Anwesenheit
-    show_header_toggle: false
-    state_color: true
-    entities:
-      - entity: sensor.max_status
-      - entity: sensor.ing_status
-      - type: divider
-      - entity: input_boolean.guests
-      - entity: sensor.home_status
-        type: custom:multiple-entity-row
-        name: Home Status
-      #  secondary_info: last-changed
-      #  entities:
-      #  - entity: sensor.n_people_home
-      #    name: '#Pers.'
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: glance
+        title: Anwesenheit
+        state_color: true
+        columns: 4
+        entities:
+          - entity: sensor.max_status
+          - entity: sensor.ing_status
+          - entity: sensor.home_status
+            type: custom:multiple-entity-row
+            name: Family
+      - type: entities
+        show_header_toggle: false
+        state_color: true
+        entities:
+          - type: divider
+          - entity: input_boolean.guests
+
 
   # show events from home-calendar (if any)
 #  - type: conditional
@@ -141,8 +173,16 @@ cards:
       - type: divider
       - entity: switch.enable_light_automation
 
-  # device tracking status (fosr testing)
-  - !include ../cards/devicetracker_debug.yaml
+  - type: conditional
+    conditions:
+#todo: should be OR or template with .. in ['all','home'], but is not possible (v2021.11)
+      - entity: input_select.debug_mode
+        state: 'home'
+    card:
+      type: vertical-stack
+      cards:
+        # device tracking status (fosr testing)
+        - !include ../cards/devicetracker_debug.yaml
 
-  # all door- and window sensors (while implementing)
-  - !include ../cards/doors_debug.yaml
+        # all door- and window sensors (while implementing)
+        - !include ../cards/doors_debug.yaml

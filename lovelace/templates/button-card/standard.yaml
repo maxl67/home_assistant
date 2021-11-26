@@ -1,0 +1,21 @@
+  standard:
+    color_type: card
+    size: 50%
+    hold_action:
+      action: more-info
+    styles:
+      card:
+        - padding: 0.2em
+        #- '--mdc-ripple-color': red
+        #- '--mdc-ripple-press-opacity': 0.5
+      icon:
+        - opacity: 0.5
+      name:
+        - font-size: 0.8em
+        - white-space: normal
+      state:
+        - font-size: 0.65em
+        - white-space: normal
+      label:
+        - font-size: 0.4em
+        - white-space: normal
