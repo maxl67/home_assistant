@@ -154,6 +154,7 @@ cards:
             entities:
               - entity: sensor.fritz_box_6490_cable_device_uptime
                 name: letzter Reboot
+                icon: mdi:restart
               - entity: binary_sensor.fritz_box_6490_cable_firmware_update
                 type: custom:multiple-entity-row
                 name: Firmware
@@ -171,12 +172,22 @@ cards:
                   }
                 #      --paper-item-icon-color: var(--accent-color);
               - type: divider
-              - type: button
-                name: Reboot!
-                action_name: Reboot now
-                tap_action: 
-                  action: call-service
-                  service: script.fritzbox_reboot
+#              - type: button
+#                name: Reboot!
+#                action_name: Reboot now
+#                tap_action: 
+#                  action: call-service
+#                  service: script.fritzbox_reboot
+              - type: buttons
+                entities:
+                - name: Reboot!
+                  entity: script.fritzbox_reboot
+                  icon: mdi:restart
+                  tap_action: 
+                    action: call-service
+                    service: script.fritzbox_reboot
+                    confirmation: 
+                      text: Soll die FritzBox wirklich gebootet werden?
           - type: custom:fold-entity-row
             head:
               type: section
@@ -190,16 +201,27 @@ cards:
               - entity: sensor.fritz_box_6490_cable_external_ip
                 type: custom:multiple-entity-row
                 name: IPv4
+                icon: mdi:ip-network-outline
                 secondary_info: last-changed
               - entity: sensor.fritz_box_6490_cable_connection_uptime
                 name: letzter Connect
               - type: divider
-              - type: button
-                name: Reconnect
-                action_name: Reconnect now
-                tap_action: 
-                  action: call-service
-                  service: script.fritzbox_reconnect
+#              - type: button
+#                name: Reconnect
+#                action_name: Reconnect now
+#                tap_action: 
+#                  action: call-service
+#                  service: script.fritzbox_reconnect
+              - type: buttons
+                entities:
+                  - name: Reconnect
+                    entity: script.fritzbox_reconnect
+                    icon: mdi:web-sync
+                    tap_action: 
+                      action: call-service
+                      service: script.fritzbox_reconnect
+                      confirmation: 
+                        text: Soll die Internetverbindung getrennt und neu aufgebaut werden?
           - type: section
             #- entity: sensor.fritz_rate_up
             #- entity: sensor.fritz_rate_down
@@ -583,18 +605,38 @@ cards:
             - entity: sensor.raspi1_updates
               name: Upgrades pending
               icon: mdi:new-box
-            - type: button
-              name: Reboot
-              secondary_info: last-triggered
-              tap_action: 
-                action: call-service
-                service: script.reboot_raspi1
-            - type: button
-              name: Shutdown!
-              secondary_info: last-triggered
-              tap_action: 
-                action: call-service
-                service: script.kill_raspi1
+
+            - type: divider
+#            - type: button
+#              name: Reboot
+#              secondary_info: last-triggered
+#              tap_action: 
+#                action: call-service
+#                service: script.reboot_raspi1
+#            - type: button
+#              name: Shutdown!
+#              secondary_info: last-triggered
+#              tap_action: 
+#                action: call-service
+#                service: script.kill_raspi1
+            - type: buttons
+              entities:
+              - name: Reboot
+                entity: script.reboot_raspi1
+                icon: mdi:restart
+                tap_action: 
+                  action: call-service
+                  service: script.reboot_raspi1
+                  confirmation: 
+                    text: Soll RaspPi-1 (Ost) wirklich neu gebootet werden?
+              - name: Shutdown!
+                entity: script.kill_raspi1
+                icon: mdi:power
+                tap_action: 
+                  action: call-service
+                  service: script.kill_raspi1
+                  confirmation: 
+                    text: Soll RaspPi-1 (Ost) wirklich heruntergefahren werden?
           - type: section
         - type: horizontal-stack
           cards:
@@ -654,12 +696,23 @@ cards:
             - entity: sensor.raspi2_updates
               name: Upgrades pending
               icon: mdi:new-box
-            - type: button
-              name: Reboot
-              secondary_info: last-triggered
-              tap_action: 
-                action: call-service
-                service: script.reboot_raspi2
+            - type: divider
+#            - type: button
+#              name: Reboot
+#              secondary_info: last-triggered
+#              tap_action: 
+#                action: call-service
+#                service: script.reboot_raspi2
+            - type: buttons
+              entities:
+              - name: Reboot
+                entity: script.reboot_raspi2
+                icon: mdi:restart
+                tap_action: 
+                  action: call-service
+                  service: script.reboot_raspi2
+                  confirmation: 
+                    text: Soll RaspPi-2 (West) wirklich neu gebootet werden?
           - type: custom:fold-entity-row
             head:
               type: section
@@ -675,12 +728,20 @@ cards:
               name: Verbindung
               icon: mdi:sync
               secondary_info: last-changed
-            - type: button
-              name: Reconnect
-              secondary_info: last-triggered
-              tap_action: 
-                action: call-service
-                service: homematic.reconnect
+#            - type: button
+#              name: Reconnect
+#              secondary_info: last-triggered
+#              tap_action: 
+#                action: call-service
+#                service: homematic.reconnect
+            - type: buttons
+              entities:
+              - name: Reconnect
+                entity: homematic.reconnect
+                icon: mdi:swap-horizontal-bold
+                tap_action: 
+                  action: call-service
+                  service: homematic.reconnect
           - type: section
         - type: horizontal-stack
           cards:

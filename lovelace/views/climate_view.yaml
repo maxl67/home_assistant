@@ -106,6 +106,8 @@ anchors:
         ha-card .card-header {
           padding: 0px;
           display: unset;
+        }
+
 #---------------------------------
 #id: climate
 title: Klima
@@ -144,7 +146,7 @@ cards:
           - entity: sensor.hm_thermo_wz_target_temp
             name: Soll HmIP
             <<: *dataset_soll_temp
-          - entity: sensor.hm_thermo_wz_actor_value
+          - entity: sensor.hm_thermo_wz_actor_value_graph
             name: heizen
             <<: *dataset_heizen
           - entity: sensor.sunshine_intensity
@@ -276,29 +278,6 @@ cards:
                     Heizprofil3: Gäste. 
                     wie 1. nur wärmer.
 
-#          - type: custom:hui-conditional-card
-#            conditions:
-#              - entity: input_boolean.automate_heating
-#                state: "on"
-#            card:
-#              type: custom:vertical-stack-in-card
-#              cards:
-#              - type: custom:fold-entity-row
-#                head:
-#                  type: section
-#                  label: Info Heizsteuerung
-#                open: false
-#                padding: off
-#                entities:
-#                - type: custom:hui-markdown-card
-#                  content: >
-#                    - beim Verlassen: feste Energiespartemp. (17°C)
-#                      bei Ankunft: autom. Heizprofil wieder an
-#                    - Solltemperatur absenken, wenn Fenster offen (12°C)
-#
-#                    - wir haben Gäste: Profil 3 wird aktiv
-
-
   # Luftfeuchte und Raumklima - humidity 
   - type: custom:vertical-stack-in-card #vertical-stack
     cards:
@@ -403,12 +382,45 @@ cards:
           - entity: sensor.outside_temperature
             name: aussen
 
-#todo: sensoren unterstuetzen noch nicht longterm statistics 
-#  - type: statistics-graph
-#    days_to_show: 3
-#    stat_types: line
-#    entities:
-#      - entity: sensor.hm_thermo_wz_current_temp
-#        name: Wohnz (HmIP)
-#      - entity: sensor.outside_temperature
-#        name: aussen
+  # - type: custom:vertical-stack-in-card
+  #   cards:
+  #     - type: statistics-graph
+  #       title: IST-Temperatur Statistik
+  #       days_to_show: 30
+  #       chart_type: line
+  #       stat_types: mean #, min, max
+  #       entities:
+  #         - entity: sensor.hm_thermo_wz_current_temp
+  #           name: WZ
+  #         - entity: sensor.hm_thermo_ku_current_temp
+  #           name: Kü
+  #         - entity: sensor.hm_thermo_gz_current_temp
+  #           name: GZ
+  #         - entity: sensor.lumi_lumi_weather_95154a04_temperature
+  #           name: Bad
+  #         - entity: sensor.home_hourly_temperature
+  #           name: aussen
+  #     - type: statistics-graph
+  #       title: SOLL-Temperatur Statistik
+  #       days_to_show: 7
+  #       chart_type: line
+  #       stat_types: mean #, min, max
+  #       entities:
+  #         - entity: sensor.hm_thermo_wz_target_temp
+  #           name: WZ
+  #         - entity: sensor.hm_thermo_ku_target_temp
+  #           name: Kü
+  #         - entity: sensor.hm_thermo_gz_target_temp
+  #           name: GZ
+  #     - type: statistics-graph
+  #       title: Kapazitätsnutzung Heizung
+  #       days_to_show: 7
+  #       chart_type: bar
+  #       stat_types: mean
+  #       entities:
+  #         - entity: sensor.hm_thermo_wz_actor_value
+  #           name: WZ
+  #         - entity: sensor.hm_thermo_ku_actor_value
+  #           name: Kü
+  #         - entity: sensor.hm_thermo_gz_actor_value
+  #           name: GZ

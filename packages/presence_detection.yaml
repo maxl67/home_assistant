@@ -2,7 +2,7 @@
 #   @author       : Max Reigl
 #   @date         : 08.08.2020
 #   @package      : presence_detection
-#   @description  : Presence Detection with different states
+#   @description  : Presence Detection with different states based of bluetooth monitor script.
 #   @links        : 
 # States: https://philhawthorne.com/making-home-assistants-presence-detection-not-so-binary/
 # BTLE (Monitor.sh): https://community.home-assistant.io/t/monitor-reliable-multi-user-distributed-bluetooth-occupancy-presence-detection/68505
@@ -137,6 +137,7 @@ input_select:
       - Extended Away
   
 # These values are used to persistent the *_status_dropdown.last_changed, which are reset at HA reboot.
+# *.last_changed is needed to determine status 'Extended Away'.
 input_datetime:
   max_status_dropdown_last_changed:
     name: Max status last changed
@@ -312,6 +313,10 @@ script:
                 location_name: home
                 source_type: bluetooth
 
+#todo: 
+# Post a message with the mac address separated from an alias (optional) by a space to: monitor/setup/add known device
+# Post a message with the mac address to: monitor/setup/delete known device
+# How can I restart a this script node? post a message with blank content to monitor/scan/restart
 
 ###############################################################################
 ##  Automations
@@ -470,12 +475,15 @@ automation:
           - device_tracker.iphone8_ing_wifi
         from: 'home'
         to: 'not_home'
+        id: 'wifi'
       - platform: state
         entity_id: group.entrance_door 
         to: 'off' #closed
         for:
           seconds: 20
-    condition: []
+        id: 'door'
+    # prevent a scan from being triggered at night when the network and raspi1 was shut down
+    condition: "{{ trigger.id == 'door' or (trigger.id == 'wifi' and is_state('switch.fritz_dect_200_netz','on')) }}"
     action:
       - service: mqtt.publish
         data:
@@ -520,7 +528,7 @@ automation:
         event: start
       - platform: time
         at: '00:30:00'
-    # after restart only, if both Raspis are online (because of BT-Monitor script)
+    # only, if both Raspis are online (because of BT-Monitor script)
     condition: "{{ states('sensor.raspi1_last_message') != 'unavailable' and states('sensor.raspi2_last_message') != 'unavailable' }}"
     action:
       # first update device status from MQTT (BlueTooth monitor.sh) 
@@ -623,52 +631,47 @@ automation:
     mode: queued
     trigger:
       - platform: state
-        entity_id: 
-          - group.phone_max 
-          - group.phone_ing
+        <<: &phone_person_groups_list
+          entity_id: 
+            - group.phone_max 
+            - group.phone_ing
         from: 'not_home'
         to: 'home'
+    variables:
+      <<: &device_person_map
+        device_map:
+          group.phone_max: input_select.max_status_dropdown
+          group.phone_ing: input_select.ing_status_dropdown
+      input_select_entity: >
+        {{ device_map[trigger.entity_id] }}
+      state_map:
+        Home: Home
+        Just Left: Home
     action:
       - service: input_select.select_option
         data:
           entity_id: >
-            {% if trigger.entity_id == 'group.phone_max' %}
-              input_select.max_status_dropdown
-            {% else %}
-              input_select.ing_status_dropdown
-            {% endif %}
+            {{ input_select_entity }}
           option: >
-            {%- if trigger.entity_id == 'group.phone_max' -%}
-              {%- set val='max_status_dropdown'-%}
-            {%- else -%}
-              {%- set val='ing_status_dropdown'-%}
-            {% endif %} 
-                    
-            {% if states.input_select[val].state in ['Just Left', 'Home'] %}
-              Home
-            {% else %}
-              Just Arrived
-            {% endif %}
+            {{ state_map[states(input_select_entity)] if states(input_select_entity) in state_map else 'Just Arrived' }}
   
   - alias: Mark person as just left
     id: mark_person_as_just_left
     mode: queued
     trigger:
       - platform: state
-        entity_id: 
-          - group.phone_max 
-          - group.phone_ing 
+        <<: *phone_person_groups_list
         from: 'home'
         to: 'not_home'
+    variables:
+      <<: *device_person_map
+      input_select_entity: >
+        {{ device_map[trigger.entity_id] }}
     action:
       - service: input_select.select_option
         data:
           entity_id: >
-            {% if trigger.entity_id == 'group.phone_max' %}
-              input_select.max_status_dropdown
-            {% else %}
-              input_select.ing_status_dropdown
-            {% endif %}
+            {{ input_select_entity }}
           option: Just Left
   
   - alias: Mark person as home #('Just Arrived' vor 10min) oder ('Just Arrived' nach 'Just Left')
@@ -676,16 +679,15 @@ automation:
     mode: queued
     trigger:
       - platform: state
-        entity_id: 
-          - input_select.max_status_dropdown
-          - input_select.ing_status_dropdown
+        <<: &person_satus_dropdows_list
+          entity_id: 
+            - input_select.max_status_dropdown
+            - input_select.ing_status_dropdown
         to: 'Just Arrived'
         for:
           minutes: *int_minutes_after_being_home # default:10
       - platform: state
-        entity_id: 
-          - input_select.max_status_dropdown
-          - input_select.ing_status_dropdown
+        <<: *person_satus_dropdows_list
         from: 'Just Left'
         to: 'Just Arrived'
     action:
@@ -699,9 +701,7 @@ automation:
     mode: queued
     trigger:
       - platform: state
-        entity_id: 
-          - input_select.max_status_dropdown
-          - input_select.ing_status_dropdown
+        <<: *person_satus_dropdows_list
         to: 'Just Left'
         for:
           minutes: *int_minutes_after_being_away # default: 10
@@ -716,9 +716,7 @@ automation:
     mode: queued
     trigger:
       - platform: state
-        entity_id: 
-          - input_select.max_status_dropdown
-          - input_select.ing_status_dropdown
+        <<: *person_satus_dropdows_list
         to: 'Away'
         for:
           hours: *int_hours_after_being_extendedaway # default: 24

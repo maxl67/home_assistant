@@ -24,12 +24,12 @@ My XIAOMI Roborock S6 will automatically clean the appartment when the last pers
 - Views: [vacuum_view](lovelace/views/vacuum_view.yaml)
 
 ### Automation of Heating
-Radiators will be turned off as soon as the last person leaves the appartment. Heating will also be turned off in a room, whenever a window/door is opened in that room. Different heating shedules (profiles) will be set automatically for regular work days, home office days or when guests are present. I use HomeMatic IP thermostats. The virtual HomeMatic CCU (piVCCU) runs on one of my raspis.
+Radiators will be turned off as soon as the last person leaves the appartment. Heating will also be turned off in a room, whenever a window/door is opened in that room. Different heating shedules (profiles) will be set automatically for regular work days, home office days or when guests are present. I use HomeMatic IP thermostats. The virtual HomeMatic CCU (piVCCU) runs on one of my rasperry pi's.
 - Packages:   [climate](packages/climate.yaml), [HomeMatic](packages/homematic.yaml)
 - Views: [climate_view](lovelace/views/climate_view.yaml)
 
 ### Weather Forecast and Warnings
-Warnings from the german weather service (DWD integration) are analysed and in case of storm and rain mail messages and notifications are send. In the furture I will use this information to automate outside blinds and awnings (as soon as I get them connetced to HA).
+Warnings from the german weather service (DWD integration) are analysed and in case of storm and rain e-mail messages and notifications are send. In the furture I will use this information to automate outside blinds and awnings (as soon as I get them connetced to HA).
 - Packages:   [weather](packages/weather.yaml)
 - Views: [weather_view](lovelace/views/weather_view.yaml)
 
@@ -39,6 +39,6 @@ A welcome light is automatically turned on upon arriving at home or at sunset an
 - Views: [home_view](lovelace/views/home_view.yaml)
 
 ### Monitoring Devices
-Information about internet connection and the status of some network devices is monitored. I also use [NotoriousBDG's Battery Alert Package](https://raw.githubusercontent.com/notoriousbdg/Home-AssistantConfig/master/packages/battery_alert.yaml) for battery state monitoring.
+Information about internet connection and the status of some network devices is monitored. 
 - Packages:   [synology](packages/synology.yaml), [network](packages/network.yaml), [fritzbox](packages/fritzbox.yaml)
 - Views: [monitoring_view](lovelace/views/monitoring_view.yaml)

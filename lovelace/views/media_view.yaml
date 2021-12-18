@@ -191,7 +191,7 @@ cards:
   #   https://community.home-assistant.io/t/how-do-i-actually-make-a-tv-remote-control-work-well-in-the-gui/212392/4
   - type: 'custom:button-card'
     template: container
-    name: one RemoteControl for all my stuff #one Remote Control for all I need
+    name: one RemoteControl to rule them all #one Remote Control for all I need
     color: var(--ha-card-background)
     custom_fields:
       buttons:

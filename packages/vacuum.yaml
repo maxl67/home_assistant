@@ -232,7 +232,6 @@ input_select:
       - --
       - Kü,Sz,B
       - Kü,Ez,D&F
-
     initial: ---
     icon: mdi:broom
 
@@ -616,10 +615,9 @@ automation:
           before: '23:00:00'
         - condition: template
           # last time this automation was triggered is more than 1800secs=30min ago
-# todo: 11/21. das geht nicht, da state_attr('automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin','last_triggered') immer none liefert
           value_template: >
-            {% if state_attr('automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin','last_triggered') is not none %}
-              {% if as_timestamp(now()) | int(default=0) - as_timestamp(state_attr('automation.send_alert_after_automatic_vacuum_to_empty_the_dustbin','last_triggered')) | int(default=0) > 1800 %} 
+            {% if state_attr('automation.send_alert_after_automatic_vacuum_to_empty_dustbin','last_triggered') is not none %}
+              {% if as_timestamp(now()) | int(default=0) - as_timestamp(state_attr('automation.send_alert_after_automatic_vacuum_to_empty_dustbin','last_triggered')) | int(default=0) > 1800 %} 
                 true 
               {% else %} 
                 false

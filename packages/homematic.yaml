@@ -138,22 +138,106 @@ homematic:
 ###############################################################################
 ##  Sensors
 ###############################################################################
+# test: new State-based template sensors 
+#  https://www.home-assistant.io/integrations/template/#state-based-template-sensors
+template:
+  - sensor:
+    # Thermostat Wohnzimmer
+      - unique_id: hm_thermo_wz_current_temp
+        name: hm_thermo_wz_current_temp
+      # --> entity_id wird: sensor.thermo_wz_current_temp
+      # --> name wird thermo_wz_current_temp, kann in UI geändert werden
+        state: "{{ state_attr('climate.000c9a499b5808','current_temperature') | float(default=0) }}"
+        unit_of_measurement: '°C'
+        state_class: measurement #to be included in long-term statistice
+        icon: mdi:thermometer
+        attributes:
+          friendly_name: "Wohnzimmer Ist-Temperatur" #Info: wird ignoriert, wenn unique_id UND name gesetzt. Name kann in UI gesetzt werden.
+      - unique_id: hm_thermo_wz_target_temp
+        name: hm_thermo_wz_target_temp
+        state: "{{ state_attr('climate.000c9a499b5808','temperature') | float(default=0) }}"
+        unit_of_measurement: '°C'
+        state_class: measurement #to be included in long-term statistice
+        icon: mdi:thermostat
+        attributes:
+          friendly_name: "Wohnzimmer Soll-Temperatur" 
+      - unique_id: hm_thermo_wz_actor_value
+        name: hm_thermo_wz_actor_value
+        state: "{{ 100 if (state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == True) else 0 }}"
+        unit_of_measurement: '%'
+        state_class: measurement #to be included in long-term statistice
+        icon: mdi:valve
+        attributes:
+          friendly_name: "Wohnzimmer Heizungsventilöffnung" 
+
+    # Küche
+      - unique_id: hm_thermo_ku_current_temp
+        name: hm_thermo_ku_current_temp
+        state: "{{ state_attr('climate.000a1a49a10ba3','current_temperature') | float(default=0) }}"
+        unit_of_measurement: '°C'
+        state_class: measurement #to be included in long-term statistice
+        icon: mdi:thermometer
+        attributes:
+          friendly_name: "Küche Ist-Temperatur"
+      - unique_id: hm_thermo_ku_target_temp
+        name: hm_thermo_ku_target_temp
+        state: "{{ state_attr('climate.000a1a49a10ba3','temperature') | float(default=0) }}"
+        unit_of_measurement: '°C'
+        state_class: measurement #to be included in long-term statistice
+        icon: mdi:thermostat
+        attributes:
+          friendly_name: "Küche Soll-Temperatur" 
+      - unique_id: hm_thermo_ku_actor_value
+        name: hm_thermo_ku_actor_value
+        state: "{{ (state_attr('climate.000a1a49a10ba3','level')|float(default=0)*100) | int(default=0) }}"
+        unit_of_measurement: '%'
+        state_class: measurement #to be included in long-term statistice
+        icon: mdi:valve
+        attributes:
+          friendly_name: "Küche Ventilöffnung" 
+
+    # Gästezimmer
+      - unique_id: hm_thermo_gz_current_temp
+        name: hm_thermo_gz_current_temp
+        state: "{{ state_attr('climate.000a1a49a107b5','current_temperature') | float(default=0) }}"
+        unit_of_measurement: '°C'
+        state_class: measurement #to be included in long-term statistice
+        icon: mdi:thermometer
+        attributes:
+          friendly_name: "Gästezimmer Ist-Temperatur"
+      - unique_id: hm_thermo_gz_target_temp
+        name: hm_thermo_gz_target_temp
+        state: "{{ state_attr('climate.000a1a49a107b5','temperature') | float(default=0) }}"
+        unit_of_measurement: '°C'
+        state_class: measurement #to be included in long-term statistice
+        icon: mdi:thermostat
+        attributes:
+          friendly_name: "Gästezimmer Soll-Temperatur" 
+      - unique_id: hm_thermo_gz_actor_value
+        name: hm_thermo_gz_actor_value
+        state: "{{ (state_attr('climate.000a1a49a107b5','level')|float(default=0)*100) | int(default=0) }}"
+        unit_of_measurement: '%'
+        state_class: measurement #to be included in long-term statistice
+        icon: mdi:valve
+        attributes:
+          friendly_name: "Gästezimmer Ventilöffnung" 
 sensor:
   # Thermostat Wohnzimmer
   - platform: template
     sensors:
     # Wohnzimmer
-      hm_thermo_wz_current_temp:
-        value_template: "{{state_attr('climate.000c9a499b5808','current_temperature')|float(default=0)}}"
-        friendly_name: "Wohnzimmer Ist-Temperatur"
-      hm_thermo_wz_target_temp:
-        value_template: "{{state_attr('climate.000c9a499b5808','temperature')|float(default=0)}}"
-        friendly_name: "Wohnzimmer Soll-Temperatur"
+#      hm_thermo_wz_current_temp:
+#        value_template: "{{state_attr('climate.000c9a499b5808','current_temperature')|float(default=0)}}"
+#        friendly_name: "Wohnzimmer Ist-Temperatur"
+#        unit_of_measurement: "°C"
+#      hm_thermo_wz_target_temp:
+#        value_template: "{{state_attr('climate.000c9a499b5808','temperature')|float(default=0)}}"
+#        friendly_name: "Wohnzimmer Soll-Temperatur"
       hm_thermo_wz_actor_state:
         value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ')}}{% endif %}"
         friendly_name: "Wohnzimmer Heizungsventile"
         icon_template: "mdi:valve"
-      hm_thermo_wz_actor_value: #for mini-graph
+      hm_thermo_wz_actor_value_graph: #for mini-graph
         friendly_name: "Wohnzimmer Heizventile"
         value_template: >-
           {%if state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == False %}
@@ -174,21 +258,21 @@ sensor:
         value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Wochenprofil_WZ') == False %}0{% else %}{{state_attr('homematic.raspi_ccu', 'V_Wochenprofil_WZ')}}{% endif %}"
         friendly_name: "Heizprofil Wohnzimmerthermostat"
       # Küche
-      hm_thermo_ku_current_temp:
-        value_template: "{{state_attr('climate.000a1a49a10ba3','current_temperature')|float(default=0)}}"
-        friendly_name: "Küche Ist-Temperatur"
-      hm_thermo_ku_target_temp:
-        value_template: "{{state_attr('climate.000a1a49a10ba3','temperature')|float(default=0)}}"
-        friendly_name: "Küche Soll-Temperatur"
+#      hm_thermo_ku_current_temp:
+#        value_template: "{{state_attr('climate.000a1a49a10ba3','current_temperature')|float(default=0)}}"
+#        friendly_name: "Küche Ist-Temperatur"
+#      hm_thermo_ku_target_temp:
+#        value_template: "{{state_attr('climate.000a1a49a10ba3','temperature')|float(default=0)}}"
+#        friendly_name: "Küche Soll-Temperatur"
       hm_thermo_ku_valve_status:
         #Status Adaptierfahrt. 4=ADAPTION_DONE
         value_template: "{{state_attr('climate.000a1a49a10ba3','valve')|int(default=0)}}"
         friendly_name: "Küche Ventilstatus"
         icon_template: "mdi:valve"
-      hm_thermo_ku_actor_value:
-        value_template: "{{(state_attr('climate.000a1a49a10ba3','level')|float(default=0)*100)|int(default=0)}}"
-        friendly_name: "Küche Ventilöffnung"
-        icon_template: "mdi:valve"
+#      hm_thermo_ku_actor_value:
+#        value_template: "{{(state_attr('climate.000a1a49a10ba3','level')|float(default=0)*100)|int(default=0)}}"
+#        friendly_name: "Küche Ventilöffnung"
+#        icon_template: "mdi:valve"
       hm_thermo_ku_actor_display:  #for mini-graph
         value_template: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.000a1a49a10ba3','level')|float(default=0)==0) else state_attr('climate.000a1a49a10ba3','level')|float(default=0)*20 }}"
         friendly_name: "Küche Ventilöffnung"
@@ -201,21 +285,21 @@ sensor:
         value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Wochenprofil_KU') == False %}0{% else %}{{state_attr('homematic.raspi_ccu', 'V_Wochenprofil_KU')}}{% endif %}"
         friendly_name: "Heizprofil Küchenthermostat"
       # Gästezimmer
-      hm_thermo_gz_current_temp:
-        value_template: "{{state_attr('climate.000a1a49a107b5','current_temperature')|float(default=0)}}"
-        friendly_name: "Gästezimmer Ist-Temperatur"
-      hm_thermo_gz_target_temp:
-        value_template: "{{state_attr('climate.000a1a49a107b5','temperature')|float(default=0)}}"
-        friendly_name: "Gästezimmer Soll-Temperatur"
+#      hm_thermo_gz_current_temp:
+#        value_template: "{{state_attr('climate.000a1a49a107b5','current_temperature')|float(default=0)}}"
+#        friendly_name: "Gästezimmer Ist-Temperatur"
+#      hm_thermo_gz_target_temp:
+#        value_template: "{{state_attr('climate.000a1a49a107b5','temperature')|float(default=0)}}"
+#        friendly_name: "Gästezimmer Soll-Temperatur"
       hm_thermo_gz_valve_status:
         #Status Adaptierfahrt. 4=ADAPTION_DONE
         value_template: "{{state_attr('climate.000a1a49a107b5','valve')|int(default=0)}}"
         friendly_name: "Gästezimmer Ventilstatus"
         icon_template: "mdi:valve"
-      hm_thermo_gz_actor_value:
-        value_template: "{{(state_attr('climate.000a1a49a107b5','level')|float(default=0)*100)|int(default=0)}}"
-        friendly_name: "Gästezimmer Ventilöffnung"
-        icon_template: "mdi:valve"
+#      hm_thermo_gz_actor_value:
+#        value_template: "{{(state_attr('climate.000a1a49a107b5','level')|float(default=0)*100)|int(default=0)}}"
+#        friendly_name: "Gästezimmer Ventilöffnung"
+#        icon_template: "mdi:valve"
       hm_thermo_gz_actor_display:  #for mini-graph
         value_template: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.000a1a49a107b5','level')|float(default=0)==0) else state_attr('climate.000a1a49a107b5','level')|float(default=0)*20 }}"
         friendly_name: "Gästezimmer Ventilöffnung"
@@ -240,9 +324,11 @@ binary_sensor:
       hm_homematic_up:
         friendly_name: "Homematic is sending updates"
         # Time based template: see https://www.home-assistant.io/integrations/binary_sensor.template/#working-without-entities
+        # 'last_changed' is only accessible through states-object. see: https://community.home-assistant.io/t/last-updated-state-and-last-changed-in-lovelave/101701
+        #  --> states.sensor.hm_thermo_wz_current_temp.last_changed NOT states_attr(..)
         value_template: >-
           {% set dummy = states('sensor.time') %}
-          {{as_timestamp(now()) - as_timestamp(states.sensor.hm_thermo_wz_current_temp.last_changed) < 3600}}
+          {{ (as_timestamp(now()) - as_timestamp(states.sensor.hm_thermo_wz_current_temp.last_changed)) < 3600 }}
 
 
 ###############################################################################

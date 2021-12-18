@@ -22,7 +22,7 @@ homeassistant:
       ambientelight_wz_entityid: &ambientelight_wz_entityid light.0008da499c8dbd
   # entities
     light.0008da499c8dbd:
-      icon: mdi:ceiling-light
+      icon: mdi:ceiling-light-multiple-outline
     light.philips_lightstrip_ku:
       icon: mdi:led-strip-variant
   # groups, variables
@@ -89,7 +89,7 @@ switch:
             entity_id: input_boolean.disable_light_automation
         icon_template: >-
           {% if is_state('input_boolean.disable_light_automation', 'on') %}
-            mdi:ghost-off 
+            mdi:ghost-off-outline
           {% else %}
             mdi:ghost
           {% endif %}

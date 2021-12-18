@@ -23,7 +23,7 @@ series:
     color: var(--primary-color)
   - entity: sensor.outside_temperature
     name: heute
-    color: var(--paper-toggle-button-checked-button-color)
+    color: '#E45E65' #var(--paper-toggle-button-checked-button-color)
     stroke_width: 3
     show:
       legend_value: true
@@ -33,7 +33,7 @@ series:
       return entity.attributes.data.map((entry) => {
         return [new Date(entry.datetime), entry.value];
       });
-    color: var(--paper-toggle-button-checked-button-color)
+    color: '#E45E65' #var(--paper-toggle-button-checked-button-color)
     opacity: 0.8
   - entity: sensor.temperature_ak_stuttgart_2
     name: morgen
@@ -55,15 +55,24 @@ apex_config:
         opacity: 0.15
         fillColor: '#775DD0'
     xaxis:
-      - x: '2021-11-23 13:00:00'
+      - x: |
+          EVAL:function(value) {
+            return new Date('2021-12-13 12:00:00');
+          }
         borderColor: '#FEB019'
+        text: 'hello'
+        style:
+          color: '#FEB019'
+  xaxis:
+    - type: 'datetime'
+
 yaxis:
   - decimals: 0
     apex_config:
       forceNiceScale: true
 now:
   show: true
-  color: var(--paper-toggle-button-checked-button-color)
+  color: '#E45E65' #var(--paper-toggle-button-checked-button-color)
 show:
   last_updated: true
 header:

@@ -178,7 +178,17 @@ calendar:
     - Home
     - Ingrid
     - Privat Max
-   
+
+# https://github.com/RubenDijk/homeassistant
+# Test of Custom Component to get number of devices connected to WiFi networks.
+#Does not work
+#  - platform: my_unifi
+#    name: unifi_controller
+#    region: 'home'
+#    username: !secret unifi_adminuser
+#    password: !secret unifi_adminpw 
+#    url: !secret unifi_baseurl    
+
 ################################################################
 ## Recording, Logging, Lockbook
 # https://community.home-assistant.io/t/large-homeassistant-database-files/4201/240

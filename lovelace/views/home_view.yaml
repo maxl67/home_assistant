@@ -7,7 +7,7 @@ anchors:
           padding: 10px 16px;
         }
 
-#---------------------------------
+#==================================================
 #id: home
 title: Home
 icon: mdi:home
@@ -20,7 +20,9 @@ icon: mdi:home
 #  {% endif %}
 path: home
 cards:
-# TEST: show warnings & alarms
+
+  #------------------------------------------------
+  # show warnings & alarms
   - type: custom:auto-entities
     show_empty: false
     card:
@@ -48,6 +50,7 @@ cards:
           {{ sensor.latest_version.entity_id }}
         {% endif %}      
 
+  #------------------------------------------------
   # only show open (or unavailable) door-/window sensors (if any...)
   - type: custom:auto-entities
     show_empty: false
@@ -62,6 +65,7 @@ cards:
         - entity_id: "binary_sensor.lumi_lumi_sensor_magnet_aq2*"
           state: "unavailable"
 
+  #------------------------------------------------
   # show low battery devices (if any...)
   - type: custom:auto-entities
     show_empty: false
@@ -93,6 +97,7 @@ cards:
         #- attributes: #here the vacuum will show with status 'charging' etc.
         #    battery_level: < 20
 
+  #------------------------------------------------
   # show persons and home status
   - type: custom:vertical-stack-in-card
     cards:
@@ -114,6 +119,7 @@ cards:
           - entity: input_boolean.guests
 
 
+  #------------------------------------------------
   # show events from home-calendar (if any)
 #  - type: conditional
 #    conditions:
@@ -128,6 +134,7 @@ cards:
       - calendar.home
       - calendar.privat_max
 
+  #------------------------------------------------
   # status of power switches 
   - type: entities
     title: Power
@@ -143,6 +150,7 @@ cards:
       - type: divider
       - entity: switch.enable_power_automation
 
+  #------------------------------------------------
   # status of lights
   - type: entities
     title: Licht
@@ -173,6 +181,7 @@ cards:
       - type: divider
       - entity: switch.enable_light_automation
 
+  #------------------------------------------------
   - type: conditional
     conditions:
 #todo: should be OR or template with .. in ['all','home'], but is not possible (v2021.11)

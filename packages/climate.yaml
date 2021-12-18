@@ -132,7 +132,7 @@ switch:
             entity_id: input_boolean.automate_heating
         icon_template: >-
           {% if is_state('input_boolean.automate_heating', 'off') %}
-            mdi:ghost-off 
+            mdi:ghost-off-outline
           {% else %}
             mdi:ghost
           {% endif %}
@@ -317,6 +317,7 @@ automation:
           - '11:00:00'
           - '14:00:00'
           - '15:00:00'
+          - '16:00:00'
      # - platform: state
      #   entity_id: 
      #     - sensor.max_status
@@ -324,17 +325,17 @@ automation:
     condition:
       condition: and
       conditions:
-      # nur bei aktiver Heizperiode UND aktiver Automatisierung
-      - condition: state
-        entity_id: input_boolean.heating_period
-        state: 'on'
-      - condition: state
-        entity_id: input_boolean.automate_heating
-        state: 'on'
-      # und Arbeitstagen
-      - condition: state
-        entity_id: binary_sensor.workday_sensor
-        state: 'on'
+        # nur bei aktiver Heizperiode UND aktiver Automatisierung
+        - condition: state
+          entity_id: input_boolean.heating_period
+          state: 'on'
+        - condition: state
+          entity_id: input_boolean.automate_heating
+          state: 'on'
+        # und Arbeitstagen
+        - condition: state
+          entity_id: binary_sensor.workday_sensor
+          state: 'on'
     action:
       # Max-Arbeitszimmer
       - choose:

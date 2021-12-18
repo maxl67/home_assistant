@@ -7,8 +7,8 @@ anchors:
           padding: 10px 16px;
         }
 
-#---------------------------------
-#id: network
+#==================================================
+#id: maintenance
 title: Wartung
 path: maintenance
 icon: mdi:tools
@@ -17,72 +17,101 @@ cards:
     entities:
       - entity: input_select.debug_mode
 
-# ========== Power Consumption ==============
+  #------------------------------------------------
+  #    Test: Person - button
   - type: horizontal-stack
     cards:
       - type: custom:button-card
-        entity: sensor.max_status
+        name: Max
+        entity: sensor.iphonemax8_battery_level_2  #sensor.max_status
+        entity_picture: >
+          [[[
+            if (['Home','Just arrived'].includes(states['sensor.max_status'].state)) return '/local/max.jpg';
+            else return '/local/max.jpg';
+          ]]]
+        show_entity_picture: true
         aspect_ratio: 1/1
         color_type: icon
-        show_entity_picture: true
-        show_state: true
+        show_state: false
         styles:
+          card:
+            - padding: 6%
           grid:
-            - grid-template-areas: '"i batt" "i n" "s s"'
+            - grid-template-areas: '"i batt" "i n" "pstat pstat" "locw loco"'
             - grid-template-columns: 1fr min-content
-            - grid-template-rows: 1fr min-content min-content
+            - grid-template-rows: 1fr min-content min-content min-content
           name:
             - color: white
-            - align-self: middle
-            - justify-self: start
-            - padding-bottom: 4px
+            - align-self: end #middle
+            - justify-self: end #start
+            - font-size: 12px
           img_cell:
             - justify-content: start
             - align-items: start
-            #- margin: none
+            - margin: none
+          entity_picture:
+            - border-radius: 15%
           icon:
-            - color: >
-                [[[
-                  if (entity.state in ['Home','Just arrived']) return 'lime';
-                  else return 'white';
-                ]]]
-            - width: 70%
-            - margin-top: -10%
+            - width: 75%
+#            - height: 90%
+            - margin-top: -5%
           custom_fields:
             batt:
               - align-self: start
               - justify-self: end
-            loc:
+              - font-size: 10px
+            pstat:
+              - font-size: 14px
+              - padding-top: 4px
               - padding-bottom: 2px
+            locw:
+              - padding-top: 4px
               - align-self: middle
               - justify-self: start
-              #- --text-color-sensor: '[[[ if (states["sensor.raspi_cpu"].state > 80) return "red"; ]]]'
+              - font-size: 10px
+              - --text-color-sensor-w: >
+                  [[[ if (states['sensor.max_present_w'].state >= 95) return "white" ;
+                      else if (states['sensor.max_present_w'].state >= 30) return "yellow";
+                      else if (states['sensor.max_present_w'].state > 0) return "orange";
+                      else return "gray" ]]]
+            loco:
+              - padding-top: 4px
+              - align-self: middle
+              - justify-self: start
+              - font-size: 10px
+              - --text-color-sensor-o: >
+                  [[[ if (states['sensor.max_present_o'].state >= 95) return "white" ;
+                      else if (states['sensor.max_present_o'].state >= 30) return "yellow";
+                      else if (states['sensor.max_present_o'].state > 0) return "orange";
+                      else return "gray" ]]]
         custom_fields:
-          temp: >
+          batt: >
             [[[
               return `<ha-icon
-                icon="mdi:thermometer"
-                style="width: 16px; height: 16px; color: yellow;">
-                </ha-icon><span>${states['sensor.iphonemax8_battery_state_2'].state}°</span>`
+                icon=${entity.attributes.icon}
+                style="width: 18px; height: 18px; ">
+                </ha-icon><br/><span>${entity.state}%</span>`
             ]]]
+          locw: >
+            [[[
+              return `<ha-icon
+                icon='mdi:set-left-center' 
+                style="width: 16px; height: 16px; ">
+                </ha-icon> 
+                <span style='color: var(--text-color-sensor-w);'>${states['sensor.max_present_w'].state}%</span>`
+            ]]]
+          loco: >
+            [[[
+              return `<ha-icon
+                icon='mdi:set-center-right' 
+                style="width: 16px; height: 16px; ">
+                </ha-icon> 
+                <span style='color: var(--text-color-sensor-o);'>${states['sensor.max_present_o'].state}%</span>`
+            ]]]
+          pstat: >
+            [[[ return states['sensor.max_status'].state; ]]]
 
       - type: custom:button-card
         color_type: blank-card
       - type: custom:button-card
         color_type: blank-card
-      - type: custom:button-card
-        color_type: blank-card
-
-# ========== Power Consumption ==============
-  - type: custom:vertical-stack-in-card
-    cards:
-      - type: history-graph
-        title: 'Energieaufnahme'
-        hours_to_show: 24
-        <<: *style_header
-        entities:
-          - entity: sensor.fritz_dect_200_netz_power_consumption
-            name: Unifi-Netzwerk
-          - entity: sensor.fritz_dect_200_gz_power_consumption
-            name: Schreibtisch M
-

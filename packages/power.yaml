@@ -25,7 +25,8 @@ homeassistant:
       powerswitch_tv_entityid: &powerswitch_tv_entityid switch.osram_plug_01_a1bf020a_3
   # entities
     switch.osram_plug_01_a1bf020a_3:
-      icon: mdi:power-socket-de
+      icon: mdi:audio-video #mdi:power-socket-de
+      
   # groups, variables
     input_boolean.disable_power_automation:
       <<: *common
@@ -71,7 +72,7 @@ switch:
             entity_id: input_boolean.disable_power_automation
         icon_template: >-
           {% if is_state('input_boolean.disable_power_automation', 'on') %}
-            mdi:ghost-off 
+            mdi:ghost-off-outline
           {% else %}
             mdi:ghost
           {% endif %}
@@ -179,7 +180,9 @@ automation:
           conditions:
             - condition: state
               entity_id: vacuum.xiaomi_vacuum_cleaner
-              state: 'docked'
+              state: 
+                - 'docked'
+                - 'unavailable'
           sequence:
             # shut down Raspi1, and wait for it being offline
             - service: script.kill_raspi1
@@ -221,7 +224,7 @@ automation:
                 state: 'Home'
               - "{{ trigger.entity_id == 'group.entrance_door' }}"
     action:
-      # stop switching off the network
+      # stop switching off the network (if running)
       - service: automation.turn_off
         entity_id: automation.switch_off_network
       - service: automation.turn_on
@@ -229,7 +232,13 @@ automation:
       # power up Unifi components and wait for them to initialize
       - service: switch.turn_on
         entity_id: *powerswitch_rack_entityid
-      - delay: '00:01:30'
+      # meanwhile trigger arrival scan for Raspi1. monitor.sh service will be started on Raspi1 with a delay of approx. 20secs.
+      - delay: '00:00:30'
+      - service: mqtt.publish
+        data:
+          topic: 'monitor/scan/arrive' 
+          payload: "{'data' : 'west'}" #this monitor publisher will NOT respond!
+      - delay: '00:01:00'
       # power up Desk and wait a bit
       - service: switch.turn_on
         entity_id: *powerswitch_gz_entityid
