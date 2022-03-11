@@ -70,9 +70,9 @@ zha:
 # wird benötigt für Battery Status Automation (siehe Package 'battery_alert')
 # und BT-Monitor (Package 'presence_detection') und plantgateway und Raspi-Sensoren
 mqtt:
-  broker: !secret DS_IP
+#  broker: !secret DS_IP
 #  password: !secret mqtt_broker_password
-  discovery: true
+#  discovery: true
   discovery_prefix: homeassistant
 
 # Support for iOS app
@@ -194,8 +194,9 @@ calendar:
 # https://community.home-assistant.io/t/large-homeassistant-database-files/4201/240
 ################################################################
 recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to be displayed in logbook and/or history
-  purge_keep_days: 37 #37 #--> 37=1/10 of a year
+  purge_keep_days: 10 #37 #--> 37=1/10 of a year
   db_url: !secret HistoryDB_connection  # --> 'home-assistant_v2.db' now in MariaDB. Much faster.
+  db_retry_wait: 120
   exclude:
     domains:
       - weblink
@@ -205,8 +206,8 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       #- weather #wird fuer history_stats gebraucht
       - plant
     entities:
-      - sun.sun # Don't record sun data
-      - binary_sensor.workday
+      #- sun.sun # Don't record sun data
+      - binary_sensor.workday_sensor
       - sensor.sun_direction
       - sensor.sun_elevation
     # systemmonitor (HA host system)

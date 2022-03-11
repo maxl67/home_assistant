@@ -87,7 +87,7 @@ cards:
                 <em>
                 {%- set start_time= state_attr('sensor.dwd_weather_warnings_current_warning_level',start_attr) -%}
                 {%- set days = (start_time.strftime('%j') | int(default=0)) - (now().strftime('%j')) | int(default=0)  -%}
-                {% if as_timestamp(start_time) <= as_timestamp(now()) %}
+                {% if as_timestamp(start_time, default=0) <= as_timestamp(now(), default=0) %}
                 jetzt
                 {% elif days==0 %}
                 heute

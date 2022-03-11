@@ -591,6 +591,10 @@ automation:
     trigger:
       - platform: time
         at: '17:00:00'
+        id: 'afternoon'
+      - platform: time
+        at: '08:00:00'
+        id: 'morning'
       - platform: state
         entity_id: input_boolean.disable_power_automation
         to: 'off'
@@ -607,6 +611,18 @@ automation:
       - condition: state
         entity_id: switch.fritz_dect_200_netz
         state: 'on'
+      # UND am Wochenende/Feiertag morgens, sonst nachmittags
+      - condition: or
+        conditions:
+          - condition: trigger
+            id: 'afternoon'
+          - condition: and
+            conditions:
+              - condition: trigger
+                id: 'morning'
+              - condition: state
+                entity_id: 'binary_sensor.workday_sensor'
+                state: 'off'
     action:
       - service: switch.turn_on
         entity_id: switch.osram_plug_01_a1bf020a_3

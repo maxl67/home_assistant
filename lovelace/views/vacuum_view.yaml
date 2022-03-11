@@ -13,6 +13,8 @@ title: Dust-E
 path: vacuum
 icon: mdi:robot-vacuum
 cards:
+  #------------------------------------------------------------
+  # vacuum card and room selection
   - type: custom:vertical-stack-in-card
     cards:
       - type: 'custom:vacuum-card'

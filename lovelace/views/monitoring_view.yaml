@@ -84,15 +84,15 @@ anchors:
     severity:
       - color: Green
         from: 0
-        to: 30
+        to: 40
       - color: Blue
-        from: 30
-        to: 50
+        from: 40
+        to: 60
       - color: Orange
-        from: 50
-        to: 75
+        from: 60
+        to: 80
       - color: Red
-        from: 75
+        from: 80
         to: 100
 
   graph_disc_temp: &graph_disc_temp
@@ -137,6 +137,43 @@ title: Netzwerk
 path: network
 icon: mdi:lan #mdi:network
 cards:
+  # ========== Home Assistant ==============
+  - type: entities
+    title: Home Assistant
+    <<: *style_header
+    show_header_toggle: false
+    entities:
+      - entity: sensor.current_version
+        type: custom:multiple-entity-row
+        name: Aktuelle Version
+        icon: mdi:home-assistant
+        state_header: current
+        entities:
+        - entity: sensor.latest_version
+          name: latest
+      - entity: sensor.hacs
+        name: HACS updates
+        style: |
+          :host {
+            {% if states('sensor.hacs')|int(default=0)>0 %}
+              color: var(--paper-item-icon-active-color);
+              --paper-item-icon-color: #FF7738;
+            {% endif %}
+          }
+      - entity: sensor.potential_breaking_changes
+        type: custom:multiple-entity-row
+        name: Breaking changes
+        secondary_info: last-changed
+        icon: mdi:alert-circle
+        tap_action: 
+          action: url
+          url_path: https://www.home-assistant.io/blog/categories/release-notes/
+      - entity: sensor.historydb_size
+        name: Recorder Database
+        icon: mdi:database
+      #- type: section
+      #  label: Statistics
+
   # ========== FritzBox ==============
   - type: custom:vertical-stack-in-card
     cards:
@@ -417,43 +454,6 @@ cards:
             name: Temp. Volume1
             icon: mdi:thermometer
             <<: *graph_disc_temp
-
-  # ========== Home Assistant ==============
-  - type: entities
-    title: Home Assistant
-    <<: *style_header
-    show_header_toggle: false
-    entities:
-      - entity: sensor.current_version
-        type: custom:multiple-entity-row
-        name: Aktuelle Version
-        icon: mdi:home-assistant
-        state_header: current
-        entities:
-        - entity: sensor.latest_version
-          name: latest
-      - entity: sensor.hacs
-        name: HACS updates
-        style: |
-          :host {
-            {% if states('sensor.hacs')|int(default=0)>0 %}
-              color: var(--paper-item-icon-active-color);
-              --paper-item-icon-color: #FF7738;
-            {% endif %}
-          }
-      - entity: sensor.potential_breaking_changes
-        type: custom:multiple-entity-row
-        name: Breaking changes
-        secondary_info: last-changed
-        icon: mdi:alert-circle
-        tap_action: 
-          action: url
-          url_path: https://www.home-assistant.io/blog/categories/release-notes/
-      - entity: sensor.historydb_size
-        name: Recorder Database
-        icon: mdi:database
-      #- type: section
-      #  label: Statistics
 
   # ======= AdGuard Home ===========
   # AdGuard Home Status und Config

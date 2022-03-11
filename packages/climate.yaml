@@ -15,6 +15,12 @@
 # draussen zu warm und heizen > alarm
 # heizperiode an und april..oktober
 
+#data
+#22.12.: 
+# Sonnenauf: 8:23-8:28 (MEWZ), 127,5-128,3°. 0,75-1,21°
+# Mittag: 12:22 (MEWZ), 179,94°, 17,87°
+# Untergang: 
+
 ################################################
 ##  Customize
 ################################################
@@ -239,12 +245,12 @@ script:
 automation:
   #-------------------------------
   # Hinweis, dass bei Kälte noch eine Tür offen ist
-  - id: warning_door_open_in winter
+  - id: warning_door_open_in_winter
     alias: Lichtband Status Tür in Winter schliessen
     mode: single #Do not start a new run, if running already. 
     trigger: 
       - platform: time_pattern
-        minutes: '/5'
+        minutes: '/3'
     condition:
       # wenn in der Heizperiode eine Tür offen ist und es draussen kalt ist
       condition: and
@@ -313,11 +319,18 @@ automation:
       - platform: time
         at: 
           - '09:00:00'
+          - '09:30:00'
           - '10:00:00'
+          - '10:30:00'
           - '11:00:00'
+          - '11:30:00'
+          - '13:30:00'
           - '14:00:00'
+          - '14:30:00'
           - '15:00:00'
+          - '15:30:00'
           - '16:00:00'
+          - '16:30:00'
      # - platform: state
      #   entity_id: 
      #     - sensor.max_status

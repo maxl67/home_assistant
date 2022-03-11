@@ -100,7 +100,7 @@ cards:
                     color: var(--primary-text-color)
                   icon: #yellow within the first 2 min
                     color: >-
-                      {% if ((as_timestamp(now())-as_timestamp(state_attr(config.entity, 'last_triggered'))) < 2 * 60) %}
+                      {% if ((as_timestamp(now(), default=1000)-as_timestamp(state_attr(config.entity, 'last_triggered'), default=0)) < 2 * 60) %}
                         var(--paper-item-icon-active-color)
                       {% elif is_state(config.entity, 'on') %}
                         var(--paper-item-icon-inactive-color)
