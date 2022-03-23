@@ -1,0 +1,12 @@
+type: custom:vertical-stack-in-card
+cards:
+  - type: entities
+    title: Automatisierungen
+    show_header_toggle: true
+    state_color: true
+    entities:
+      - entity: switch.enable_automatic_vacuum
+        name: auto. Reinigung (MO,DO)
+      - entity: switch.enable_heating_automation
+      - entity: switch.enable_power_automation
+      - entity: switch.enable_light_automation

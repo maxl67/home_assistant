@@ -206,10 +206,8 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       #- weather #wird fuer history_stats gebraucht
       - plant
     entities:
-      #- sun.sun # Don't record sun data
       - binary_sensor.workday_sensor
       - sensor.sun_direction
-      - sensor.sun_elevation
     # systemmonitor (HA host system)
       - sensor.last_boot 
       - sensor.processor_use
@@ -219,8 +217,8 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
     # router: Fritzbox
       - sensor.fritzbox
       - sensor.fritz_last_boot
-      - sensor.fritz_dect_200_netz_total_energy
-      - sensor.fritz_dect_200_gz_total_energy
+      #- sensor.fritz_dect_200_netz_total_energy
+      #- sensor.fritz_dect_200_gz_total_energy
     # network devices
 #      - binary_sensor.router
       - binary_sensor.roborock
@@ -273,7 +271,9 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
     # HomeMatic
       - homematic.raspi_ccu
       - sensor.hm_ccu_last_reboot
-      - binary_sensor.000c9a499b5808_low_bat
+      - binary_sensor.000c9a499b5808_low_bat # Thermostat WZ
+      - binary_sensor.000a1a49a107b5_low_bat # Thermostat GZ
+      - binary_sensor.000a1a49a10ba3_low_bat # Thermostat KU
       - sensor.hm_thermo_ku_valve_status
       - sensor.hm_thermo_gz_valve_status
     # iOS
@@ -289,6 +289,9 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.adguard_dns_queries
       - sensor.adguard_average_processing_speed
       - sensor.adguard_dns_queries_blocked_ratio
+      - sensor.adguard_parental_control_blocked
+      - sensor.adguard_safe_browsing_blocked
+      - sensor.adguard_safe_searches_enforced
 
 logbook: #recorded Entities, that will be displayed in Logbook
   exclude: #!include includes/exclude.yaml

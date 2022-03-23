@@ -149,7 +149,7 @@ template:
       # --> name wird thermo_wz_current_temp, kann in UI geändert werden
         state: "{{ state_attr('climate.000c9a499b5808','current_temperature') | float(default=0) }}"
         unit_of_measurement: '°C'
-        state_class: measurement #to be included in long-term statistice
+        state_class: measurement #to be included in long-term statistics
         icon: mdi:thermometer
         attributes:
           friendly_name: "Wohnzimmer Ist-Temperatur" #Info: wird ignoriert, wenn unique_id UND name gesetzt. Name kann in UI gesetzt werden.
@@ -157,7 +157,7 @@ template:
         name: hm_thermo_wz_target_temp
         state: "{{ state_attr('climate.000c9a499b5808','temperature') | float(default=0) }}"
         unit_of_measurement: '°C'
-        state_class: measurement #to be included in long-term statistice
+        state_class: measurement #to be included in long-term statistics
         icon: mdi:thermostat
         attributes:
           friendly_name: "Wohnzimmer Soll-Temperatur" 
@@ -165,7 +165,7 @@ template:
         name: hm_thermo_wz_actor_value
         state: "{{ 100 if (state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == True) else 0 }}"
         unit_of_measurement: '%'
-        state_class: measurement #to be included in long-term statistice
+        state_class: measurement #to be included in long-term statistics
         icon: mdi:valve
         attributes:
           friendly_name: "Wohnzimmer Heizungsventilöffnung" 
@@ -175,7 +175,7 @@ template:
         name: hm_thermo_ku_current_temp
         state: "{{ state_attr('climate.000a1a49a10ba3','current_temperature') | float(default=0) }}"
         unit_of_measurement: '°C'
-        state_class: measurement #to be included in long-term statistice
+        state_class: measurement #to be included in long-term statistics
         icon: mdi:thermometer
         attributes:
           friendly_name: "Küche Ist-Temperatur"
@@ -183,7 +183,7 @@ template:
         name: hm_thermo_ku_target_temp
         state: "{{ state_attr('climate.000a1a49a10ba3','temperature') | float(default=0) }}"
         unit_of_measurement: '°C'
-        state_class: measurement #to be included in long-term statistice
+        state_class: measurement #to be included in long-term statistics
         icon: mdi:thermostat
         attributes:
           friendly_name: "Küche Soll-Temperatur" 
@@ -191,7 +191,7 @@ template:
         name: hm_thermo_ku_actor_value
         state: "{{ (state_attr('climate.000a1a49a10ba3','level')|float(default=0)*100) | int(default=0) }}"
         unit_of_measurement: '%'
-        state_class: measurement #to be included in long-term statistice
+        state_class: measurement #to be included in long-term statistics
         icon: mdi:valve
         attributes:
           friendly_name: "Küche Ventilöffnung" 
@@ -201,7 +201,7 @@ template:
         name: hm_thermo_gz_current_temp
         state: "{{ state_attr('climate.000a1a49a107b5','current_temperature') | float(default=0) }}"
         unit_of_measurement: '°C'
-        state_class: measurement #to be included in long-term statistice
+        state_class: measurement #to be included in long-term statistics
         icon: mdi:thermometer
         attributes:
           friendly_name: "Gästezimmer Ist-Temperatur"
@@ -209,7 +209,7 @@ template:
         name: hm_thermo_gz_target_temp
         state: "{{ state_attr('climate.000a1a49a107b5','temperature') | float(default=0) }}"
         unit_of_measurement: '°C'
-        state_class: measurement #to be included in long-term statistice
+        state_class: measurement #to be included in long-term statistics
         icon: mdi:thermostat
         attributes:
           friendly_name: "Gästezimmer Soll-Temperatur" 
@@ -217,7 +217,7 @@ template:
         name: hm_thermo_gz_actor_value
         state: "{{ (state_attr('climate.000a1a49a107b5','level')|float(default=0)*100) | int(default=0) }}"
         unit_of_measurement: '%'
-        state_class: measurement #to be included in long-term statistice
+        state_class: measurement #to be included in long-term statistics
         icon: mdi:valve
         attributes:
           friendly_name: "Gästezimmer Ventilöffnung" 
@@ -247,7 +247,7 @@ sensor:
           -5
             {% endif %}
           {% elif state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == True %}
-          20
+          40
           {% endif %}
         icon_template: "mdi:valve"
       hm_thermo_wz_window_state:
@@ -274,7 +274,7 @@ sensor:
 #        friendly_name: "Küche Ventilöffnung"
 #        icon_template: "mdi:valve"
       hm_thermo_ku_actor_display:  #for mini-graph
-        value_template: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.000a1a49a10ba3','level')|float(default=0)==0) else state_attr('climate.000a1a49a10ba3','level')|float(default=0)*20 }}"
+        value_template: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.000a1a49a10ba3','level')|float(default=0)==0) else state_attr('climate.000a1a49a10ba3','level')|float(default=0)*40 }}"
         friendly_name: "Küche Ventilöffnung"
         icon_template: "mdi:valve"
       hm_thermo_ku_window_state:
@@ -301,7 +301,7 @@ sensor:
 #        friendly_name: "Gästezimmer Ventilöffnung"
 #        icon_template: "mdi:valve"
       hm_thermo_gz_actor_display:  #for mini-graph
-        value_template: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.000a1a49a107b5','level')|float(default=0)==0) else state_attr('climate.000a1a49a107b5','level')|float(default=0)*20 }}"
+        value_template: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.000a1a49a107b5','level')|float(default=0)==0) else state_attr('climate.000a1a49a107b5','level')|float(default=0)*40 }}"
         friendly_name: "Gästezimmer Ventilöffnung"
         icon_template: "mdi:valve"
       hm_thermo_gz_window_state:

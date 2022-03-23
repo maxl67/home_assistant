@@ -21,12 +21,14 @@ series:
     offset: -1d
     opacity: 0.6
     color: var(--primary-color)
+    yaxis_id: primary
   - entity: sensor.outside_temperature
     name: heute
     color: '#E45E65' #var(--paper-toggle-button-checked-button-color)
     stroke_width: 3
     show:
       legend_value: true
+    yaxis_id: primary
   - entity: sensor.temperature_ak_stuttgart_2
     name: später
     data_generator: |
@@ -35,6 +37,7 @@ series:
       });
     color: '#E45E65' #var(--paper-toggle-button-checked-button-color)
     opacity: 0.8
+    yaxis_id: primary
   - entity: sensor.temperature_ak_stuttgart_2
     name: morgen
     offset: +1d
@@ -44,6 +47,19 @@ series:
       });
     color: green #var(--paper-item-icon-active-color)
     opacity: 0.6
+    yaxis_id: primary
+  - entity: sun.sun
+    name: Sun
+    transform: 'return x === "above_horizon" ? 1 : 0;'
+    offset: '-1d'
+    type: area
+    curve: stepline
+    opacity: 0.15
+    color: '#FEB019'
+    stroke_width: 0
+    show:
+      extremas: false
+    yaxis_id: secondary
 apex_config:
   stroke: { show: true, lineCap: "square", dashArray: [0, 0, 5, 5] }
   dataLabels: { enabled: true }
@@ -54,22 +70,18 @@ apex_config:
         y2: 0
         opacity: 0.15
         fillColor: '#775DD0'
-    xaxis:
-      - x: |
-          EVAL:function(value) {
-            return new Date('2021-12-13 12:00:00');
-          }
-        borderColor: '#FEB019'
-        text: 'hello'
-        style:
-          color: '#FEB019'
   xaxis:
     - type: 'datetime'
-
 yaxis:
-  - decimals: 0
+  - id: primary
+    decimals: 0
     apex_config:
       forceNiceScale: true
+      decimalsInFloat: 0
+  - id: secondary
+    show: false
+    min: 0
+    max: 1
 now:
   show: true
   color: '#E45E65' #var(--paper-toggle-button-checked-button-color)

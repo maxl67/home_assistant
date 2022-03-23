@@ -196,15 +196,28 @@ cards:
         entities:
         - entity: sensor.sun_direction
           name: Richtung
+        - entity: sensor.sun_elevation_noon
+          name: Höhe max
       - entity: sun.sun
         icon: mdi:theme-light-dark
       - type: section
         label: Sonnenschein
-      - entity: sensor.sun_is_shining
+      - entity: sensor.sunshine_intensity #sensor.sun_is_shining
+        type: custom:multiple-entity-row
+        name: Sonne scheint
+        icon: mdi:white-balance-sunny
+        state_header: prob.
+        entities:
+        - entity: sensor.sunshine_south
+          name: Süd
+        - entity: sensor.sunshine_west
+          name: West
+        - entity: sensor.sunshine_elevation_ratio
+          name: elev.
       - entity: sensor.forcast_sunshine_hours_tomorrow
         type: custom:multiple-entity-row
         name: Dauer
-        icon: mdi:white-balance-sunny
+        icon: mdi:sun-wireless #mdi:sun-clock-outline #geht nicht
         state_header: morgen
         entities:
         - entity: sensor.sunshine_hours_yesterday

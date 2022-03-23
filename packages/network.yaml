@@ -141,3 +141,22 @@ binary_sensor:
     name: rpi_west
     scan_interval: 60
     count: 2
+
+###############################################################################
+#                               Automations
+###############################################################################
+automation:
+  #----------------------------------------------------------------------------------
+  # Speedtest: Device and entities go unavailable sometimes. Restart service if this happens.
+  # see: https://community.home-assistant.io/t/speedtest-integration-no-longer-loading/297167/55
+  - id: reload_speedtest
+    alias: Re-Load Speedtest integration
+    description: 'Perform a manual speed test when sensors goes unavailable'
+    trigger:
+      - platform: state
+        entity_id: sensor.speedtest_download
+        to: unavailable
+    condition: []
+    action:
+      - service: speedtestdotnet.speedtest
+    mode: single

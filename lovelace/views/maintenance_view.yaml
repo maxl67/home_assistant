@@ -18,12 +18,16 @@ cards:
       - entity: input_select.debug_mode
 
   #------------------------------------------------
+  # Automatisierungen
+  - !include ../cards/automation_overwrites.yaml
+
+  #------------------------------------------------
   #    Test: Person - button
   - type: horizontal-stack
     cards:
       - type: custom:button-card
         name: Max
-        entity: sensor.iphonemax8_battery_level_2  #sensor.max_status
+        entity: sensor.iphonemax8_battery_level  #sensor.max_status
         entity_picture: >
           [[[
             if (['Home','Just arrived'].includes(states['sensor.max_status'].state)) return '/local/max.jpg';

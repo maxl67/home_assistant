@@ -44,6 +44,10 @@ homeassistant:
       <<: *common
     sensor.sunshine_intensity:
       <<: *common
+    sensor.sunshine_elevation_ratio:
+      <<: *common
+    sensor.sun_elevation_noon:
+      <<: *common
     #sensor.dwd*
   # automations
     automation.send_dwd_warning:
@@ -105,43 +109,113 @@ input_boolean:
 ###############################################################################
 ##  Sensors
 ###############################################################################
-sensor:
-  - platform: template
-    sensors:
+template:
+  - sensor:
       # temp: from dwd_weather, should be a own sensor outside
-      outside_temperature: 
-        value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'temperature')|float(default=0) }}"
-        unit_of_measurement: '°C'
+    - unique_id: outside_temperature
+      name: outside_temperature
+      state: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'temperature')|float(default=0) }}"
+      unit_of_measurement: '°C'
+      attributes:
         friendly_name: Außentemperatur
-      outside_humidity:
-        value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'humidity')|int(default=0) }}"
-        unit_of_measurement: '%'
+    - unique_id: outside_humidity
+      name: outside_humidity
+      state: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'humidity')|int(default=0) }}"
+      unit_of_measurement: '%'
+      attributes:
         friendly_name: Luftfeuchte außen
       #outside_visibility:
       #  value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'visibility')|float(default=0) }}"
       #  unit_of_measurement: '%'
       #  friendly_name: Sicht
-      sun_direction:
-        value_template: "{{ state_attr('sun.sun', 'azimuth')|float(default=0) }}"
-        unit_of_measurement: '°'
+    - unique_id: sun_direction
+      name: sun_direction
+      state: "{{ state_attr('sun.sun', 'azimuth')|float(default=0)|round(1) }}"
+      unit_of_measurement: '°'
+      attributes:
         friendly_name: Sonnenrichtung
-      sun_elevation:
-        value_template: "{{ state_attr('sun.sun', 'elevation')|float(default=0) }}"
-        unit_of_measurement: '°'
+    - unique_id: sun_elevation
+      name: sun_elevation
+      state: "{{ state_attr('sun.sun', 'elevation')|float(default=0)|round(1) }}"
+      unit_of_measurement: '°'
+      attributes:
         friendly_name: Sonnenhöhe
-      sun_is_shining:
-        value_template: "{{ (states('weather.dwd_weather_ak_stuttgart') in ('sunny','partlycloudy') and states('weather.home_hourly') in ('sunny','partlycloudy')) and state_attr('sun.sun', 'elevation') >= 2.5 }}"
+    - unique_id: sun_is_shining
+      name: sun_is_shining
+      #Morning: sun arrisen at 2°
+      state: "{{ (states('weather.dwd_weather_ak_stuttgart') in ('sunny','partlycloudy') and states('weather.home_hourly') in ('sunny','partlycloudy')) and state_attr('sun.sun', 'elevation') >= 2.5 }}"
+      attributes:
         friendly_name: Sonne scheint
-      sunshine_intensity:
-        value_template: >
-          {% if is_state('sensor.sun_is_shining', 'True') %}
-            {{ (state_attr('sun.sun', 'elevation')/90*100)|int(default=0) }}
-          {% else %}
-            0
-          {% endif %}
-        unit_of_measurement: '%'
+    - unique_id: sunshine_intensity
+      name: sunshine_intensity
+      state: >
+        {% if is_state('sensor.sun_is_shining', 'False') %}
+          0
+        {% elif  states('weather.dwd_weather_ak_stuttgart') in ('sunny') and states('weather.home_hourly') in ('sunny') %}
+          100
+        {% elif  states('weather.dwd_weather_ak_stuttgart') in ('sunny') or states('weather.home_hourly') in ('sunny') %}
+          75
+        {% elif  states('weather.dwd_weather_ak_stuttgart') in ('partlycloudy') and states('weather.home_hourly') in ('partlycloudy') %}
+          50
+        {% else %}
+          25
+        {% endif %}
+      unit_of_measurement: '%'
+      state_class: measurement #to be included in long-term statistics
+      attributes:
         friendly_name: Sonnenintensität
+    - unique_id: sunshine_elevation_ratio
+      name: sunshine_elevation_ratio
+      state: >
+        {% if is_state('sensor.sun_is_shining', 'True') %}
+          {{ (state_attr('sun.sun', 'elevation')|float(0) / states('sensor.sun_elevation_noon')|float(90) * 100.0) | int(default=0) }}
+        {% else %}
+          0
+        {% endif %}
+      state_class: measurement #to be included in long-term statistics
+      unit_of_measurement: '%'
+      attributes:
+        friendly_name: Sonnenschein-Rate
+    - unique_id: sunshine_elevation_ratio_west
+      name: sunshine_elevation_ratio_west
+      state: >
+        {% if is_state('sensor.sunshine_west', 'True') %}
+          {{ states('sensor.sunshine_elevation_ratio') }}
+        {% else %}
+          0
+        {% endif %}
+      unit_of_measurement: '%'
+      attributes:
+        friendly_name: Sonnenschein-Rate (West)
+
         # {{ state_attr('weather.dwd_weather_ak_stuttgart', 'visibility') }}
+
+    - unique_id: sunshine_south
+      name: sunshine_south
+      # 60..240?
+      state: >
+        {{ is_state('sensor.sun_is_shining', 'True') and state_attr('sun.sun', 'azimuth')>=60 and state_attr('sun.sun', 'azimuth')<=238 }} 
+      attributes:
+        friendly_name: Sonnenbestrahlung von Süden
+    - unique_id: sunshine_west
+      name: sunshine_west
+      state: >
+        {{ is_state('sensor.sun_is_shining', 'True') and state_attr('sun.sun', 'azimuth')>=150 and state_attr('sun.sun', 'azimuth')<=330 }}
+      attributes:
+        friendly_name: Sonnenbestrahlung von Westen
+
+sensor:
+  # Statistik
+    # max. sun elevation for calc of sunshine_elevation_ratio (because sun.sun does not contain next noon elevation)
+  - platform: statistics
+    unique_id: sun_elevation_noon
+    name: "sun elevation noon"
+    entity_id: sensor.sun_elevation
+    state_characteristic: value_max
+    max_age:
+      hours: 25
+    sampling_size: 750 #sun.sun is updated each 2min
+    precision: 1
 
   # Statistik-Analyse
   - platform: history_stats

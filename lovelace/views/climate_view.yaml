@@ -44,7 +44,7 @@ anchors:
     lower_bound: 18
     #upper_bound: 25
     lower_bound_secondary: 1
-    upper_bound_secondary: 100
+    upper_bound_secondary: 150
     show:
       name: false
       icon: false
@@ -149,7 +149,7 @@ cards:
           - entity: sensor.hm_thermo_wz_actor_value_graph
             name: heizen
             <<: *dataset_heizen
-          - entity: sensor.sunshine_intensity
+          - entity: sensor.sunshine_elevation_ratio
             name: Sonne
             <<: *dataset_sonne
 
@@ -188,7 +188,7 @@ cards:
           - entity: sensor.hm_thermo_ku_actor_display
             name: heizen
             <<: *dataset_heizen
-          - entity: sensor.sunshine_intensity
+          - entity: sensor.sunshine_elevation_ratio
             name: Sonne
             <<: *dataset_sonne
 
@@ -227,6 +227,9 @@ cards:
           - entity: sensor.hm_thermo_gz_actor_display
             name: heizen
             <<: *dataset_heizen
+          - entity: sensor.sunshine_elevation_ratio_west
+            name: Sonne
+            <<: *dataset_sonne
 
   # Parameter der Heizugssteuerung
   - type: entities

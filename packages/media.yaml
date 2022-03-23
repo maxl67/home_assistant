@@ -593,7 +593,7 @@ automation:
         at: '17:00:00'
         id: 'afternoon'
       - platform: time
-        at: '08:00:00'
+        at: '07:00:00'
         id: 'morning'
       - platform: state
         entity_id: input_boolean.disable_power_automation

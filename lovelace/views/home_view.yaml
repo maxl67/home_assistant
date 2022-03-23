@@ -142,7 +142,7 @@ cards:
     state_color: true
     entities:
       - entity: switch.osram_plug_01_a1bf020a_3
-        name: HiFi-Rack
+        name: HiFi & TV
       - entity: switch.fritz_dect_200_netz
         name: Network-Rack
       - entity: switch.fritz_dect_200_gz
