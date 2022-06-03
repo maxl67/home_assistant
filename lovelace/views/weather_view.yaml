@@ -21,34 +21,37 @@ icon: mdi:weather-partly-cloudy
 cards:
   #------------------------------------------------
   # current weather info and forcast
-  - type: custom:weather-chart-card
-    title: #Woche (DWD)
-    entity: weather.dwd_weather_ak_stuttgart
-    show_main: true
-    show_attributes: true
-    units:
-      #pressure: mmHg
-      speed: km/h
-    locale: 'de-DE'
-    icons: /local/images/icons/weather_fill/
-    style: |
-      .card-header {
-        padding: 20px 16px 10px;
-        line-height: 32px;
-      }
-  - type: custom:weather-chart-card
-    #title: Stündlich (OWM)
-    entity: weather.home_hourly
-    show_main: false
-    show_attributes: false
-    units:
-      #pressure: mmHg
-      speed: km/h
-    style: |
-      .card-header {
-        padding: 20px 16px 10px;
-        line-height: 32px;
-      }
+  - type: custom:vertical-stack-in-card
+    cards:
+    - type: custom:weather-chart-card
+      title: #Woche (DWD)
+      entity: weather.dwd_weather_ak_stuttgart
+      show_main: true
+      show_attributes: true
+      units:
+        #pressure: mmHg
+        speed: km/h
+      locale: 'de-DE'
+      icons: /local/images/icons/weather_fill/
+      style: |
+        .card-header {
+          padding: 20px 16px 10px;
+          line-height: 32px;
+        }
+    - type: divider
+    - type: custom:weather-chart-card
+      #title: Stündlich (OWM)
+      entity: weather.home_hourly
+      show_main: false
+      show_attributes: false
+      units:
+        #pressure: mmHg
+        speed: km/h
+      style: |
+        .card-header {
+          padding: 20px 16px 10px;
+          line-height: 32px;
+        }
 
   #------------------------------------------------
   # show weather alerts (if current_warn_count > 0)

@@ -140,9 +140,6 @@ cards:
           - entity: sensor.hm_thermo_wz_current_temp
             name: Ist HmIP
             <<: *dataset_ist_temp
-          #- entity: sensor.lumi_lumi_weather_95154a04_temperature
-          #  name: Raummessung
-          #  <<: *dataset_room_measurement
           - entity: sensor.hm_thermo_wz_target_temp
             name: Soll HmIP
             <<: *dataset_soll_temp
@@ -179,9 +176,6 @@ cards:
           - entity: sensor.hm_thermo_ku_current_temp
             name: Ist HmIP
             <<: *dataset_ist_temp
-          #- entity: sensor.lumi_lumi_weather_95154a04_temperature
-          #  name: Raummessung
-          #  <<: *dataset_room_measurement
           - entity: sensor.hm_thermo_ku_target_temp
             name: Soll HmIP
             <<: *dataset_soll_temp
@@ -384,6 +378,8 @@ cards:
         entities:
           - entity: sensor.outside_temperature
             name: aussen
+          - entity: sensor.fritz_dect_210_solar_temperature
+            name: Terrasse
 
   # - type: custom:vertical-stack-in-card
   #   cards:

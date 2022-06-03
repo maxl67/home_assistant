@@ -56,9 +56,16 @@ homeassistant:
     switch.enable_dustbin_notification:
       <<: *common
     switch.alert_dustbin_full:
-      <<: *common
-      
+      <<: *common    
   # rest of sensors, automations, etc. not with attribute 'package' because relation to this package is clear.
+    sensor.vacuum_cleaning_duration:
+      <<: *common
+    sensor.vacuum_cleaning_area:
+      <<: *common
+    sensor.vacuum_cleaned_last_duration:
+      <<: *common
+    sensor.vacuum_cleaned_last_area:
+      <<: *common
   
 
 ################################################
@@ -295,16 +302,29 @@ sensor:
 #        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','battery_level') }}"
 #        unit_of_measurement: '%'
 #        icon_template: "{{ 'mdi:battery' if (state_attr('vacuum.xiaomi_vacuum_cleaner','battery_icon') is none) else state_attr('vacuum.xiaomi_vacuum_cleaner','battery_icon') }}"
-      vacuum_cleaning_time:
-        friendly_name: Time of Last Cycle
+
+      vacuum_cleaning_duration:
+        friendly_name: Current duration
+        value_template: "{{ (states('sensor.roborock_vacuum_s6_current_clean_duration')|float(default=0) / 60) | round(0) }}"
+        unit_of_measurement: 'min'
+        icon_template: 'mdi:timer'
+      vacuum_cleaning_area:
+        friendly_name: Current area
+        unit_of_measurement: 'm²'
+        value_template: "{{ states('sensor.roborock_vacuum_s6_current_clean_area')|float(default=0) | round(1) }}"
+        icon_template: 'mdi:ruler'
+
+      vacuum_cleaned_last_duration:
+        friendly_name: Time of last cycle
         value_template: "{{ (states('sensor.roborock_vacuum_s6_last_clean_duration')|float(default=0) / 60) | round(0) }}"
         unit_of_measurement: 'min'
         icon_template: 'mdi:timer'
-      vacuum_cleaned_area:
-        friendly_name: Area of Last Cycle
+      vacuum_cleaned_last_area:
+        friendly_name: Area of last cycle
         unit_of_measurement: 'm²'
         value_template: "{{ states('sensor.roborock_vacuum_s6_last_clean_area')|float(default=0) | round(1) }}"
         icon_template: 'mdi:ruler'
+      
       vacuum_cleanmainbrush:
         friendly_name: Hauptbürste
         unit_of_measurement: 'h'

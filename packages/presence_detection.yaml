@@ -602,6 +602,7 @@ automation:
             {% endif %}
       # correct home status
       # todo: dies verursacht den Log-Eintrag 'WARNING (MainThread) [homeassistant.components.input_select] Invalid option: (possible options: Home, Away, Extended Away)'
+      #       05/2022: 2*else-Zweig ergänzt. Problem behoben.
       - service: input_select.select_option
         data:
           entity_id: input_select.home_status_dropdown
@@ -609,7 +610,11 @@ automation:
             {% if states('input_select.home_status_dropdown') in ['Away', 'Extended Away'] %}
               {% if (as_timestamp(now()) - as_timestamp(states('input_datetime.home_status_dropdown_last_changed')))/3600 | int(default=0) >=24 %}
                 Extended Away
+              {% else %}
+                {{ states('input_select.home_status_dropdown') }}
               {% endif %}
+            {% else %}
+              {{ states('input_select.home_status_dropdown') }}
             {% endif %}
 
 

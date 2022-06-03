@@ -46,12 +46,22 @@ cards:
               unit: h
               subtitle: Sensoren
           cleaning:
-            - entity_id: sensor.vacuum_cleaned_area
+            - entity_id: sensor.vacuum_cleaning_area
+            #eigentlich: - entity_id: sensor.roborock_vacuum_s6_current_clean_area
+            # ist aber nicht gerundet
+              unit: m² #^2
+              subtitle: aktuelle Fläche #Cleaning area
+            - entity_id: sensor.vacuum_cleaning_duration
+            #eigentlich: - entity_id: sensor.roborock_vacuum_s6_current_clean_duration
+            # ist aber in Sec
+              unit: min
+              subtitle: aktuelle Dauer #Cleaning time
+            - entity_id: sensor.vacuum_cleaned_last_area
             #eigentlich: - entity_id: sensor.roborock_vacuum_s6_last_clean_area
             # ist aber nicht gerundet
               unit: m² #^2
               subtitle: Fläche letzte Reinigung #Cleaning area
-            - entity_id: sensor.vacuum_cleaning_time
+            - entity_id: sensor.vacuum_cleaned_last_duration
             #eigentlich: - entity_id: sensor.roborock_vacuum_s6_last_clean_duration
             # ist aber in Sec
               unit: min

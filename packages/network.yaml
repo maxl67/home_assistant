@@ -92,18 +92,18 @@ sensor:
       arg: eth0
     - type: last_boot
   # monitor Home Assistant database size
-  - platform: sql
-    db_url: !secret HistoryDB_connection
-    queries:
-    - name: historydb_size
-      query: 'SELECT table_schema "database", Round(Sum(data_length + index_length) / 1048576, 1) "value" FROM information_schema.tables WHERE table_schema="HAhistory" GROUP BY table_schema'
-      column: 'value'
-      unit_of_measurement: MB
+#  - platform: sql
+#    db_url: !secret HistoryDB_connection
+#    queries:
+#    - name: historydb_size
+#      query: 'SELECT table_schema "database", Round(Sum(data_length + index_length) / 1048576, 1) "value" FROM information_schema.tables WHERE table_schema="HAhistory" GROUP BY table_schema'
+#      column: 'value'
+#      unit_of_measurement: MB
   # check on the version of Home Assistant
-  - platform: version
-    source: local
-  - platform: version
-    source: docker
+#  - platform: version
+#    source: local
+#  - platform: version
+#    source: docker
 
 
 ###############################################################################
@@ -156,6 +156,8 @@ automation:
       - platform: state
         entity_id: sensor.speedtest_download
         to: unavailable
+        for: 
+          minutes: 15
     condition: []
     action:
       - service: speedtestdotnet.speedtest

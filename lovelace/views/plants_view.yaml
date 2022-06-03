@@ -5,7 +5,7 @@ icon: mdi:flower
 
 #      species: "actinidia chinensis" #Kiwi
 #      species: "colocasia esculenta" #Zehrwurz (Taro)
-#      species: "zamioculcas zamiifolia" #Glücksfeder
+#      species: "strelitzia alba/reginae" #Strelizie
 #      species: "alocasia macrorrhizos" #Elefantenohr
 cards:
   - type: custom:vertical-stack-in-card
@@ -21,7 +21,7 @@ cards:
     cards:
     - type: custom:flower-card
       entity: plant.plant_2
-      species: 'zamioculcas zamiifolia' #Glücksfeder
+      species: 'strelitzia alba' #strelitzia reginae
       #name: 'Glücksfeder'
     - type: divider
     - type: glance

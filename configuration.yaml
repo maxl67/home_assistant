@@ -31,6 +31,7 @@ homeassistant:
 
 # display panels in frontend to configure and manage parts of Home Assistant
 config:
+energy:
 # 'System Health' integration data can be viewed in Developer Tools on the 'Info' tab
 system_health:
 # My Home Assistant Service allows redirect to own HA-instance from external documentation.

@@ -11,8 +11,9 @@
 # https://community.home-assistant.io/t/dwd-global-weather-warning-integration/17165/9
 # https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/objekteinbindung.html
 ###############################################################################
-#Sonnenuntergang real:
-  #24.11   16:15
+#Sonnenaufgang, Sonnenuntergang und Höhe real:
+  #24.11   ? 16:15
+  #22.04  06:15 20:28 53,5° (MESZ)
 
 ################################################
 ##  Customize
@@ -65,7 +66,7 @@ homeassistant:
 sun: 
 
 # get live satelite pictures
-camera:
+#camera:
 #  - platform: generic
 #    name: selected_satelite
 #    still_image_url: >
@@ -74,17 +75,17 @@ camera:
 #          'Bewölkung' : 'https://api.sat24.com/animated/ALPS/rainTMC/1/W_dot_%20Europe%20Standard%20Time/3381693',
 #          'Schnee' : 'https://api.sat24.com/animated/ALPS/snow/1/W_dot_%20Europe%20Standard%20Time/8170881'
 #         } [input_select.type_of_satelite] }}
-  - platform: generic
-  #  still_image_url: http://api.sat24.com/animated/DE/visual/2/W_dot_%20Europe%20Standard%20Time/5053188
-    still_image_url: https://api.sat24.com/animated/EU/visual/1/W_dot_%20Europe%20Standard%20Time/2937470
-    name: satelite_clouds
-  - platform: generic
-  #  still_image_url: http://api.sat24.com/animated/DE/rainTMC/2/W_dot_%20Europe%20Standard%20Time/220026
-    still_image_url: https://api.sat24.com/animated/ALPS/rainTMC/1/W_dot_%20Europe%20Standard%20Time/3381693
-    name: satelite_rain
-  - platform: generic
-    still_image_url: https://api.sat24.com/animated/ALPS/snow/1/W_dot_%20Europe%20Standard%20Time/8170881
-    name: satelite_snow
+#  - platform: generic
+#  #  still_image_url: http://api.sat24.com/animated/DE/visual/2/W_dot_%20Europe%20Standard%20Time/5053188
+#    still_image_url: https://api.sat24.com/animated/EU/visual/1/W_dot_%20Europe%20Standard%20Time/2937470
+#    name: satelite_clouds
+#  - platform: generic
+#  #  still_image_url: http://api.sat24.com/animated/DE/rainTMC/2/W_dot_%20Europe%20Standard%20Time/220026
+#    still_image_url: https://api.sat24.com/animated/ALPS/rainTMC/1/W_dot_%20Europe%20Standard%20Time/3381693
+#    name: satelite_rain
+#  - platform: generic
+#    still_image_url: https://api.sat24.com/animated/ALPS/snow/1/W_dot_%20Europe%20Standard%20Time/8170881
+#    name: satelite_snow
 
 
 ###############################################################################

@@ -32,6 +32,7 @@
 # Aloe: aloe aristata
 # Geldbaum, Pfennigbaum, Dickblatt: crassula ovata
 #?Dendrobium-Orchidee: dendrobium nobile
+# Strelizie: Strelitzia reginae, Strelitzia alba
 homeassistant:
   customize:
   # definitions
@@ -47,7 +48,7 @@ homeassistant:
       friendly_name: Pfeilblatt
       <<: *common
     plant.plant_2:
-      friendly_name: Glücksfeder
+      friendly_name: Strelizie
       <<: *common  
     plant.plant_3:
       friendly_name: Kannenpflanze

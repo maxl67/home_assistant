@@ -20,6 +20,9 @@ icon: mdi:home
 #  {% endif %}
 path: home
 cards:
+  - type: entities
+    entities:
+      - cover.00165d89bbacf5_2
 
   #------------------------------------------------
   # show warnings & alarms
@@ -45,6 +48,10 @@ cards:
           state: '> 0'
         - entity_id: switch.adguard_protection
           state: 'off'
+        - entity_id: "sensor.dwd_current_warn_level_*"
+          state: '>= 2'
+        - entity_id: binary_sensor.hera_update_available
+          state: 'on'
       template: |
         {% if states('sensor.latest_version') <> states('sensor.current_version') %}
           {{ sensor.latest_version.entity_id }}
@@ -170,9 +177,16 @@ cards:
     entities:
       - type: custom:slider-entity-row
         entity: light.0008da499c8dbd
-        name: Ambiente-Licht
+        name: Ambiente Wohnen
         toggle: true
-        hide_when_off: true
+        hide_when_off: false
+      - type: custom:slider-entity-row
+        entity: light.0008dd899c4781
+        name: Kiesel Büro
+        toggle: true
+        hide_when_off: false
+        min: 10
+        max: 50
       - type: custom:slider-entity-row
         entity: light.philips_lightstrip_ku
         name: Lichtsteifen Küche

@@ -243,12 +243,6 @@ cards:
               - entity: sensor.fritz_box_6490_cable_connection_uptime
                 name: letzter Connect
               - type: divider
-#              - type: button
-#                name: Reconnect
-#                action_name: Reconnect now
-#                tap_action: 
-#                  action: call-service
-#                  service: script.fritzbox_reconnect
               - type: buttons
                 entities:
                   - name: Reconnect
@@ -259,6 +253,12 @@ cards:
                       service: script.fritzbox_reconnect
                       confirmation: 
                         text: Soll die Internetverbindung getrennt und neu aufgebaut werden?
+                  - name: Speedtest
+                    entity: speedtestdotnet.speedtest
+                    icon: mdi:speedometer
+                    tap_action: 
+                      action: call-service
+                      service: speedtestdotnet.speedtest
           - type: section
             #- entity: sensor.fritz_rate_up
             #- entity: sensor.fritz_rate_down
@@ -335,6 +335,19 @@ cards:
             - entity: sensor.last_boot
               name: letzter Systemstart
               icon: mdi:restart
+            - entity: binary_sensor.hera_update_available
+              type: custom:multiple-entity-row
+              name: Updates verfügbar
+              entities:
+              - entity: update.hera_dsm_update
+                name: DSM
+              style: |
+                :host {
+                  {% if is_state('binary_sensor.hera_update_available','on') %}
+                    color: var(--paper-item-icon-active-color);
+                    --paper-item-icon-color: #FF7738;
+                  {% endif %}
+                }
             - entity: sensor.cert_expiry_timestamp_hera
               name: Ablaufdatum Zertifikat
               icon: mdi:certificate
@@ -354,6 +367,26 @@ cards:
               entities:
               - entity: sensor.memory_free
                 name: free
+            - type: divider
+            - type: buttons
+              entities:
+              - name: Reboot
+                entity: button.hera_reboot
+                icon: mdi:restart
+                tap_action: 
+                  action: button.press
+                  service: button.hera_reboot
+                  confirmation: 
+                    text: Soll HERA wirklich neu gebootet werden?
+              - name: Shutdown!
+                entity: button.hera_shutdown
+                icon: mdi:power
+                tap_action: 
+                  action: button.press
+                  service: button.hera_shutdown
+                  confirmation: 
+                    text: Soll HERA wirklich heruntergefahren werden?
+
           # Volume1
           - type: custom:fold-entity-row
             head:
@@ -369,7 +402,8 @@ cards:
               secondary_info: last-changed
               state_header: state
               entities:
-                - entity: sensor.hera_volume_1_max_disk_temp #own calculated max sensor.
+#                - entity: sensor.hera_volume_1_max_disk_temp #own calculated max sensor.
+                - entity: sensor.hera_volume_1_maximum_disk_temp
                   name: max temp
                 #- entity: sensor.hera_volume_1_average_disk_temp
                 #  name: avg temp
@@ -450,8 +484,14 @@ cards:
             <<: *graph_cpu
           - type: custom:mini-graph-card
             entities:
-              - sensor.hera_volume_1_max_disk_temp
-            name: Temp. Volume1
+              - entity: sensor.hera_volume_1_maximum_disk_temp
+                name: Vol.1
+              - entity: sensor.hera_temperature
+                name: CPU
+                y_axis: secondary
+                color: *blue
+                show_points: false
+            name: Temp.
             icon: mdi:thermometer
             <<: *graph_disc_temp
 

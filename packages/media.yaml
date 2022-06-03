@@ -587,7 +587,7 @@ automation:
 
   # Einschalten des Media Racks nachmittags, wenn wir zuhause sind
   - id: power_on_mediarack_for_use
-    alias: switch on media rack for use at afternoon
+    alias: switch on media rack for use
     trigger:
       - platform: time
         at: '17:00:00'
