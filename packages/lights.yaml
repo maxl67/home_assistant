@@ -141,7 +141,7 @@ automation:
   # Welcome-/Ambientelicht 
   # Einschalten von Welcome-Licht, wenn wir nach Hause kommen ODER bei Sonnenuntergang
   - id: switch_on_lights
-    alias: switch on welcome light
+    alias: switch on welcome lights
     trigger:
       - platform: state
         entity_id: sensor.home_status
@@ -176,7 +176,7 @@ automation:
   # Ausschalten von Welcome-Licht und Lichtleiste, wenn wir für 10min weg sind oder nachts um 00:00
   #   und morgens beim Sonnenaufgang
   - id: switch_off_lights
-    alias: switch off welcome light
+    alias: alle Lichter aus
     trigger: 
       - platform: state
         entity_id: sensor.home_status
@@ -218,7 +218,7 @@ automation:
   #----------------------------------------------------------------------------------
   # HmIP-BRC2 Wandtaster schaltet Lichter an/aus
   - id: switch_off_ambientlight_from_sz
-    alias: 'Ambientelicht aus'
+    alias: 'Ambientelicht aus (von SZ)'
     trigger:
       platform: event
       event_type: homematic.keypress
@@ -230,7 +230,7 @@ automation:
       service: light.turn_off
       entity_id: *ambientelight_wz_entityid
   - id: switch_off_lights_from_sz
-    alias: 'alle Licher aus'
+    alias: 'alle Licher aus (von SZ)'
     trigger:
       platform: event
       event_type: homematic.keypress
@@ -247,7 +247,7 @@ automation:
         entity_id: *light_az_entityid
   
   - id: switch_on_ambientlight_from_sz
-    alias: 'Ambientelicht an'
+    alias: 'Ambientelicht an (von SZ)'
     trigger:
       platform: event
       event_type: homematic.keypress
@@ -259,7 +259,7 @@ automation:
       service: light.turn_on
       entity_id: *ambientelight_wz_entityid
   - id: switch_on_lights_from_sz
-    alias: 'alle Licher an'
+    alias: 'Licher an (von SZ)'
     trigger:
       platform: event
       event_type: homematic.keypress

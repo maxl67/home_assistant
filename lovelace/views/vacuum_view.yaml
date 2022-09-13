@@ -145,6 +145,7 @@ cards:
                   state_color: true
                 - entity: switch.enable_dustbin_notification
                   name: Staubbehälter-Mitteilungen #enable notifications
+                  state_color: true
             # status & notifications
             - type: custom:fold-entity-row
               head:

@@ -53,12 +53,14 @@ anchors:
       labels: true #or hover (y-axis)
       icon_adaptive_color: true
     color_thresholds:
-      - value: 19
+      - value: 0
         color: *blue
-      - value: 21
+      - value: 19.5
         color: *green
-      - value: 23
+      - value: 24.5
         color: *orange
+      - value: 27
+        color: *dark_orange
   # temperature curves
   dataset_measured_temp: &dataset_ist_temp
     show_state: true
@@ -117,22 +119,83 @@ cards:
   - type: custom:vertical-stack-in-card
     # living room - Wohnzimmer
     cards:
-      # thermostat living room
-      - type: custom:simple-thermostat
-        entity: climate.000c9a499b5808
-        header:
-          name: Wohnzimmer Thermostat
-        <<: *simple_thermostat
-        sensors:
-          - entity: sensor.hm_thermo_wz_actor_state
-            name: Ventile
-          - entity: sensor.hm_thermo_wz_window_state
-            name: Fenster
-          - entity: sensor.hm_thermo_wz_active_profile
-            name: Profil
+      - type: conditional
+        conditions:
+          - entity: input_boolean.heating_period
+            state: 'on'
+        card:
+          # thermostat living room
+          type: custom:simple-thermostat
+          entity: climate.000c9a499b5808
+          header:
+            name: Wohnzimmer Thermostat
+          <<: *simple_thermostat
+          sensors:
+            - entity: sensor.hm_thermo_wz_actor_state
+              name: Ventile
+            - entity: sensor.hm_thermo_wz_window_state
+              name: Fenster
+            - entity: sensor.hm_thermo_wz_active_profile
+              name: Profil
+      - type: conditional
+        conditions:
+          - entity: input_boolean.heating_period
+            state: 'off'
+        card:
+          # covers living room
+          type: glance
+          title: Wohnzimmer Jalousien
+          state_color: false
+          <<: *style_header
+          entities:
+            - entity: cover.00165d89bbacfa_2
+              name: Esszimmer
+              #type: attribute
+              secondary_info: position
+              style: |
+                :host {
+                  {% if state_attr('cover.00165d89bbacfa_2','current_position')|int <=95  %}
+                    --paper-item-icon-color: var(--paper-item-icon-active-color);
+                  {% else %}
+                    --paper-item-icon-color: var(--primary-text-color);
+                  {% endif %}
+                }
+            - entity: cover.00165d89bbacfa_14
+              name: Wohnen Süd
+              secondary_info: position
+              style: |
+                :host {
+                  {% if state_attr('cover.00165d89bbacfa_14','current_position')|int <=95  %}
+                    --paper-item-icon-color: var(--paper-item-icon-active-color);
+                  {% else %}
+                    --paper-item-icon-color: var(--primary-text-color);
+                  {% endif %}
+                }
+            - entity: cover.00165d89bbacfa_10
+              name: Wohnen West
+              secondary_info: position
+              style: |
+                :host {
+                  {% if state_attr('cover.00165d89bbacfa_10','current_position')|int <=95  %}
+                    --paper-item-icon-color: var(--paper-item-icon-active-color);
+                  {% else %}
+                    --paper-item-icon-color: var(--primary-text-color);
+                  {% endif %}
+                }
+            - entity: cover.00165d89bbacf5_6
+              name: Wohnen Nord
+              secondary_info: position
+              style: |
+                :host {
+                  {% if state_attr('cover.00165d89bbacf5_6','current_position')|int <=95  %}
+                    --paper-item-icon-color: var(--paper-item-icon-active-color);
+                  {% else %}
+                    --paper-item-icon-color: var(--primary-text-color);
+                  {% endif %}
+                }
       - type: divider
 
-      # temperature living room
+      # temperature chart living room
       - type: custom:mini-graph-card
         name: Wohnzimmer
         <<: *temperature_graph
@@ -153,22 +216,60 @@ cards:
   - type: custom:vertical-stack-in-card
     # kitchen - Küche
     cards:
-      # thermostat kitchen
-      - type: custom:simple-thermostat
-        entity: climate.000a1a49a10ba3
-        header:
-          name: Küche Thermostat
-        <<: *simple_thermostat
-        sensors:
-          - entity: sensor.hm_thermo_ku_actor_value
-            name: Ventilöffn.
-          - entity: sensor.hm_thermo_ku_window_state
-            name: Fenster
-          - entity: sensor.hm_thermo_ku_active_profile
-            name: Profil
+      - type: conditional
+        conditions:
+          - entity: input_boolean.heating_period
+            state: 'on'
+        card:
+          # thermostat kitchen
+          type: custom:simple-thermostat
+          entity: climate.000a1a49a10ba3
+          header:
+            name: Küche Thermostat
+          <<: *simple_thermostat
+          sensors:
+            - entity: sensor.hm_thermo_ku_actor_value
+              name: Ventilöffn.
+            - entity: sensor.hm_thermo_ku_window_state
+              name: Fenster
+            - entity: sensor.hm_thermo_ku_active_profile
+              name: Profil
+      - type: conditional
+        conditions:
+          - entity: input_boolean.heating_period
+            state: 'off'
+        card:
+          # covers kitchen
+          type: entities
+          title: Küche Jalousien
+          state_color: false
+          <<: *style_header
+          entities:
+            - entity: cover.00165d89bbacf5_2
+              name: Büro
+              secondary_info: position
+              style: |
+                :host {
+                  {% if state_attr('cover.00165d89bbacf5_2','current_position')|int <=95  %}
+                    --paper-item-icon-color: var(--paper-item-icon-active-color);
+                  {% else %}
+                    --paper-item-icon-color: var(--primary-text-color);
+                  {% endif %}
+                }
+            - entity: cover.00165d89bbacfa_6
+              name: Küche
+              secondary_info: position
+              style: |
+                :host {
+                  {% if state_attr('cover.00165d89bbacfa_6','current_position')|int <=95  %}
+                    --paper-item-icon-color: var(--paper-item-icon-active-color);
+                  {% else %}
+                    --paper-item-icon-color: var(--primary-text-color);
+                  {% endif %}
+                }
       - type: divider
 
-      # temperature kitchen
+      # temperature chart kitchen
       - type: custom:mini-graph-card
         name: Küche
         <<: *temperature_graph
@@ -189,22 +290,38 @@ cards:
   - type: custom:vertical-stack-in-card
     # Guest room - Gästezimmer
     cards:
-      # thermostat guest room
-      - type: custom:simple-thermostat
-        entity: climate.000a1a49a107b5
-        header:
-          name: Gästezimmer Thermostat
-        <<: *simple_thermostat
-        sensors:
-          - entity: sensor.hm_thermo_gz_actor_value
-            name: Ventilöffn.
-          - entity: sensor.hm_thermo_gz_window_state
-            name: Fenster
-          - entity: sensor.hm_thermo_gz_active_profile
-            name: Profil
+      - type: conditional
+        conditions:
+          - entity: input_boolean.heating_period
+            state: 'on'
+        card:
+          # thermostat guest room
+          type: custom:simple-thermostat
+          entity: climate.000a1a49a107b5
+          header:
+            name: Gästezimmer Thermostat
+          <<: *simple_thermostat
+          sensors:
+            - entity: sensor.hm_thermo_gz_actor_value
+              name: Ventilöffn.
+            - entity: sensor.hm_thermo_gz_window_state
+              name: Fenster
+            - entity: sensor.hm_thermo_gz_active_profile
+              name: Profil
+
+      - type: conditional
+        conditions:
+          - entity: input_boolean.heating_period
+            state: 'off'
+        card:
+          type: entities
+          title: Gästezimmer
+          <<: *style_header
+          entities:
+            - type: section
       - type: divider
 
-      # temperature guest room
+      # temperature chart guest room
       - type: custom:mini-graph-card
         name: Gästezimmer
         <<: *temperature_graph
@@ -244,6 +361,7 @@ cards:
         padding: off
         entities:
           - entity: switch.enable_heating_automation
+            state_color: true
           # Erklärungen zur Steuerung
           - type: conditional
             conditions:

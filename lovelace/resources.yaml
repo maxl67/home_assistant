@@ -1,12 +1,9 @@
     # Community Repo
     #   Functionality
-    - url: /hacsfiles/lovelace-card-mod/card-mod.js
+    - url: /hacsfiles/lovelace-card-mod/card-mod.jss
       type: module
-    - url: /hacsfiles/lovelace-swipe-navigation/swipe-navigation.js
+    - url: /hacsfiles/hass-swipe-navigation/swipe-navigation.js 
       type: module
-#    # deprecated, not maintained anymore
-#    - url: /hacsfiles/custom-header/custom-header.js
-#      type: module
     #  Rows
     - url: /hacsfiles/lovelace-fold-entity-row/fold-entity-row.js
       type: module    

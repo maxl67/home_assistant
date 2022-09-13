@@ -10,3 +10,4 @@ cards:
       - entity: switch.enable_heating_automation
       - entity: switch.enable_power_automation
       - entity: switch.enable_light_automation
+      - entity: switch.enable_jalousie_automation

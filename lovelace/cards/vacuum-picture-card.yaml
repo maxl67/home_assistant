@@ -1,0 +1,283 @@
+### removed from top of view
+
+anchors:
+  colours:
+#    dark_gray: &dark_gray '#3d3d3d'
+#    dark_yellow: &dark_yellow '#91920e'
+#    dark_blue: &dark_blue '#0d0099'
+    blue: &blue '#3090C7'
+#    green: &green '#009A00'
+#    #yellow: &yellow '#f0e91f'
+#    light_orange: &light_orange '#f4ad01'
+#    orange: &orange '#e39a24'
+#    dark_orange: &dark_orange '#d35400'
+#    red: &red '#cc1800'
+    light_blue: &light_blue '#84a6ba'
+    white: &white '#ffffff'
+    light_gray: &light_gray '#cccccc'
+
+  fonts:
+    default_font: &default_font 'Trebuchet MS'
+
+  style_icon_button: &style_icon_button
+    top: 90%
+    color: *blue
+
+  style_label_header: &style_label_header
+    color: *white
+    transform: translate(0%,-50%)
+    font-family: *default_font
+    font-size: 150%
+    font-weight: bold
+    border-color: rgb(34, 154, 210)
+    border-radius: 6px
+    background-color: *light_gray
+
+  style_label_column: &style_label_column
+    top: 10%
+    color: *white
+    transform: translate(0%,-50%)
+    pointer-events: none
+    font-family: *default_font
+    font-size: 90%
+    font-weight: bold
+    border-color: rgb(34, 154, 210) #*blue?
+    background-color: *blue
+    border-radius: 6px
+
+  style_label_maintenance: &style_label_maintenance
+    right: 1%
+    color: *white
+    transform: translate(0%,-50%)
+    pointer-events: none
+    font-family: *default_font
+    font-size: 76%
+    font-weight: bold
+    border-right-style: solid
+    border-color: *blue
+
+  style_label_operation: &style_label_operation
+    left: 1%
+    color: *white
+    transform: translate(0%,-50%)
+    font-family: *default_font
+    font-size: 80%
+    font-weight: bold
+    border-left-style: solid
+    border-color: *blue
+
+  style_label_lastCleanup: &style_label_lastCleanup
+    top: 79%
+    color: *light_blue
+    transform: translate(0%,-50%)
+    font-family: *default_font
+    font-size: 80%
+    font-weight: bold
+
+  style_entitycard_header: &style_header
+    card_mod:
+      style: |
+        .card-header {
+          font-size: 20px;
+          padding: 10px 16px;
+        }
+### removed from view
+
+    # nice picture card with all kinds of information and buttons to operate vacuum
+    - type: picture-elements
+      #image: '/local/vacuum1.jpg'
+      image: '/local/vacuum_trans.png'
+      elements:
+        ## Command buttons (buttom)
+        - type: conditional
+          conditions:
+            - entity: binary_sensor.vacuum_started
+              state: 'off'
+            - entity: binary_sensor.vacuum_paused
+              state: 'off'
+          elements:
+            - type: icon
+              icon: mdi:play
+              tap_action: 
+                action: call-service
+                service: script.vacuum_all #new: call script, to set value for 'input_select.vacuum_last_cleaned_room'
+                # old: call service directly
+                #service: vacuum.start
+                #service_data:
+                #  entity_id: vacuum.xiaomi_vacuum_cleaner
+              style:
+                left: 20%
+                <<: *style_icon_button
+        - type: conditional
+          conditions:
+            - entity: binary_sensor.vacuum_started
+              state: 'on'
+          elements:
+            - type: icon
+              icon: mdi:pause
+              tap_action: 
+                action: call-service
+                service: script.vacuum_pause
+              style:
+                left: 21%
+                <<: *style_icon_button
+        - type: conditional
+          conditions:
+            - entity: binary_sensor.vacuum_paused
+              state: 'on'
+          elements:
+            - type: icon
+              icon: mdi:play-pause
+              tap_action: 
+                action: call-service
+                service: script.vacuum_resume
+              style:
+                left: 19%
+                <<: *style_icon_button
+
+        - type: icon
+          icon: mdi:stop
+          tap_action: 
+            action: call-service
+            service: vacuum.stop
+            service_data:
+              entity_id: vacuum.xiaomi_vacuum_cleaner
+          style:
+            left: 35%
+            <<: *style_icon_button
+        - type: icon
+          icon: mdi:home
+          tap_action: 
+            action: call-service
+            service: vacuum.return_to_base
+            service_data:
+              entity_id: vacuum.xiaomi_vacuum_cleaner
+          style:
+            left: 50%
+            <<: *style_icon_button
+        - type: icon
+          icon: mdi:crosshairs
+          tap_action: 
+            action: call-service
+            service: vacuum.clean_spot
+            service_data:
+              entity_id: vacuum.xiaomi_vacuum_cleaner
+          style:
+            left: 65%
+            <<: *style_icon_button
+        - type: icon
+          icon: mdi:bell-ring
+          tap_action: 
+            action: call-service
+            service: vacuum.locate
+            service_data:
+              entity_id: vacuum.xiaomi_vacuum_cleaner
+          style:
+            left: 80%
+            <<: *style_icon_button
+        
+        ## Labels (top)
+        - type: state-label
+          tap_action:
+            entity: vacuum.xiaomi_vacuum_cleaner
+            action: more-info
+          entity: vacuum.xiaomi_vacuum_cleaner
+          style:
+            top: 14%
+            right: 38%
+            <<: *style_label_header
+        - type: state-label
+          entity: sensor.vacuum_operation
+          style:
+            left: 1%
+            <<: *style_label_column
+          tap_action:
+            action: call-service
+            service: script.vacuum_update_map
+        - type: state-label
+          entity: sensor.vacuum_accessories
+          style:
+            right: 1%
+            <<: *style_label_column
+        
+        ## Information Maintenance (right)
+        - type: state-label
+          entity: sensor.vacuum_cleanmainbrush
+          prefix: 'Hauptbürste: '
+          style:
+            top: 35%
+            <<: *style_label_maintenance
+        - type: state-label
+          entity: sensor.vacuum_cleansidebrush
+          prefix: 'Seitenbürste: '
+          style:
+            top: 45%
+            <<: *style_label_maintenance
+        - type: state-label
+          entity: sensor.vacuum_cleanfilter
+          prefix: 'Filter: '
+          style:
+            top: 55%
+            <<: *style_label_maintenance
+            opacity: 0.8
+        - type: state-label
+          entity: sensor.vacuum_sensordirtyleft
+          prefix: 'Sensoren: '
+          style:
+            top: 65%
+            <<: *style_label_maintenance
+        
+        ## Information Operation (left)
+        - type: state-label
+          entity: sensor.vacuum_status
+          prefix: 'Status: '
+          style:
+            top: 40%
+            pointer-events: none
+            <<: *style_label_operation
+        - type: state-label
+          entity: sensor.vacuum_battery
+          prefix: 'Batterie: ' #'Battery: '
+          style:
+            top: 50%
+            pointer-events: none
+            <<: *style_label_operation
+        - type: state-label
+          entity: input_select.vacuum_fan_speed_list
+          prefix: 'Modus: ' #'Mode: '
+          #suffix: (sensor.vacuum_fan_speed)
+          tap_action: 
+            action: call-service
+            service: input_select.select_next
+            service_data:
+              entity_id: input_select.vacuum_fan_speed_list
+          style:
+            pointer-events: auto              
+            top: 60%
+            <<: *style_label_operation
+
+        ## Information last run (center)
+        - type: state-label
+          tap_action:
+            action: more-info
+            entity: sensor.vacuum_cleaned_room
+          entity: sensor.vacuum_cleaned_room
+          prefix: 'Raum: ' #'Room: '
+          style:
+            left: 14% #n/a
+            pointer-events: auto
+            <<: *style_label_lastCleanup
+        - type: state-label
+          entity: sensor.roborock_vacuum_s6_last_clean_area
+          prefix: 'Bereich: ' #'Area: '
+          style:
+            left: 46% #31%
+            pointer-events: none
+            <<: *style_label_lastCleanup
+        - type: state-label
+          entity: sensor.vacuum_cleaning_time #roborock_vacuum_s6_last_clean_duration
+          prefix: 'Zeit: ' #'Time: '
+          style:
+            left: 68% #51%
+            pointer-events: none
+            <<: *style_label_lastCleanup

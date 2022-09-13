@@ -21,7 +21,7 @@ background: var(--background-image)
 #   https://github.com/thomasloven/lovelace-card-mod/wiki/Theme-cookbook#compactcustom-header
 
 # swipe-navigation
-#   https://github.com/maykar/lovelace-swipe-navigation
+#   https://github.com/zanna-37/hass-swipe-navigation
 swipe_nav:
   wrap: false # ende <-> anfang
   animate: swipe  # swipe, fade, flip

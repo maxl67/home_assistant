@@ -145,6 +145,7 @@ template:
       name: sun_is_shining
       #Morning: sun arrisen at 2°
       state: "{{ (states('weather.dwd_weather_ak_stuttgart') in ('sunny','partlycloudy') and states('weather.home_hourly') in ('sunny','partlycloudy')) and state_attr('sun.sun', 'elevation') >= 2.5 }}"
+      #state in {True|False}
       attributes:
         friendly_name: Sonne scheint
     - unique_id: sunshine_intensity
@@ -195,13 +196,15 @@ template:
       name: sunshine_south
       # 60..240?
       state: >
-        {{ is_state('sensor.sun_is_shining', 'True') and state_attr('sun.sun', 'azimuth')>=60 and state_attr('sun.sun', 'azimuth')<=238 }} 
+        {{ is_state('sensor.sun_is_shining', 'True') and state_attr('sun.sun', 'azimuth')>=70 and state_attr('sun.sun', 'azimuth')<=238 }} 
+      #state in {True|False}
       attributes:
         friendly_name: Sonnenbestrahlung von Süden
     - unique_id: sunshine_west
       name: sunshine_west
       state: >
         {{ is_state('sensor.sun_is_shining', 'True') and state_attr('sun.sun', 'azimuth')>=150 and state_attr('sun.sun', 'azimuth')<=330 }}
+      #state in {True|False}
       attributes:
         friendly_name: Sonnenbestrahlung von Westen
 

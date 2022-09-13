@@ -195,32 +195,51 @@ input_boolean:
 ###############################################################################
 ##  Sensors
 ###############################################################################
-sensor:
 # 2 raspberry pi's are located in east and west part of appartment and are running the monitor.sh script.
 # We get the BT presence confidence values via MQTT for each device which are mapped to a person here.
+mqtt:
 # Person 1
   # reading the MQTT messages from BlueTooth monitor.sh into confidence sensors (one per area).
-  - platform: mqtt
-    name: 'Max present O'
-    state_topic: 'monitor/ost/iphone_max_bt'
-    value_template: "{{ value_json.confidence }}"
-    unit_of_measurement: '%'
-    availability:
-      - topic: 'monitor/ost/status'
-    payload_available: 'online'
-    payload_not_available: 'offline'
-    json_attributes_topic: 'monitor/ost/iphone_max_bt'
-  - platform: mqtt
-    name: 'Max present W'
-    state_topic: 'monitor/west/iphone_max_bt'
-    value_template: "{{ value_json.confidence }}"
-    unit_of_measurement: '%'
-    availability:
-      - topic: 'monitor/west/status'
-    payload_available: 'online'
-    payload_not_available: 'offline'
-    json_attributes_topic: 'monitor/west/iphone_max_bt'
-  # combining all area values into a total confidence value for the device beeing present
+  sensor:
+    - name: 'Max present O'
+      state_topic: 'monitor/ost/iphone_max_bt'
+      value_template: "{{ value_json.confidence }}"
+      unit_of_measurement: '%'
+      availability:
+        - topic: 'monitor/ost/status'
+      payload_available: 'online'
+      payload_not_available: 'offline'
+      json_attributes_topic: 'monitor/ost/iphone_max_bt'
+    - name: 'Max present W'
+      state_topic: 'monitor/west/iphone_max_bt'
+      value_template: "{{ value_json.confidence }}"
+      unit_of_measurement: '%'
+      availability:
+        - topic: 'monitor/west/status'
+      payload_available: 'online'
+      payload_not_available: 'offline'
+      json_attributes_topic: 'monitor/west/iphone_max_bt'
+# Person 2
+    - name: 'Ing present O'
+      state_topic: 'monitor/ost/iphone_ing_bt'
+      value_template: "{{ value_json.confidence }}"
+      unit_of_measurement: '%'
+      availability_topic: 'monitor/ost/status'
+      payload_available: 'online'
+      payload_not_available: 'offline'
+      json_attributes_topic: 'monitor/ost/iphone_ing_bt'
+    - name: 'Ing present W'
+      state_topic: 'monitor/west/iphone_ing_bt'
+      value_template: "{{ value_json.confidence }}"
+      unit_of_measurement: '%'
+      availability_topic: 'monitor/west/status'
+      payload_available: 'online'
+      payload_not_available: 'offline'
+      json_attributes_topic: 'monitor/west/iphone_ing_bt'
+
+# combining all area values into a total confidence value for the device beeing present
+sensor:
+  # Person 1
   - platform: min_max
     name: 'Max Home Confidence'
     type: max
@@ -228,27 +247,8 @@ sensor:
     entity_ids:
       - sensor.max_present_o
       - sensor.max_present_w
-# Person 2
-  # reading the MQTT messages from BlueTooth monitor.sh into confidence sensors (one per area).
-  - platform: mqtt
-    name: 'Ing present O'
-    state_topic: 'monitor/ost/iphone_ing_bt'
-    value_template: "{{ value_json.confidence }}"
-    unit_of_measurement: '%'
-    availability_topic: 'monitor/ost/status'
-    payload_available: 'online'
-    payload_not_available: 'offline'
-    json_attributes_topic: 'monitor/ost/iphone_ing_bt'
-  - platform: mqtt
-    name: 'Ing present W'
-    state_topic: 'monitor/west/iphone_ing_bt'
-    value_template: "{{ value_json.confidence }}"
-    unit_of_measurement: '%'
-    availability_topic: 'monitor/west/status'
-    payload_available: 'online'
-    payload_not_available: 'offline'
-    json_attributes_topic: 'monitor/west/iphone_ing_bt'
-  # combining all area values into a total confidence value for the device beeing present
+
+  # Person 2
   - platform: min_max
     name: 'Ing Home Confidence'
     type: max
@@ -257,7 +257,7 @@ sensor:
       - sensor.ing_present_o
       - sensor.ing_present_w
 
-  # Status sensors for each person. input_select values are set by automations.
+# Status sensors for each person. input_select values are set by automations.
   - platform: template
     sensors:
       max_status:
@@ -267,7 +267,7 @@ sensor:
         friendly_name: 'Ingrid'
         value_template: "{{ states('input_select.ing_status_dropdown') }}"
 
-  # Gesamtstatus / total status of home
+# Gesamtstatus / total status of home
   - platform: template
     sensors:
     # Anzahl der Personen zuhause
@@ -746,7 +746,7 @@ automation:
 #
   - alias: Home Status - Leaving # (n_people_home <=0) UND (Home-Status='Home')
     id: set_home_status_leaving
-    trigger:
+    trigger: 
       platform: numeric_state
       entity_id: sensor.n_people_home
       below: 1

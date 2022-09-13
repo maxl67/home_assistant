@@ -4,6 +4,7 @@
 #   @package      : plants
 #   @description  : 
 #   @links        : 
+#   Batterien     : alle getauscht 29.06.22
 #https://community.home-assistant.io/t/miflora-sensor-plant-database/53131/66
 #https://www.home-assistant.io/lovelace/plant-status/
  
@@ -121,41 +122,41 @@ plant:
 ###############################################################################
 ##  Sensors
 ###############################################################################
-sensor:
-  # Sensors polled directly from HA-Container
-  - platform: miflora
-    mac: !secret plantsensor1_mac
-    name: 'Pflanze 1'
-    monitored_conditions:
-      - moisture
-      - light
-      - temperature
-      - conductivity
-      - battery
-    median: *intervals_for_median #scan_interval=20min 
-    go_unavailable_timeout: *int_seconds_ago_unavailable_timeout
-  - platform: miflora
-    mac: !secret plantsensor2_mac
-    name: 'Pflanze 2'
-    monitored_conditions:
-      - moisture
-      - light
-      - temperature
-      - conductivity
-      - battery
-    median: *intervals_for_median #scan_interval=20min 
-    go_unavailable_timeout: *int_seconds_ago_unavailable_timeout
-  - platform: miflora
-    mac: !secret plantsensor3_mac
-    name: 'Pflanze 3'
-    monitored_conditions:
-      - moisture
-      - light
-      - temperature
-      - conductivity
-      - battery
-    median: *intervals_for_median #scan_interval=20min 
-    go_unavailable_timeout: *int_seconds_ago_unavailable_timeout
+# sensor:
+#   # Sensors polled directly from HA-Container
+#   - platform: miflora
+#     mac: !secret plantsensor1_mac
+#     name: 'Pflanze 1'
+#     monitored_conditions:
+#       - moisture
+#       - light
+#       - temperature
+#       - conductivity
+#       - battery
+#     median: *intervals_for_median #scan_interval=20min 
+#     go_unavailable_timeout: *int_seconds_ago_unavailable_timeout
+#   - platform: miflora
+#     mac: !secret plantsensor2_mac
+#     name: 'Pflanze 2'
+#     monitored_conditions:
+#       - moisture
+#       - light
+#       - temperature
+#       - conductivity
+#       - battery
+#     median: *intervals_for_median #scan_interval=20min 
+#     go_unavailable_timeout: *int_seconds_ago_unavailable_timeout
+#   - platform: miflora
+#     mac: !secret plantsensor3_mac
+#     name: 'Pflanze 3'
+#     monitored_conditions:
+#       - moisture
+#       - light
+#       - temperature
+#       - conductivity
+#       - battery
+#     median: *intervals_for_median #scan_interval=20min 
+#     go_unavailable_timeout: *int_seconds_ago_unavailable_timeout
 
   # Sensors derived from MQTT, data send by plantgateway or miflora-mqtt-daemon 
 #  - platform: mqtt

@@ -1,0 +1,616 @@
+###############################################################################
+#   @author       : Max Reigl
+#   @date         : 09.2022
+#   @package      : jalousie
+#   @description  : covers operated by Homematic IP wired (HmIPw) 
+#   @links        : https://www.home-assistant.io/integrations/cover/
+#                   .
+# remarks:
+# todo: Lamellenposition einstellen. Nach Herunterfahren der Jalousien Lamellen einmal auf 50%-100% und dann wieder auf 20%
+###############################################################################
+
+################################################
+##  Customize
+################################################
+homeassistant:
+  customize:
+  # definitions
+    package.node_anchors:
+      common: &common
+        package: "covers"
+  # constants 
+      cover_entityid_az_s: &cover_entityid_az_s cover.00165d89bbacf5_2
+      cover_entityid_ku: &cover_entityid_ku cover.00165d89bbacfa_6
+      cover_entityid_ez: &cover_entityid_ez cover.00165d89bbacfa_2
+      cover_entityid_wz_s: &cover_entityid_wz_s cover.00165d89bbacfa_14
+      cover_entityid_wz_ws: &cover_entityid_wz_ws cover.00165d89bbacfa_10
+      cover_entityid_wz_wn: &cover_entityid_wz_wn cover.00165d89bbacf5_6
+      cover_entityid_terrace_w: &awning_entityid_w cover.00165d89bbacf5_10
+      cover_entityid_terrace_o: &awning_entityid_o cover.00165d89bbacf5_14
+  # groups, variabless
+    input_boolean.automate_jalousie:
+      <<: *common
+    input_boolean.cover_wo_sun:
+      <<: *common
+    input_boolean.auto_shade_when_home:
+      <<: *common
+    switch.enable_jalousie_automation:
+      <<: *common
+    switch.cover_only_when_sunshine:
+      <<: *common
+    switch.automatic_shade_when_home:
+      <<: *common
+  # sensors
+    sensor.max_wind_warn_level:
+      <<: *common
+    sensor.max_wind_speed:
+      <<: *common
+  # automations
+    script.position_jalousie:
+      <<: *common
+    script.close_jalousie:
+      <<: *common
+    automation.closing_cover_in_summer:
+      <<: *common
+    automation.opening_cover_when_windy:
+      <<: *common
+
+
+###############################################################################
+##  Groups
+###############################################################################
+group:
+  alle_markisen: #all awnings
+    name: alle Markisen
+    icon: mdi:storefront-outline
+    entities:
+      - *awning_entityid_w
+      - *awning_entityid_o
+  alle_jalousien_sued: #all blinds facing south
+    name: südliche Jalousien
+    icon: mdi:blinds-horizontal #blinds-horizontal-closed
+    entities:
+      - *cover_entityid_az_s 
+      - *cover_entityid_ku 
+      - *cover_entityid_ez
+      - *cover_entityid_wz_s
+  alle_jalousien_west: #all blinds facing west
+    name: westliche Jalousien
+    icon: mdi:blinds-horizontal #blinds-horizontal-closed
+    entities:
+      - *cover_entityid_wz_ws
+      - *cover_entityid_wz_wn 
+
+###############################################################################
+##  Variables
+###############################################################################
+input_boolean:
+  # zum Aktivieren der Jalousie-Steuerung allgemein
+  automate_jalousie:
+    name: automatische Jalousiesteuerung
+    icon: mdi:robot
+
+  cover_wo_sun:
+    name: verdunkeln ohne Sonne
+    icon: mdi:weather-sunny-off #weather-sunny
+
+  auto_shade_when_home:
+    name: Auto-Beschattung auch wenn zuhause
+    icon: mdi:weather-sunny-off
+
+switch:
+  - platform: template
+    switches: ## are needed in addition to input_booleans to get a dynamic icon
+      enable_jalousie_automation:
+        friendly_name: Automatische Jalousiesteuerung  
+        value_template: "{{ is_state('input_boolean.automate_jalousie', 'on') }}"
+        turn_on:
+          service: homeassistant.turn_on
+          data:
+            entity_id: input_boolean.automate_jalousie
+        turn_off:
+          service: homeassistant.turn_off
+          data:
+            entity_id: input_boolean.automate_jalousie
+        icon_template: >-
+          {% if is_state('input_boolean.automate_jalousie', 'off') %}
+            mdi:ghost-off-outline
+          {% else %}
+            mdi:ghost
+          {% endif %}
+
+      cover_only_when_sunshine:
+        friendly_name: verdunkeln nur bei Sonne 
+        value_template: "{{ is_state('input_boolean.cover_wo_sun', 'off') }}"
+        turn_on:
+          service: homeassistant.turn_off
+          data:
+            entity_id: input_boolean.cover_wo_sun
+        turn_off:
+          service: homeassistant.turn_on
+          data:
+            entity_id: input_boolean.cover_wo_sun
+        icon_template: >-
+          {% if is_state('input_boolean.cover_wo_sun', 'on') %}
+            mdi:weather-sunny-off
+          {% else %}
+            mdi:weather-sunny
+          {% endif %}
+
+      automatic_shade_when_home:
+        friendly_name: Auto-Beschattung wenn zuhause 
+        value_template: "{{ is_state('input_boolean.auto_shade_when_home', 'on') }}"
+        turn_on:
+          service: homeassistant.turn_on
+          data:
+            entity_id: input_boolean.auto_shade_when_home
+        turn_off:
+          service: homeassistant.turn_off
+          data:
+            entity_id: input_boolean.auto_shade_when_home
+        icon_template: >-
+          {% if is_state('input_boolean.auto_shade_when_home', 'on') %}
+            mdi:account-check-outline
+          {% else %}
+            mdi:account-off-outline
+          {% endif %}
+
+###############################################################################
+##  Sensors
+###############################################################################
+sensor:
+  - platform: min_max
+    name: max_wind_warn_level
+    type: max
+    entity_ids:
+      - sensor.dwd_current_warn_level_gewitter
+      - sensor.dwd_current_warn_level_sturm
+      - sensor.dwd_current_warn_level_hagel
+  - platform: template
+    sensors:
+      max_wind_speed:
+        unit_of_measurement: m/s
+        value_template: >-
+          {% set values = [ 
+            state_attr('weather.dwd_weather_ak_stuttgart', 'wind_speed')|float/3.6,
+            states('sensor.home_hourly_wind_speed')|float, 
+            states('sensor.home_hourly_forecast_wind_speed')|float,
+            ]
+          %}
+          {{ values|max }}
+
+
+###############################################################################
+##  Scripts
+###############################################################################
+script:
+  position_jalousie:
+    # Lowers via HmIPW-DRBL4 the blind <my_cover_id> to covering value <my_cover_position>. 
+    # The script will tilt the blinds at the final position to untangle the slats.
+    alias: Jalousie runter auf Position
+    fields:
+      my_cover_id:
+        description: 'Entity-ID der Jalousie (nicht für Markisen).'
+      my_cover_position:
+        description: 'Neue Position (100=oben/drinnen, 0=unten/draussen).'
+      my_tilt_position:
+        description: 'öffen der Jalousielamellen auf dieen Wert (100=offen, 0=geschlossen).'
+    mode: parallel
+    sequence:
+      - service: cover.set_cover_position
+        target:
+          entity_id: "{{ my_cover_id }}"
+        data:
+          position: "{{ my_cover_position }}"
+# ACHTUNG: Aufruf aus anderen Scripten geht nicht. Paralellisierung klappt nicht. 
+      # - alias: "Wait until cover is down"
+      #   wait_template: "{{ state_attr(my_cover_id, my_cover_position) }}"
+      #   timeout:
+      #     seconds: 30
+      #   continue_on_timeout: false
+      # - service: cover.set_cover_tilt_position
+      #   target:
+      #     entity_id: "{{ my_cover_id }}"
+      #   data: 
+      #     tilt_position: 100
+      # - delay:
+      #     seconds: 2
+      # - service: cover.set_cover_tilt_position
+      #   target:
+      #     entity_id: "{{ my_cover_id }}"
+      #   data: 
+      #     tilt_position: "{{ my_tilt_position }}"
+
+  retract_cover:
+    # Retracts (no shade) via HmIPW-DRBL4 the blind (up) or the awning (in) <my_cover_id> completely. 
+    alias: Jalousie hoch/Markise rein
+    fields:
+      my_cover_id:
+        description: 'Entity-ID der Jalousie oder Markise.'
+        example: 'my_cover_id: <cover.____>'
+    mode: parallel
+    sequence:
+      - service: cover.open_cover
+        target:
+          entity_id: "{{ my_cover_id }}"
+  
+  retract_covers_on_side:
+    alias: alle Jalousien und Markisen hoch/rein
+    description: 'Jalousien auf der/den übergebenen Seite/n und Markiesen werden komplett eingefahren.'
+    fields:
+      in_south:
+        description: 'Öffnen der Jalousien nach Süden.'
+        example: 'true|false. Default: true'
+      in_west:
+        description: 'Öffnen der Jalousien nach Westen.'
+        example: 'true|false. Default: true'
+      on_terrace:
+        description: 'Einfahren der Markiesen.'
+        example: 'true|false. Default: true'
+    mode: parallel
+    sequence:
+      - if:
+          - alias: nach Süden?
+            condition: template
+            value_template: "{{ (in_south|default(true)) == true }}"
+        then:
+          - alias: alle Jalousien im Süden hoch
+            parallel:
+            - repeat:
+                for_each:
+                  - cover_id: *cover_entityid_az_s
+                  - cover_id: *cover_entityid_ku
+                  - cover_id: *cover_entityid_ez
+                  - cover_id: *cover_entityid_wz_s
+                sequence:
+                  - service: script.retract_cover
+                    data:
+                      my_cover_id: "{{ repeat.item.cover_id }}"
+      - if:
+          - alias: nach Westen?
+            condition: template
+            value_template: "{{ (in_west|default(true)) == true }}"
+        then:
+          - alias: alle Jalousien im Westen hoch
+            parallel:
+            - repeat:
+                for_each:
+                  - cover_id: *cover_entityid_wz_ws
+                  - cover_id: *cover_entityid_wz_wn
+                sequence:
+                  - service: script.retract_cover
+                    data:
+                      my_cover_id: "{{ repeat.item.cover_id }}"
+      - if:
+          - alias: Markisen einfahren?
+            condition: template
+            value_template: "{{ (on_terrace|default(true)) == true }}"
+        then:
+          - alias: alle Markisen rein
+            parallel:
+            - repeat:
+                for_each:
+                  - cover_id: *awning_entityid_w
+                  - cover_id: *awning_entityid_o
+                sequence:
+                  - service: script.retract_cover
+                    data:
+                      my_cover_id: "{{ repeat.item.cover_id }}"
+
+  lower_all_covers_on_side:
+    # lowers via HmIPW-DRBL4 all blinds on side <in_south=true> and or <in_west=true> completely. 
+    # weitere Bedingungen?
+      # cover not below 60% (manually lowered)
+      # cover not moving
+    alias: alle Jalousien im Süden und/oder Westen runter
+    description: 'Jalousien auf der/den übergebenen Seite/n werden soweit möglich abgesenkt. Jede Jalousie prüft, ob die entsprechnde Tür geschlsosen ist.'
+    fields:
+      in_south:
+        description: 'Verdunken der Jalousien nach Süden.'
+        example: 'true|false. Default: false'
+      in_west:
+        description: 'Verdunken der Jalousien nach Westen.'
+        example: 'true|false. Default: false'
+    mode: parallel
+    sequence:
+      - if:
+          - alias: Westen beschatten
+            condition: template
+            value_template: "{{ (in_west|default(false)) == true }}"
+        then:
+          parallel:
+          - repeat:
+              for_each:
+                - cover_id: *cover_entityid_wz_ws
+                  door_closed: true
+                  to_position: 9
+                - cover_id: *cover_entityid_wz_wn
+                  door_closed: "{{ not is_state('binary_sensor.lumi_lumi_sensor_magnet_aq2_03139f7b_1_6','on') }}"
+                  to_position: 0
+              sequence:
+                - if: 
+                  - alias: Door is closed
+                    condition: template
+                    value_template:  "{{ repeat.item.door_closed }}"
+                  then:
+                    # - service: cover.set_cover_tilt_position
+                    #   target:
+                    #     entity_id: "{{ repeat.item.cover_id }}"
+                    #   data: 
+                    #     tilt_position: 100
+                    # - service: cover.set_cover_position
+                    #   target:
+                    #     entity_id: "{{ repeat.item.cover_id }}"
+                    #   data:
+                    #     position: "{{ repeat.item.to_position }}"
+                    # - alias: "Wait until cover is down"
+                    #   wait_template: "{{ state_attr(repeat.item.cover_id, repeat.item.to_position) }}"
+                    #   timeout:
+                    #     seconds: 75
+                    #   continue_on_timeout: false
+                    # - service: cover.set_cover_tilt_position
+                    #   target:
+                    #     entity_id: "{{ repeat.item.cover_id }}"
+                    #   data: 
+                    #     tilt_position: 20
+                    # - service: cover.set_cover_position
+                    #   target:
+                    #     entity_id: "{{ repeat.item.cover_id }}"
+                    #   data:
+                    #     position: "{{ repeat.item.to_position }}"
+                    #TEST: geht nicht. Parallelisierung geht nucht
+                    - service: script.position_jalousie
+                      data:
+                        my_cover_id: "{{ repeat.item.cover_id }}"
+                        my_cover_position: "{{ repeat.item.to_position }}"
+                        my_tilt_position: 20
+
+      - if:
+          - alias: Süden beschatten
+            condition: template
+            value_template: "{{ (in_south|default(false)) == true }}"
+        then:
+          parallel:
+          - repeat:
+              for_each:
+                - cover_id: *cover_entityid_az_s
+                  door_closed: "{{ not is_state('binary_sensor.lumi_lumi_sensor_magnet_aq2_0aa90a04_on_off','on') }}"
+                  to_position: 0
+                - cover_id: *cover_entityid_ku
+                  door_closed: "{{ not is_state('binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6','on') }}"
+                  to_position: 15
+                - cover_id: *cover_entityid_ez
+                  door_closed: "{{ not is_state('binary_sensor.lumi_lumi_sensor_magnet_aq2_f2fd4604_1_6','on') }}"
+                  to_position: 0
+                - cover_id: *cover_entityid_wz_s
+                  door_closed: "{{ not is_state('binary_sensor.lumi_lumi_sensor_magnet_aq2_9ac61c04_1_6','on') }}"
+                  to_position: 23
+              sequence:
+                - if: 
+                  - alias: Door is closed
+                    condition: template
+                    value_template:  "{{ repeat.item.door_closed }}"
+                  then:
+                    - service: cover.set_cover_position
+                      target:
+                        entity_id: "{{ repeat.item.cover_id }}"
+                      data:
+                        position: "{{ repeat.item.to_position }}"
+
+  stop_covers:
+    alias: alle Jalousien und Markisen stoppen
+    description: 'Jalousien auf der/den übergebenen Seite/n und Markiesen werden gestoppt.'
+    fields:
+      in_south:
+        description: 'Stoppen der Jalousien nach Süden.'
+        example: 'true|false. Default: true'
+      in_west:
+        description: 'Stoppen der Jalousien nach Westen.'
+        example: 'true|false. Default: true'
+      on_terrace:
+        description: 'Stoppen der Markiesen.'
+        example: 'true|false. Default: true'
+    mode: parallel
+    sequence:
+      - if:
+          - alias: nach Süden?
+            condition: template
+            value_template: "{{ (in_south|default(true)) == true }}"
+        then:
+          - alias: alle Jalousien im Süden anhalten
+            parallel:
+            - repeat:
+                for_each:
+                  - cover_id: *cover_entityid_az_s
+                  - cover_id: *cover_entityid_ku
+                  - cover_id: *cover_entityid_ez
+                  - cover_id: *cover_entityid_wz_s
+                sequence:
+                  - service: cover.stop_cover
+                    data:
+                      entity_id: "{{ repeat.item.cover_id }}"
+      - if:
+          - alias: nach Westen?
+            condition: template
+            value_template: "{{ (in_west|default(true)) == true }}"
+        then:
+          - alias: alle Jalousien im Westen anhalten
+            parallel:
+            - repeat:
+                for_each:
+                  - cover_id: *cover_entityid_wz_ws
+                  - cover_id: *cover_entityid_wz_wn
+                sequence:
+                  - service: cover.stop_cover
+                    data:
+                      entity_id: "{{ repeat.item.cover_id }}"
+      - if:
+          - alias: Markisen anhalten?
+            condition: template
+            value_template: "{{ (on_terrace|default(true)) == true }}"
+        then:
+          - alias: alle Markisen anhalten
+            parallel:
+            - repeat:
+                for_each:
+                  - cover_id: *awning_entityid_w
+                  - cover_id: *awning_entityid_o
+                sequence:
+                  - service: cover.stop_cover
+                    data:
+                      entity_id: "{{ repeat.item.cover_id }}"
+
+
+###############################################################################
+##  Automations
+###############################################################################
+automation:
+  #-------------------------------
+  # 
+  - id: closing_cover_in_summer
+    alias: Jalousien fuer Sonnenschutz runter
+    description: ''
+    mode: single #Do not start a new run, if running already. 
+    trigger:
+      - id: 'nobody_home'
+        platform: state
+        entity_id: sensor.home_status
+        from: 'Home'
+        to: 'Away'
+        for:
+          minutes: 1
+      - id: 'sun_shining'
+        platform: state
+        entity_id: 
+          - sensor.sunshine_west
+          - sensor.sunshine_south
+        to: 'True'
+        for:
+          minutes: 3
+      - id: 'config_changed'
+        platform: state
+        entity_id: 
+          - input_boolean.automate_jalousie
+          - input_boolean.auto_shade_when_home
+          - input_boolean.cover_wo_sun
+        to: 'on'
+      - id: 'morning_over'
+        platform: time
+        at: '09:00:10'
+    condition:
+      - and:
+        - alias: Automation is turned on
+          condition: state
+          entity_id: input_boolean.automate_jalousie
+          state: 'on'
+        - alias: Not when in heating period
+          condition: state
+          entity_id: input_boolean.heating_period
+          state: 'off'
+        - alias: not windy or stormy
+          condition: numeric_state
+          entity_id: sensor.max_wind_warn_level
+          below: 2
+        - or:
+          - alias: nobody home
+            condition: state
+            entity_id: sensor.home_status
+            state: 
+              - 'Away'
+              - 'Extended Away'
+          - and:
+            - alias: automation even when home
+              condition: state
+              entity_id: input_boolean.auto_shade_when_home
+              state: 'on'
+            - alias: but not before 9:00
+              condition: time
+              after: '09:00:00'
+        - or:
+          - alias: sun is shining
+            condition: state
+            entity_id: sensor.sun_is_shining
+            state: 'True'
+          - and:
+            - alias: lower cover without sun
+              condition: state
+              entity_id: input_boolean.cover_wo_sun
+              state: 'on'
+            - alias: sun above horizon
+              condition: state
+              entity_id: sun.sun
+              state: 'above_horizon'
+    action:
+      - service: script.lower_all_covers_on_side
+        data:
+          in_south: "{{ is_state('sensor.sunshine_south','True') or is_state('input_boolean.cover_wo_sun','on') }}"
+          in_west:  "{{ is_state('sensor.sunshine_west','True') or is_state('input_boolean.cover_wo_sun','on') }}"
+
+  - id: retract_all_cover_when_windy
+    alias: alle Jalousien/Markisen rein bei starkem Wind
+    description: ''
+    mode: single #Do not start a new run, if running already. 
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.max_wind_warn_level
+        above: 1
+      - platform: numeric_state
+        entity_id: sensor.max_wind_speed
+        above: 10 # [m/s]
+    condition: []
+    action:
+      - service: script.retract_covers_on_side
+        data:
+          in_south:   true
+          in_west:    true
+          on_terrace: true
+
+  - id: retract_awning_when_windy_or_raining
+    alias: alle Markisen rein bei Regen oder Wind
+    description: ''
+    mode: single #Do not start a new run, if running already. 
+    trigger:
+      - platform: state
+        entity_id: 
+          - weather.dwd_weather_ak_stuttgart
+          - weather.home_hourly
+        to: 'rainy'
+      - platform: numeric_state
+        entity_id: sensor.max_wind_speed
+        above: 5 # [m/s]
+    condition: []
+    action:
+      - service: script.retract_covers_on_side
+        data:
+          in_south:   false
+          in_west:    false
+          on_terrace: true
+
+  - id: retract_all_cover_without_sun
+    alias: alle Jalousien/Markisen ohne Sonne wieder rein 
+    description: ''
+    mode: single #Do not start a new run, if running already. 
+    trigger:
+      - id: 'sunset'
+        platform: state
+        entity_id: sun.sun
+        to: 'below_horizon'
+        for:
+          minutes: 5
+      - id: 'south_wo_sun'
+        platform: template
+        value_template: "{{ state_attr('sun.sun','azimuth') | int > 240 }}"
+      - id: 'west_wo_sun'
+        platform: template
+        value_template: "{{ state_attr('sun.sun','azimuth') | int > 330 }}"
+    condition: 
+      - alias: Automation is turned on
+        condition: state
+        entity_id: input_boolean.automate_jalousie
+        state: 'on'
+    action:
+      - service: script.retract_covers_on_side
+        data:
+          in_south:   "{{ state_attr('sun.sun', 'azimuth')>=240 or is_state('sun.sun','below_horizon') }}"
+          in_west:    "{{ state_attr('sun.sun', 'azimuth')>=330 or is_state('sun.sun','below_horizon') }}"
+          on_terrace: "{{ is_state('sun.sun','below_horizon') }}"

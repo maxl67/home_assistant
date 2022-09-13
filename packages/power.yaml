@@ -146,7 +146,7 @@ automation:
     # FritzDect1 schaltet WLAN, Unify-Switch und Raspi aus.
   - id: switch_off_network
     mode: restart
-    alias: switch_off_network #switch off network components
+    alias: switch off network components
     trigger: 
       - platform: state
         entity_id: sensor.home_status

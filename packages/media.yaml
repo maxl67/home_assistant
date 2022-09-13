@@ -76,9 +76,9 @@ media_player:
   #  #name: panasonic_blu_ray
 
 # Zugriff Radio Bad geht, wird aber nicht gebraucht
-  - platform: frontier_silicon
-    name: Radio Bad
-    host: !secret radio_bad_ip
+  #- platform: frontier_silicon
+  #  name: Radio Bad
+  #  host: !secret radio_bad_ip
 
 
 ###############################################################################
@@ -574,7 +574,7 @@ automation:
           - condition: time
             after: '23:00:00'
           - condition: time
-            before: '07:30:00'    
+            before: '07:00:00'    
       - condition: state
         entity_id: group.mediadevices_in_use
         state: 'off'

@@ -151,6 +151,9 @@ cards:
         entities:
         - entity: sensor.latest_version
           name: latest
+        tap_action: 
+          action: url
+          url_path: https://www.home-assistant.io/blog/categories/release-notes/
       - entity: sensor.hacs
         name: HACS updates
         style: |
@@ -160,14 +163,14 @@ cards:
               --paper-item-icon-color: #FF7738;
             {% endif %}
           }
-      - entity: sensor.potential_breaking_changes
-        type: custom:multiple-entity-row
-        name: Breaking changes
-        secondary_info: last-changed
-        icon: mdi:alert-circle
-        tap_action: 
-          action: url
-          url_path: https://www.home-assistant.io/blog/categories/release-notes/
+      # - entity: sensor.potential_breaking_changes
+      #   type: custom:multiple-entity-row
+      #   name: Breaking changes
+      #   secondary_info: last-changed
+      #   icon: mdi:alert-circle
+      #   tap_action: 
+      #     action: url
+      #     url_path: https://www.home-assistant.io/blog/categories/release-notes/
       - entity: sensor.historydb_size
         name: Recorder Database
         icon: mdi:database

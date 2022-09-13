@@ -149,8 +149,8 @@ frontend:
 hacs:
   token: !secret hacs_token
 
-breaking_changes:
-  scan_interval: 3600 #sec between updates. default 300.
+#breaking_changes:
+#  scan_interval: 3600 #sec between updates. default 300.
 
 python_script:
 
