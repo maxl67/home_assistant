@@ -70,11 +70,11 @@ zha:
 # MQTT-Broker. Mosquitto-Docker MUSS vor HA gestartet werden. 
 # wird benötigt für Battery Status Automation (siehe Package 'battery_alert')
 # und BT-Monitor (Package 'presence_detection') und plantgateway und Raspi-Sensoren
-mqtt:
+# mqtt:
 #  broker: !secret DS_IP
 #  password: !secret mqtt_broker_password
 #  discovery: true
-  discovery_prefix: homeassistant
+#  discovery_prefix: homeassistant
 
 # Support for iOS app
 mobile_app:

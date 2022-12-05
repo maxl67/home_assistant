@@ -20,172 +20,6 @@ icon: mdi:home
 #  {% endif %}
 path: home
 cards:
-
-  # Parameter der Jalousiensteuerung
-  - type: custom:vertical-stack-in-card
-    cards:
-      - type: entities
-        title: Jalousien
-        state_color: false
-        entities:
-          # - type: custom:slider-entity-row
-          #   entity: cover.00165d89bbacfa_2
-          #   name: Esszimmer
-          # - type: divider
-          - entity: cover.00165d89bbacf5_2
-            name: Büro
-            secondary_info: position
-            style: |
-              :host {
-                {% if state_attr('cover.00165d89bbacf5_2','current_position')|int <=95  %}
-                  --paper-item-icon-color: var(--paper-item-icon-active-color);
-                {% else %}
-                  --paper-item-icon-color: var(--primary-text-color);
-                {% endif %}
-              }
-          - entity: cover.00165d89bbacfa_6
-            name: Küche
-            secondary_info: position
-            style: |
-              :host {
-                {% if state_attr('cover.00165d89bbacfa_6','current_position')|int <=95  %}
-                  --paper-item-icon-color: var(--paper-item-icon-active-color);
-                {% else %}
-                  --paper-item-icon-color: var(--primary-text-color);
-                {% endif %}
-              }
-          - entity: cover.00165d89bbacfa_2
-            name: Esszimmer
-            secondary_info: position
-            style: |
-              :host {
-                {% if state_attr('cover.00165d89bbacfa_2','current_position')|int <=95  %}
-                  --paper-item-icon-color: var(--paper-item-icon-active-color);
-                {% else %}
-                  --paper-item-icon-color: var(--primary-text-color);
-                {% endif %}
-              }
-          - entity: cover.00165d89bbacfa_14
-            name: Wohnen Süd
-            secondary_info: position
-            style: |
-              :host {
-                {% if state_attr('cover.00165d89bbacfa_14','current_position')|int <=95  %}
-                  --paper-item-icon-color: var(--paper-item-icon-active-color);
-                {% else %}
-                  --paper-item-icon-color: var(--primary-text-color);
-                {% endif %}
-              }
-          - entity: cover.00165d89bbacfa_10
-            name: Wohnen West
-            secondary_info: position
-            style: |
-              :host {
-                {% if state_attr('cover.00165d89bbacfa_10','current_position')|int <=95  %}
-                  --paper-item-icon-color: var(--paper-item-icon-active-color);
-                {% else %}
-                  --paper-item-icon-color: var(--primary-text-color);
-                {% endif %}
-              }
-          - entity: cover.00165d89bbacf5_6
-            name: Wohnen Nord
-            secondary_info: position
-            style: |
-              :host {
-                {% if state_attr('cover.00165d89bbacf5_6','current_position')|int <=95  %}
-                  --paper-item-icon-color: var(--paper-item-icon-active-color);
-                {% else %}
-                  --paper-item-icon-color: var(--primary-text-color);
-                {% endif %}
-              }
-          - type: divider
-          - type: buttons
-            entities:
-              - name: alles hoch/rein
-                entity: script.retract_covers_on_side
-                icon: mdi:blinds-open
-                tap_action: 
-                  action: call-service
-                  service: script.retract_covers_on_side
-                double_tap_action: 
-                  action: call-service
-                  service: script.stop_covers
-                  confirmation: 
-                    text: Sollen alle Jalousien und Markisen angehalten werden?
-              - name: Süden zu
-                entity: script.lower_all_covers_on_side
-                icon: mdi:blinds-horizontal-closed
-                tap_action: 
-                  action: call-service
-                  service: script.lower_all_covers_on_side
-                  data:
-                    in_south: true
-                    in_west: false
-                double_tap_action: 
-                  action: call-service
-                  service: script.stop_covers
-                  data:
-                    in_south: true
-                    in_west: false
-                  confirmation: 
-                    text: Sollen die Jalousien nach Süden angehalten werden?
-              - name: Westen zu
-                entity: script.lower_all_covers_on_side
-                icon: mdi:roller-shade-closed
-                tap_action: 
-                  action: call-service
-                  service: script.lower_all_covers_on_side
-                  data:
-                    in_south: false
-                    in_west: true
-                double_tap_action: 
-                  action: call-service
-                  service: script.stop_covers
-                  data:
-                    in_south: false
-                    in_west: true
-                  confirmation: 
-                    text: Sollen die Jalousien nach Westen angehalten werden?
-          - type: section
-          - entity: switch.enable_jalousie_automation
-            toggle: true
-            state_color: true
-            name: Automatische Beschattung #automate covers
-
-    # options for blinds (only if activated)
-      - type: conditional
-        state_color: true
-        conditions:
-          - entity: input_boolean.automate_jalousie
-            state: 'on'
-        card:
-          type: entities
-          title: ' '
-          show_header_toggle: false
-          card_mod:
-            style: |
-              ha-card .card-header {
-                padding: 0px;
-                display: unset;
-          entities:
-            # configuration
-            - type: custom:fold-entity-row
-              head:
-                type: section
-                label: Steuerung  # configuration
-              padding: 0 px
-              open: false
-              entities:
-                - entity: switch.automatic_shade_when_home
-                  type: custom:multiple-entity-row
-                  toggle: true
-                  state_color: true
-                - entity: switch.cover_only_when_sunshine
-                  name: nur bei Sonnenschein 
-                  toggle: true
-                  state_color: true
-
-
   #------------------------------------------------
   # show warnings & alarms
   - type: custom:auto-entities
@@ -287,7 +121,6 @@ cards:
           - type: divider
           - entity: input_boolean.guests
 
-
   #------------------------------------------------
   # show events from home-calendar (if any)
 #  - type: conditional
@@ -310,12 +143,12 @@ cards:
     show_header_toggle: false
     state_color: true
     entities:
-      - entity: switch.osram_plug_01_a1bf020a_3
+      - entity: switch.ikea_of_sweden_tradfri_control_outlet_switch #switch.osram_plug_01_a1bf020a_3
         name: HiFi & TV
         #icon on:  mdi:television-speaker
         #icon off: mdi:television-speaker-off
       - entity: switch.fritz_dect_200_netz
-        name: Network-Rack        
+        name: Network-Rack
       - entity: switch.fritz_dect_200_gz
         name: Schreibtisch Max
       - type: divider
@@ -344,13 +177,13 @@ cards:
         name: Ambiente Wohnen
         toggle: true
         hide_when_off: false
+        min: 25
+        max: 100
       - type: custom:slider-entity-row
         entity: light.0008dd899c4781
         name: Kiesel Büro
         toggle: true
         hide_when_off: false
-        min: 10
-        max: 50
       - type: custom:slider-entity-row
         entity: light.philips_lightstrip_ku
         name: Lichtsteifen Küche
@@ -358,6 +191,10 @@ cards:
         hide_when_off: true
       - type: divider
       - entity: switch.enable_light_automation
+
+  #------------------------------------------------
+  # operation and options for blinds
+  - !include ../cards/jalousien.yaml
 
   #------------------------------------------------
   - type: conditional

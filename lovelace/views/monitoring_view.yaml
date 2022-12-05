@@ -261,7 +261,10 @@ cards:
                     icon: mdi:speedometer
                     tap_action: 
                       action: call-service
-                      service: speedtestdotnet.speedtest
+                    #  service: speedtestdotnet.speedtest
+                      service: homeassistant.update_entity
+                      target:
+                        entity_id: sensor.speedtest_download
           - type: section
             #- entity: sensor.fritz_rate_up
             #- entity: sensor.fritz_rate_down
@@ -338,15 +341,16 @@ cards:
             - entity: sensor.last_boot
               name: letzter Systemstart
               icon: mdi:restart
-            - entity: binary_sensor.hera_update_available
+            - entity: update.hera_dsm_update
               type: custom:multiple-entity-row
               name: Updates verfügbar
               entities:
               - entity: update.hera_dsm_update
                 name: DSM
+                attribute: latest_version
               style: |
                 :host {
-                  {% if is_state('binary_sensor.hera_update_available','on') %}
+                  {% if is_state('update.hera_dsm_update','on') %}
                     color: var(--paper-item-icon-active-color);
                     --paper-item-icon-color: #FF7738;
                   {% endif %}

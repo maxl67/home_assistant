@@ -583,7 +583,7 @@ automation:
         state: 'off'
     action:
       - service: switch.turn_off
-        entity_id: switch.osram_plug_01_a1bf020a_3
+        entity_id: switch.ikea_of_sweden_tradfri_control_outlet_switch
 
   # Einschalten des Media Racks nachmittags, wenn wir zuhause sind
   - id: power_on_mediarack_for_use
@@ -625,7 +625,7 @@ automation:
                 state: 'off'
     action:
       - service: switch.turn_on
-        entity_id: switch.osram_plug_01_a1bf020a_3
+        entity_id: switch.ikea_of_sweden_tradfri_control_outlet_switch
 
   #----------------------------------------------------------------------------------
   # Licht-Szene für Fernsehen

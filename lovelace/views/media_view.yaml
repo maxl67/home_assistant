@@ -21,7 +21,7 @@ cards:
       # Power switch
       - type: conditional
         conditions:
-          - entity: switch.osram_plug_01_a1bf020a_3 
+          - entity: switch.ikea_of_sweden_tradfri_control_outlet_switch 
             state: "off"
         card:
           # power status of the entertainment rack
@@ -31,13 +31,13 @@ cards:
             show_header_toggle: false
             state_color: true
             entities:
-              - entity: switch.osram_plug_01_a1bf020a_3
+              - entity: switch.ikea_of_sweden_tradfri_control_outlet_switch
                 name: Power-Plug
 
       # Media Players
       - type: conditional
         conditions:
-          - entity: switch.osram_plug_01_a1bf020a_3 
+          - entity: switch.ikea_of_sweden_tradfri_control_outlet_switch
             state: "on"
         card:
           type: vertical-stack
@@ -486,7 +486,7 @@ cards:
 #        show_header_toggle: false
 #        state_color: true
 #        entities:
-#          - entity: switch.osram_plug_01_a1bf020a_3
+#          - entity: switch.ikea_of_sweden_tradfri_control_outlet_switch
 #            name: Power-Plug
 #          - type: divider
 #          - entity: group.mediadevices_in_use

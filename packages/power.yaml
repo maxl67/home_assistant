@@ -22,9 +22,9 @@ homeassistant:
       # entity-id's
       powerswitch_rack_entityid: &powerswitch_rack_entityid switch.fritz_dect_200_netz
       powerswitch_gz_entityid: &powerswitch_gz_entityid switch.fritz_dect_200_gz
-      powerswitch_tv_entityid: &powerswitch_tv_entityid switch.osram_plug_01_a1bf020a_3
+      powerswitch_tv_entityid: &powerswitch_tv_entityid switch.ikea_of_sweden_tradfri_control_outlet_switch
   # entities
-    switch.osram_plug_01_a1bf020a_3:
+    switch.ikea_of_sweden_tradfri_control_outlet_switch:
       icon: mdi:audio-video #mdi:power-socket-de
       
   # groups, variables

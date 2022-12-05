@@ -160,5 +160,8 @@ automation:
           minutes: 15
     condition: []
     action:
-      - service: speedtestdotnet.speedtest
+#      - service: speedtestdotnet.speedtest
+      - service: homeassistant.update_entity
+        target:
+          entity_id: sensor.speedtest_download
     mode: single

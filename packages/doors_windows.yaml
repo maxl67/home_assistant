@@ -1,8 +1,8 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 14.11.2019
+#   @date         : 29.04.2022
 #   @package      : doors_windows
-#   @description  : Notifications for status of door and windows
+#   @description  : Notifications of status of open doors and windows
 #   @links        : 
 ###############################################################################
 
@@ -72,6 +72,14 @@ homeassistant:
       <<: *common
     input_boolean.ll_signals_doorstatus:
       <<: *common
+    input_boolean.disable_signal_automation:
+      <<: *common
+    input_boolean.show_signal:
+      <<: *common
+    switch.enable_signal_automation:
+      <<: *common
+    switch.show_signal:
+      <<: *common
   # automations
     automation.LL_signal_status:
       <<: *common
@@ -103,8 +111,8 @@ group:
       - binary_sensor.lumi_lumi_sensor_magnet_aq2_9ac61c04_1_6 #3 Wohnzimmer S
       - binary_sensor.lumi_lumi_sensor_magnet_aq2_f2fd4604_1_6 #4 Esszimmer
       - binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6 #5 Küche
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_0aa90a04_on_off #6 Arbeitszimmer S
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_0ee51c04_1_6 #7 Arbeitszimmer O
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_0aa90a04_on_off #6 Büro S
+      - binary_sensor.lumi_lumi_sensor_magnet_aq2_0ee51c04_1_6 #7 Büro O
       - binary_sensor.lumi_lumi_sensor_magnet_aq2_032b77ce_1_6 #8 Schlafzimmer
   all_windows:
     name: alle Fenster
@@ -125,7 +133,7 @@ group:
 # value to remember, if an alert is active
 input_boolean:
   open_backdoor_alert:
-    name: Balkontür ist offen   #active warning: door is open
+    name: Terrassentür ist offen   #active warning: door is open
     icon: mdi:alert-box-outline
   open_window_alert:
     name: Fenster ist offen   #active warning: window is open
@@ -134,6 +142,52 @@ input_boolean:
   ll_signals_doorstatus:
     name: Türstatus wird angezeigt
     icon: mdi:traffic-light
+  #activate/disactivate the automation for doorstatus signal light
+  disable_signal_automation:
+    name: Ampelschaltung deaktivieren
+    icon: mdi:robot
+  #show the doorstatus signal light now
+  show_signal:
+    name: Ampel anzeigen
+    icon: mdi:traffic-light-outline
+
+switch:
+  - platform: template
+    switches: ## are needed in addition to input_booleans to get a dynamic icon
+      enable_signal_automation:
+        friendly_name: Automatische Ampel #   
+        value_template: "{% if not states('input_boolean.disable_signal_automation')=='unknown' %}{{ is_state('input_boolean.disable_signal_automation', 'off') }}{% endif %}"
+        turn_on:
+          service: homeassistant.turn_off
+          data:
+            entity_id: input_boolean.disable_signal_automation
+        turn_off:
+          service: homeassistant.turn_on
+          data:
+            entity_id: input_boolean.disable_signal_automation
+        icon_template: >-
+          {% if is_state('input_boolean.disable_signal_automation', 'on') %}
+            mdi:ghost-off-outline
+          {% else %}
+            mdi:ghost
+          {% endif %}
+      show_signal:
+        friendly_name: Ampel anzeigen   
+        value_template: "{% if not states('input_boolean.show_signal')=='unknown' %}{{ is_state('input_boolean.show_signal', 'on') }}{% endif %}"
+        turn_on:
+          service: homeassistant.turn_on
+          data:
+            entity_id: input_boolean.show_signal
+        turn_off:
+          service: homeassistant.turn_off
+          data:
+            entity_id: input_boolean.show_signal
+        icon_template: >-
+          {% if is_state('input_boolean.show_signal', 'on') %}
+            mdi:alarm-light-outline
+          {% else %}
+            mdi:alarm-light-off-outline
+          {% endif %}
 
 ###############################################################################
 ##  Scripts
@@ -141,10 +195,17 @@ input_boolean:
 script:
   flash_light:
     mode: restart
+    fields:
+      light_id:
+        description: 'ID of the light entity to be flashed.'
+        example: 'light.<id> (no light domain)'
+      count:
+        description: 'number of flashes'
+        example: '8 (should be int)'
     sequence:
       - service: light.turn_on
         target:
-          entity_id: "light.{{ light }}"
+          entity_id: "light.{{ light_id }}"
       - alias: "Cycle light 'count' times"
         repeat:
           count: "{{ count|int * 2 - 1 }}"
@@ -152,8 +213,7 @@ script:
             - delay: 2
             - service: light.toggle
               target:
-                entity_id: "light.{{ light }}"
-
+                entity_id: "light.{{ light_id }}"
 
 ###############################################################################
 ##  Automations
@@ -175,27 +235,34 @@ automation:
         entity_id: 
           - group.all_doors
           - group.all_windows
+      #Automatisierung wird angeschaltet
       - platform: state
-        entity_id: input_boolean.disable_light_automation
+        entity_id: input_boolean.disable_signal_automation
         to: 'off'
+      #Statusampel soll dauerhaft angezeigt werden (z.B. zum Debuggen)
+      - platform: state
+        entity_id: input_boolean.show_signal
+        to: 'on'
     condition:
-      # 'light_automation' aktiv UND Home status 'Home' UND Eingangtür offen
-      condition: and
-      conditions:
-      - condition: state
-        entity_id: input_boolean.disable_light_automation
-        state: 'off'
-      - condition: state
-        entity_id: sensor.home_status
-        state: 'Home'
-      - condition: state
-        entity_id: group.entrance_door
-        state: 'on'
+      # 'signal_automation' aktiv UND Home status 'Home' UND (Eingangtür offen ODER Ampel dauerhaft anzeigen)
+      - and:
+        - condition: state
+          entity_id: input_boolean.disable_signal_automation
+          state: 'off'
+        - condition: state
+          entity_id: sensor.home_status
+          state: 'Home'
+        - or:
+          - condition: state
+            entity_id: group.entrance_door
+            state: 'on'
+          - condition: state
+            entity_id: input_boolean.show_signal
+            state: 'on'
     action:
       # merken, dass wir die Ampel eingeschaltet haben
       - service: input_boolean.turn_on
         entity_id: input_boolean.ll_signals_doorstatus
-      # speichern des aktuellen Licht-Zustands...
       - service: python_script.light_store
         data:
           store_name: dw_signal_store
@@ -203,7 +270,7 @@ automation:
             - light.philips_lightstrip_ku
           overwrite: false
           all_attribs: true  #saves last color and brightness, even if state='off'. turn light on shortly
-      # Welcher Zustand?
+      # Welcher Status der Türen/Fenster?
       - choose:
         - conditions: # Mindestens eine Tür ist offen...
           - condition: state
@@ -239,22 +306,30 @@ automation:
     alias: Lichtband Status löschen
     mode: single #Do not start a new run, if running already. 
     trigger: 
+      #Eingangstür wird geschlossen
       - platform: state
         entity_id: group.entrance_door 
         to: 'off' #=closed
+      #Statusampel soll nicht mehr dauerhaft angezeigt werden
+      - platform: state
+        entity_id: input_boolean.show_signal
+        to: 'off'
     condition:
-      # 'light_automation' aktiv UND Ampel-Merker an UND Eingangtür zu
-      condition: and
-      conditions:
-      - condition: state
-        entity_id: input_boolean.disable_light_automation
-        state: 'off'
-      - condition: state
-        entity_id: input_boolean.ll_signals_doorstatus
-        state: 'on'
-      - condition: state
-        entity_id: group.entrance_door
-        state: 'off'
+      # 'signal_automation' aktiv UND Ampel-Merker an UND Eingangtür zu UND Ampel nicht dauerhaft anzeigen
+      - and:
+#Ampel aus, auch wenn Automatisierungen in der zwischenzeit deaktiviert wurden
+#        - condition: state
+#          entity_id: input_boolean.disable_signal_automation
+#          state: 'off'
+        - condition: state
+          entity_id: input_boolean.ll_signals_doorstatus
+          state: 'on'
+        - condition: state
+          entity_id: group.entrance_door
+          state: 'off'
+        - condition: state
+          entity_id: input_boolean.show_signal
+          state: 'off'
     action:
       - service: input_boolean.turn_off
         entity_id: input_boolean.ll_signals_doorstatus
@@ -309,7 +384,6 @@ automation:
             apns_headers:
               'apns-collapse-id': 'open-doors-detected'
             clickAction: '/lovelace/home'
-
   - alias: Notify all - Open Windows
     id: send_notification_open_windows
     trigger:
