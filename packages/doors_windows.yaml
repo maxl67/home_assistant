@@ -317,10 +317,10 @@ automation:
     condition:
       # 'signal_automation' aktiv UND Ampel-Merker an UND Eingangtür zu UND Ampel nicht dauerhaft anzeigen
       - and:
-#Ampel aus, auch wenn Automatisierungen in der zwischenzeit deaktiviert wurden
-#        - condition: state
-#          entity_id: input_boolean.disable_signal_automation
-#          state: 'off'
+        #Ampel aus, auch wenn Automatisierungen in der zwischenzeit deaktiviert wurden
+      #  - condition: state
+      #    entity_id: input_boolean.disable_signal_automation
+      #    state: 'off'
         - condition: state
           entity_id: input_boolean.ll_signals_doorstatus
           state: 'on'

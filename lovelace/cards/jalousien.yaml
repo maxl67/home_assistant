@@ -77,7 +77,7 @@ cards:
       - type: divider
       - type: buttons
         entities:
-          - name: alles hoch/rein
+          - name: hoch/rein
             entity: script.retract_covers_on_side
             icon: mdi:blinds-open
             tap_action: 
@@ -88,9 +88,9 @@ cards:
               service: script.stop_covers
               confirmation: 
                 text: Sollen alle Jalousien und Markisen angehalten werden?
-          - name: Süden zu
+          - name: Süd zu
             entity: script.lower_all_covers_on_side
-            icon: mdi:blinds-horizontal-closed
+            icon: mdi:roller-shade-closed #mdi:blinds-horizontal-closed
             tap_action: 
               action: call-service
               service: script.lower_all_covers_on_side
@@ -105,7 +105,7 @@ cards:
                 in_west: false
               confirmation: 
                 text: Sollen die Jalousien nach Süden angehalten werden?
-          - name: Westen zu
+          - name: West zu
             entity: script.lower_all_covers_on_side
             icon: mdi:roller-shade-closed
             tap_action: 

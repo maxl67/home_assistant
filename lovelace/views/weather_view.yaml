@@ -39,19 +39,25 @@ cards:
           line-height: 32px;
         }
     - type: divider
-    - type: custom:weather-chart-card
-      #title: Stündlich (OWM)
+    # - type: custom:weather-chart-card
+    #   #title: Stündlich (OWM)
+    #   entity: weather.home_hourly
+    #   show_main: false
+    #   show_attributes: false
+    #   units:
+    #     #pressure: mmHg
+    #     speed: km/h
+    #   style: |
+    #     .card-header {
+    #       padding: 20px 16px 10px;
+    #       line-height: 32px;
+    #     }
+    - type: custom:hourly-weather
       entity: weather.home_hourly
-      show_main: false
-      show_attributes: false
-      units:
-        #pressure: mmHg
-        speed: km/h
-      style: |
-        .card-header {
-          padding: 20px 16px 10px;
-          line-height: 32px;
-        }
+      num_segments: 12 s
+      name: null #nächste 12 Stunden
+      icons: true
+ 
 
   #------------------------------------------------
   # show weather alerts (if current_warn_count > 0)
@@ -170,13 +176,45 @@ cards:
                   show_empty: false
                   unique: true
 
-  #------------------------------------------------
-  # MeteoBlue Meteogram
-  - type: picture
-    image: !secret meteogram_image
-    tap_action:
-      action: url
-      url_path: !secret meteogram_url
+  - type: custom:tabbed-card
+    options:
+      defaultTabIndex: 0 # in a 0 based index, 1 = the second tab would be the active tab on render
+    styles:
+      --mdc-typography-button-font-size: 10
+      --mdc-theme-primary: 
+    tabs:
+      #------------------------------------------------
+      # MeteoBlue Meteogram
+      - attributes:
+          label: Meteo*
+        card:
+          type: picture
+          image: !secret meteogram_image
+          tap_action:
+            action: url
+            url_path: !secret meteogram_url
+
+      - attributes:
+          icon: mdi:weather-cloudy
+        card:
+          type: picture-entity
+          entity: camera.satelite_clouds
+          name: Bewölkung #clouds
+          show_state: false
+      - attributes:
+          icon: mdi:weather-pouring
+        card:
+          type: picture-entity
+          entity: camera.satelite_rain
+          name: Regen #rain
+          show_state: false
+      - attributes:
+          icon: mdi:weather-snowy-heavy
+        card:
+          type: picture-entity
+          entity: camera.satelite_snow
+          name: Schnee #snow
+          show_state: false
 
   #------------------------------------------------
   # Wetter-Entities
@@ -237,8 +275,6 @@ cards:
   # Themperatur - Chart
   - !include ../cards/weather_chart_temp.yaml
 
-  # # Niederschlag - Chart
-  # - !include ../cards/weather_chart_rainforecast.yaml
 
   # #------------------------------------------------
   # - type: history-graph
@@ -248,50 +284,3 @@ cards:
   #       name: DWD
   #     - entity: weather.home_hourly
   #       name: OWM
-
-  #------------------------------------------------
-  # 3 different satelite pictures (rain, clouds, snow); can be toggled by tapping on them. 
-  - type: custom:vertical-stack-in-card
-    cards:
-    - type: conditional
-      conditions:
-        - entity: input_select.type_of_satelite  #value stored the current selection
-          state: "Bewölkung"
-      card:
-        type: picture-entity
-        entity: camera.satelite_clouds
-        name: Bewölkung #clouds
-        show_state: false
-        tap_action:
-          action: call-service
-          service: input_select.select_next
-          service_data:
-            entity_id: input_select.type_of_satelite
-    - type: conditional
-      conditions:
-        - entity: input_select.type_of_satelite
-          state: "Regen"
-      card:
-        type: picture-entity
-        entity: camera.satelite_rain
-        name: Regen #rain
-        show_state: false
-        tap_action:
-          action: call-service
-          service: input_select.select_next
-          service_data:
-            entity_id: input_select.type_of_satelite            
-    - type: conditional
-      conditions:
-        - entity: input_select.type_of_satelite
-          state: "Schnee"
-      card:
-        type: picture-entity
-        entity: camera.satelite_snow
-        name: Schnee #snow
-        show_state: false
-        tap_action:
-          action: call-service
-          service: input_select.select_next
-          service_data:
-            entity_id: input_select.type_of_satelite

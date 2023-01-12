@@ -215,6 +215,53 @@ automation:
           - *colorlight_ku_entityid
           - *light_az_entityid
     
+
+  #----------------------------------------------------------------------------------
+  # Lichtampel Durchreiche 
+  # Wird die Lichtleiste durch den Wandschalter wieder eingeschaltet, so leuchtet sie dauerhaft mit weissem Licht.
+  # Die Lichtleiste soll nach dem Versorgen mir Strom wieder dunkel werden.
+  - id: switch_off_signal_after_poweron
+    alias: Lichtleiste aus nach Stromzufuhr
+    trigger: 
+      - platform: state
+        entity_id: light.philips_lightstrip_ku
+        from: 'unavailable'
+        to: 'on'
+        for:
+          seconds: 10
+    condition:
+      - and:
+        - condition: state
+          entity_id: light.philips_lightstrip_ku
+          state: 'on'
+        - condition: state
+          entity_id: input_boolean.ll_signals_doorstatus
+          state: 'off'
+        - condition: state
+          entity_id: input_boolean.show_signal
+          state: 'off'
+        # - condition: state
+        #   entity_id: light.philips_lightstrip_ku
+        #   attribute: 'hs_color'
+    action:
+      - service: light.turn_off #just turn off light
+        entity_id: light.philips_lightstrip_ku
+#        - licht = weiss
+# color_mode: color_temp
+# brightness: 254
+# hs_color:
+#   - 28.327
+#   - 64.71
+# rgb_color:
+#   - 255
+#   - 167
+#   - 89
+# xy_color:
+#   - 0.524
+#   - 0.387
+# color_temp_kelvin: 2732
+# color_temp: 366
+
   #----------------------------------------------------------------------------------
   # HmIP-BRC2 Wandtaster schaltet Lichter an/aus
   - id: switch_off_ambientlight_from_sz

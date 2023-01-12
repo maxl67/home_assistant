@@ -86,8 +86,8 @@ now:
   show: true
   color: '#E45E65' #var(--paper-toggle-button-checked-button-color)
 show:
-  last_updated: true
+  last_updated: false
 header:
   show: true
-  title: Temperatur
+  title: Temperatur [°C]
   floating: true

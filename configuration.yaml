@@ -8,8 +8,10 @@ homeassistant:
   latitude: !secret home_latitude
   longitude: !secret home_longitude
   elevation: !secret home_elevation
-  unit_system: metric
+  country: DE
   time_zone: Europe/Berlin
+  unit_system: metric
+  currency: EUR
   # URL's to HA instance
   external_url: !secret external_url
   internal_url: !secret internal_url

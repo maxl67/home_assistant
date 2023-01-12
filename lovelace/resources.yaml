@@ -45,6 +45,11 @@
     # repo: https://github.com/Yolandavdvegt/lovelace-flower-card
     - url: /hacsfiles/lovelace-flower-card/flower-card.js 
       type: module
+    - url: /hacsfiles/lovelace-hourly-weather/hourly-weather.js
+      type: module
+    - url: /hacsfiles/tabbed-card/tabbed-card.js
+      type: module
+
 # test: für Card-Breite in Weather. not working
 #    - url: /hacsfiles/lovelace-layout-card/layout-card.js
 #      type: module

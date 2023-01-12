@@ -344,6 +344,7 @@ cards:
             - entity: update.hera_dsm_update
               type: custom:multiple-entity-row
               name: Updates verfügbar
+              icon: mdi:new-box
               entities:
               - entity: update.hera_dsm_update
                 name: DSM

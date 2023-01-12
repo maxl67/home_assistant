@@ -18,7 +18,7 @@ anchors:
       mode:  # no text for control buttons
         names: false
         icons: true
-    hide: 
+    hide:
       state: true
     label:
       temperature: Temperat.
@@ -41,7 +41,7 @@ anchors:
     #formatting
     <<: *graphs_format
     height: 100
-    lower_bound: 18
+    lower_bound: 17
     #upper_bound: 25
     lower_bound_secondary: 1
     upper_bound_secondary: 150
@@ -74,20 +74,20 @@ anchors:
   dataset_sunshine: &dataset_sonne
     y_axis: 'secondary'
     show_state: false
-    color: *dark_yellow 
+    color: *dark_yellow
     show_points: false
     show_line: false
   dataset_heating: &dataset_heizen
     y_axis: 'secondary'
     show_state: false
-    color: *red #*dark_blue 
+    color: *red #*dark_blue
     show_points: false
     show_line: true
     show_fill: true
   dataset_room_measurement: &dataset_room_measurement
-    show_state: true
+    show_state: false
     show_fill: false
-    color: *orange
+    #color: *orange
 
   # humidity curves
   dataset_humidity_inside: &dataset_humidity_inside
@@ -96,7 +96,7 @@ anchors:
     show_points: false
 
   style_entitycard_header: &style_header
-    card_mod: 
+    card_mod:
       style: |
         .card-header {
           font-size: 20px;
@@ -199,7 +199,7 @@ cards:
       - type: custom:mini-graph-card
         name: Wohnzimmer
         <<: *temperature_graph
-        entities: 
+        entities:
           - entity: sensor.hm_thermo_wz_current_temp
             name: Ist HmIP
             <<: *dataset_ist_temp
@@ -273,7 +273,7 @@ cards:
       - type: custom:mini-graph-card
         name: Küche
         <<: *temperature_graph
-        entities: 
+        entities:
           - entity: sensor.hm_thermo_ku_current_temp
             name: Ist HmIP
             <<: *dataset_ist_temp
@@ -325,13 +325,14 @@ cards:
       - type: custom:mini-graph-card
         name: Gästezimmer
         <<: *temperature_graph
-        entities: 
+        entities:
           - entity: sensor.hm_thermo_gz_current_temp
             name: Ist HmIP
             <<: *dataset_ist_temp
           #- entity: sensor.lumi_lumi_weather_95154a04_temperature
           #  name: Raummessung
           #  <<: *dataset_room_measurement
+          #  color: *orange
           - entity: sensor.hm_thermo_gz_target_temp
             name: Soll HmIP
             <<: *dataset_soll_temp
@@ -389,16 +390,16 @@ cards:
                     Heizprofil1: Arbeiten ausserhaus
 
                     Heizprofil2: Homeoffice
-                    
-                    Heizprofil3: Gäste. 
+
+                    Heizprofil3: Gäste.
                     wie 1. nur wärmer.
 
-  # Luftfeuchte und Raumklima - humidity 
+  # Luftfeuchte und Raumklima - humidity
   - type: custom:vertical-stack-in-card #vertical-stack
     cards:
       - type: custom:mini-graph-card
         name: Luftfeuchte
-        entities: 
+        entities:
           - entity: sensor.lumi_lumi_weather_95154a04_humidity
             name: Bad (lumi)
             <<: *dataset_humidity_inside
@@ -435,7 +436,7 @@ cards:
           - value: 60
             color: *light_orange
           - value: 70
-            color: *dark_orange 
+            color: *dark_orange
 
       # Sensoren fuer Raumklima
       - type: entities
@@ -456,7 +457,7 @@ cards:
               state_header: Temp
               entities:
               - entity: sensor.lumi_lumi_weather_95154a04_humidity
-                name: Feuchte 
+                name: Feuchte
               - entity: sensor.lumi_lumi_weather_95154a04_pressure
                 name: Druck
             - entity: sensor.hm_thermo_wz_current_temp
@@ -466,78 +467,96 @@ cards:
               state_header: Temp
               entities:
               - entity: sensor.000c9a499b5808_humidity
-                name: Feuchte 
+                name: Feuchte
               - entity: sensor.hm_thermo_wz_target_temp
                 name: Soll
 
+  #------------------------------------------------
+  # Themperatur - Chart
+  - !include ../cards/climate_chart_temp.yaml
 
-#-----------------------
-# temporary for analysis
-  - type: custom:vertical-stack-in-card
-    cards:
-      - type: history-graph
-        #title: 'Wohnzimmer'
-        hours_to_show: 24
-        entities:
-          - entity: sensor.lumi_lumi_weather_95154a04_temperature
-            name: Bad #(LUMI)
-          - entity: sensor.hm_thermo_ku_current_temp
-            name: Kü #Küche (HmIP)
-          - entity: sensor.hm_thermo_wz_current_temp
-            name: WZ #Wohnz (HmIP)
-          - entity: sensor.hm_thermo_gz_current_temp
-            name: GZ #Gästez (HmIP)
-          - entity: sensor.fritz_dect_200_netz_temperature
-            name: IT #Netzwerk-Rack
-          - entity: sensor.fritz_dect_200_gz_temperature
-            name: Desk #Schreibtisch M
-      - type: history-graph
-        hours_to_show: 24
-        entities:
-          - entity: sensor.outside_temperature
-            name: aussen
-          - entity: sensor.fritz_dect_210_solar_temperature
-            name: Terrasse
 
-  # - type: custom:vertical-stack-in-card
-  #   cards:
-  #     - type: statistics-graph
-  #       title: IST-Temperatur Statistik
-  #       days_to_show: 30
-  #       chart_type: line
-  #       stat_types: mean #, min, max
-  #       entities:
-  #         - entity: sensor.hm_thermo_wz_current_temp
-  #           name: WZ
-  #         - entity: sensor.hm_thermo_ku_current_temp
-  #           name: Kü
-  #         - entity: sensor.hm_thermo_gz_current_temp
-  #           name: GZ
-  #         - entity: sensor.lumi_lumi_weather_95154a04_temperature
-  #           name: Bad
-  #         - entity: sensor.home_hourly_temperature
-  #           name: aussen
-  #     - type: statistics-graph
-  #       title: SOLL-Temperatur Statistik
-  #       days_to_show: 7
-  #       chart_type: line
-  #       stat_types: mean #, min, max
-  #       entities:
-  #         - entity: sensor.hm_thermo_wz_target_temp
-  #           name: WZ
-  #         - entity: sensor.hm_thermo_ku_target_temp
-  #           name: Kü
-  #         - entity: sensor.hm_thermo_gz_target_temp
-  #           name: GZ
-  #     - type: statistics-graph
-  #       title: Kapazitätsnutzung Heizung
-  #       days_to_show: 7
-  #       chart_type: bar
-  #       stat_types: mean
-  #       entities:
-  #         - entity: sensor.hm_thermo_wz_actor_value
-  #           name: WZ
-  #         - entity: sensor.hm_thermo_ku_actor_value
-  #           name: Kü
-  #         - entity: sensor.hm_thermo_gz_actor_value
-  #           name: GZ
+  # - type: custom:mini-graph-card
+  #   name: Temperatur
+  #   entities:
+  #     - entity: sensor.lumi_lumi_weather_95154a04_temperature
+  #       name: Bad #(LUMI)
+  #       <<: *dataset_room_measurement
+  #       color: *blue
+  #     - entity: sensor.hm_thermo_ku_current_temp
+  #       name: Kü #Küche (HmIP)
+  #       <<: *dataset_room_measurement
+  #       color: *orange
+  #     - entity: sensor.hm_thermo_wz_current_temp
+  #       name: WZ #Wohnz (HmIP)
+  #       <<: *dataset_room_measurement
+  #       color: *green
+  #     - entity: sensor.hm_thermo_gz_current_temp
+  #       name: GZ #Gästez (HmIP)
+  #       <<: *dataset_room_measurement
+  #       color: *red
+  #     - entity: sensor.fritz_dect_200_netz_temperature
+  #       name: IT #Netzwerk-Rack
+  #       <<: *dataset_room_measurement
+  #       color: *dark_yellow
+  #     - entity: sensor.fritz_dect_200_gz_temperature
+  #       name: Desk #Schreibtisch M
+  #       <<: *dataset_room_measurement
+  #       color: *dark_blue
+  #     - entity: sensor.outside_temperature
+  #       name: aussen
+  #       y_axis: 'secondary'
+  #       show_state: true
+  #       color: black #*dark_gray
+  #       show_fill: true
+  #       show_points: false
+  #   #range
+  #   <<: *graphs_range
+  #   points_per_hour: 12
+  #   #formatting
+  #   <<: *graphs_format
+  #   height: 120
+  #   #lower_bound: 35
+  #   #upper_bound: 100
+  #   show:
+  #     labels: true #or hover (y-axis)
+  #     labels_secondary: hover
+  #     icon_adaptive_color: true
+  #   color_thresholds_transition: hard
+  #   color_thresholds:
+  #     - value: 0
+  #       color: *blue
+  #     - value: 40
+  #       color: *green
+  #     - value: 60
+  #       color: *light_orange
+  #     - value: 70
+  #       color: *dark_orange
+
+# #-----------------------
+# # temporary for analysis
+#   - type: custom:vertical-stack-in-card
+#     cards:
+#       - type: history-graph
+#         #title: 'Wohnzimmer'
+#         hours_to_show: 24
+#         entities:
+#           - entity: sensor.lumi_lumi_weather_95154a04_temperature
+#             name: Bad #(LUMI)
+#           - entity: sensor.hm_thermo_ku_current_temp
+#             name: Kü #Küche (HmIP)
+#           - entity: sensor.hm_thermo_wz_current_temp
+#             name: WZ #Wohnz (HmIP)
+#           - entity: sensor.hm_thermo_gz_current_temp
+#             name: GZ #Gästez (HmIP)
+#           - entity: sensor.fritz_dect_200_netz_temperature
+#             name: IT #Netzwerk-Rack
+#           - entity: sensor.fritz_dect_200_gz_temperature
+#             name: Desk #Schreibtisch M
+#       - type: history-graph
+#         hours_to_show: 24
+#         entities:
+#           - entity: sensor.outside_temperature
+#             name: aussen
+#           - entity: sensor.fritz_dect_210_solar_temperature
+#             name: Terrasse
