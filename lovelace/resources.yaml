@@ -13,10 +13,14 @@
       type: module
     - url: /hacsfiles/lovelace-paper-buttons-row/paper-buttons-row.js
       type: module
+    - url: /hacsfiles/lovelace-template-entity-row/template-entity-row.js
+      type: module      
     #  Cards
     - url: /hacsfiles/bar-card/bar-card.js
       type: module
     - url: /hacsfiles/button-card/button-card.js
+      type: module
+    - url: /hacsfiles/atomic-calendar-revive/atomic-calendar-revive.js
       type: module
     - url: /hacsfiles/group-card/group-card.js
       type: module
@@ -53,10 +57,6 @@
 # test: für Card-Breite in Weather. not working
 #    - url: /hacsfiles/lovelace-layout-card/layout-card.js
 #      type: module
-
-#    # deprecated, not maintained anymore
-    - url: /hacsfiles/calendar-card/calendar-card.js
-      type: js 
 
 #    # Repo: https://github.com/sgttrs/lovelace-weather-card-chart
 #    - url: /hacsfiles/lovelace-weather-card-chart/weather-card-chart.js

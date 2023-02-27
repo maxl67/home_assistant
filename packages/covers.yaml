@@ -202,7 +202,7 @@ script:
           entity_id: "{{ my_cover_id }}"
         data:
           position: "{{ my_cover_position }}"
-# ACHTUNG: Aufruf aus anderen Scripten geht nicht. Paralellisierung klappt nicht. 
+    # ACHTUNG: Aufruf aus anderen Scripten geht nicht. Paralellisierung klappt nicht. 
       # - alias: "Wait until cover is down"
       #   wait_template: "{{ state_attr(my_cover_id, my_cover_position) }}"
       #   timeout:

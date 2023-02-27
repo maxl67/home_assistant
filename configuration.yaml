@@ -9,6 +9,7 @@ homeassistant:
   longitude: !secret home_longitude
   elevation: !secret home_elevation
   country: DE
+  language: de
   time_zone: Europe/Berlin
   unit_system: metric
   currency: EUR
@@ -62,9 +63,6 @@ zha:
   #usb_path: /zigbeestick #naming of USB device does not work anymore since v0.99
   #usb_path: /dev/ttyUSB1 #deprecated in v0.110
   database_path: /data/zigbee.db
-#zwave:
-#  usb_path: /zwaveusbstick
-#  network_key: <your secret key here>
 
 ################################################################
 ## Platforms & Components
@@ -251,6 +249,22 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.raspi2_network_upload
       - sensor.raspi2_network_download
       - sensor.raspi2_swap_usage
+      - sensor.raspi3_memory_use
+      - sensor.raspi3_disk_use
+      - sensor.raspi3_last_message
+      - sensor.raspi3_last_boot
+      - sensor.raspi3_updates
+      - sensor.raspi3_load_1m
+      - sensor.raspi3_load_5m
+      - sensor.raspi3_load_15m
+      - sensor.raspi3_network_upload
+      - sensor.raspi3_network_download
+      - sensor.raspi3_swap_usage
+    # Tasmota
+      - sensor.tasmota_mqtt_connect_count
+      - sensor.tasmota_wifi_connect_count
+      - sensor.tasmotawe5_signal
+      - sensor.tasmotawe5_we5_total_in_cost
     # Media Player
       - media_player.r_n803d_86ae28
       - binary_sensor.netreceiver_online

@@ -28,8 +28,6 @@ homeassistant:
       friendly_name: Sonnenstand
       <<: *common
   # groups, variables
-    input_select.type_of_satelite:
-      <<: *common
     input_boolean.dwd_weather_alert:
       <<: *common
   # sensors
@@ -41,13 +39,29 @@ homeassistant:
       <<: *common
     sensor.sun_elevation:
       <<: *common
+    sensor.sun_elevation_ratio:
+      <<: *common
+    sensor.sunshine_probability:
+      <<: *common
     sensor.sun_is_shining:
       <<: *common
-    sensor.sunshine_intensity:
+    sensor.sunshine_south:
+      <<: *common
+    sensor.sunshine_west:
       <<: *common
     sensor.sunshine_elevation_ratio:
       <<: *common
+    sensor.sunshine_elevation_ratio_west:
+      <<: *common
     sensor.sun_elevation_noon:
+      <<: *common
+    sensor.sunshine_hours_yesterday:
+      <<: *common
+    sensor.sunshine_hours_today:
+      <<: *common
+    sensor.forcast_sunshine_hours_today:
+      <<: *common
+    sensor.forcast_sunshine_hours_tomorrow:
       <<: *common
     #sensor.dwd*
   # automations
@@ -65,41 +79,9 @@ homeassistant:
 ################################################
 sun: 
 
-# get live satelite pictures
-#camera:
-#  - platform: generic
-#    name: selected_satelite
-#    still_image_url: >
-#      {{ {
-#          'Regen' : 'https://api.sat24.com/animated/EU/visual/1/W_dot_%20Europe%20Standard%20Time/2937470',
-#          'Bewölkung' : 'https://api.sat24.com/animated/ALPS/rainTMC/1/W_dot_%20Europe%20Standard%20Time/3381693',
-#          'Schnee' : 'https://api.sat24.com/animated/ALPS/snow/1/W_dot_%20Europe%20Standard%20Time/8170881'
-#         } [input_select.type_of_satelite] }}
-#  - platform: generic
-#  #  still_image_url: http://api.sat24.com/animated/DE/visual/2/W_dot_%20Europe%20Standard%20Time/5053188
-#    still_image_url: https://api.sat24.com/animated/EU/visual/1/W_dot_%20Europe%20Standard%20Time/2937470
-#    name: satelite_clouds
-#  - platform: generic
-#  #  still_image_url: http://api.sat24.com/animated/DE/rainTMC/2/W_dot_%20Europe%20Standard%20Time/220026
-#    still_image_url: https://api.sat24.com/animated/ALPS/rainTMC/1/W_dot_%20Europe%20Standard%20Time/3381693
-#    name: satelite_rain
-#  - platform: generic
-#    still_image_url: https://api.sat24.com/animated/ALPS/snow/1/W_dot_%20Europe%20Standard%20Time/8170881
-#    name: satelite_snow
-
-
 ###############################################################################
 ##  Variables
 ###############################################################################
-input_select:
-  # selection of which satelite picture to show
-  type_of_satelite:
-    name: Auswahl
-    options:
-      - Regen
-      - Bewölkung
-      - Schnee
-    initial: Regen
 
 # value to remember if a alert is active (alert=message to phone and badge+=1)
 input_boolean:
@@ -112,6 +94,7 @@ input_boolean:
 ###############################################################################
 template:
   - sensor:
+    ########## WETTTER ###########
       # temp: from dwd_weather, should be a own sensor outside
     - unique_id: outside_temperature
       name: outside_temperature
@@ -119,79 +102,90 @@ template:
       unit_of_measurement: '°C'
       attributes:
         friendly_name: Außentemperatur
+        description: 'gebildet aus Attribut temperature des weather-Sensor von DWD (Dt. WetterDienst).'
     - unique_id: outside_humidity
       name: outside_humidity
       state: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'humidity')|int(default=0) }}"
       unit_of_measurement: '%'
       attributes:
         friendly_name: Luftfeuchte außen
-      #outside_visibility:
+        description: 'gebildet aus Attribut humidity des weather-Sensor von DWD (Dt. WetterDienst).'
+    #outside_visibility:
       #  value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'visibility')|float(default=0) }}"
       #  unit_of_measurement: '%'
       #  friendly_name: Sicht
+
+    ########## SONNENSTAND ###########
     - unique_id: sun_direction
       name: sun_direction
       state: "{{ state_attr('sun.sun', 'azimuth')|float(default=0)|round(1) }}"
       unit_of_measurement: '°'
       attributes:
         friendly_name: Sonnenrichtung
+        description: 'gebildet aus Attribut azimuth des sun.sun Sensors'
     - unique_id: sun_elevation
       name: sun_elevation
       state: "{{ state_attr('sun.sun', 'elevation')|float(default=0)|round(1) }}"
       unit_of_measurement: '°'
       attributes:
         friendly_name: Sonnenhöhe
+        description: 'gebildet aus Attribut elevation des sun.sun Sensors'
+    - unique_id: sun_elevation_ratio
+      name: sun_elevation_ratio
+       #Morning: sun arrisen at 2°, evening down an ?° --> we start with 0% at 3°, shift the values 3 down
+      state: >
+        {% set sun_min_elevation = 3 %}
+        {% if state_attr('sun.sun', 'elevation')|float(default=0) > sun_min_elevation %} 
+          {{ min((state_attr('sun.sun', 'elevation')|float(0) - sun_min_elevation) / (states('sensor.sun_elevation_noon')|float(90) - sun_min_elevation) * 100.0, 100) 
+            | int(default=0) }}
+        {% else %}
+          0
+        {% endif %}
+      state_class: measurement #to be included in long-term statistics
+      unit_of_measurement: '%'
+      attributes:
+        friendly_name: relative Sonnenhöhe #[%]
+        description: 'relat. Höhe der Sonne zum Tagesmaximum (3°=0%, Mittag=100%)'
+
+    ########## SONNENSCHEIN ###########
+    - unique_id: sunshine_probability
+      name: sunshine_probability
+      # wenn Solarstrom-Messsteckdose erreichbar und Sonnenrichtung < 220° --> Intensität aus Leistung der Solarpanels berechnen
+      #    Propapility = akt Solarleistung / erwartete Solarleistung
+      #    erwartete Solarleistung = Peakleistung (=250) * sun_elevation_ratio
+      # sonst aus den Status der Wetter-Entitäten
+      state: >
+        {% set peak_solar_power = 250 %}
+        {% if not is_state('switch.fritz_dect_210_solar', 'unavailable') and state_attr('sun.sun', 'azimuth')|float(default=360) < 240 %}
+          {{ (min(states('sensor.fritz_dect_210_solar_power_consumption')|float / (peak_solar_power * states('sensor.sun_elevation_ratio')|int / 100), 1) * 100) | int }}
+        {% elif states('sun_elevation_ratio')|float(0) > 0 %}
+          {% if states('weather.dwd_weather_ak_stuttgart') == 'sunny' and states('weather.home_hourly') == 'sunny' %}
+            95
+          {% elif states('weather.dwd_weather_ak_stuttgart') == 'sunny' or states('weather.home_hourly') == 'sunny' %}
+            70
+          {% elif states('weather.dwd_weather_ak_stuttgart') == 'partlycloudy' and states('weather.home_hourly') == 'partlycloudy' %}
+            40
+          {% elif states('weather.dwd_weather_ak_stuttgart') == 'partlycloudy' or states('weather.home_hourly') == 'partlycloudy' %}
+            20
+          {% else %}
+            0
+          {% endif %}
+        {% else %}
+          0
+        {% endif %}
+      unit_of_measurement: '%'
+      state_class: measurement #to be included in long-term statistics
+      attributes:
+        friendly_name: Wahrscheinlichkeit von Sonnenschein
+        description: Wenn das Solarpanel verfügbar ist und Sonnenrichtung<240°, dann berechnet aus der aktuellen Solarleistung / (Peakleistung * relat. Sonnenhöhe). Wenn nicht verfügbar, dann berechnet aus den Status der Wettersensoren (sunny, partly cloudy)
     - unique_id: sun_is_shining
       name: sun_is_shining
       #Morning: sun arrisen at 2°
-      state: "{{ (states('weather.dwd_weather_ak_stuttgart') in ('sunny','partlycloudy') and states('weather.home_hourly') in ('sunny','partlycloudy')) and state_attr('sun.sun', 'elevation') >= 2.5 }}"
+      state: "{{ states('sensor.sunshine_probability')|int(0) > 50 }}"
       #state in {True|False}
       attributes:
         friendly_name: Sonne scheint
-    - unique_id: sunshine_intensity
-      name: sunshine_intensity
-      state: >
-        {% if is_state('sensor.sun_is_shining', 'False') %}
-          0
-        {% elif  states('weather.dwd_weather_ak_stuttgart') in ('sunny') and states('weather.home_hourly') in ('sunny') %}
-          100
-        {% elif  states('weather.dwd_weather_ak_stuttgart') in ('sunny') or states('weather.home_hourly') in ('sunny') %}
-          75
-        {% elif  states('weather.dwd_weather_ak_stuttgart') in ('partlycloudy') and states('weather.home_hourly') in ('partlycloudy') %}
-          50
-        {% else %}
-          25
-        {% endif %}
-      unit_of_measurement: '%'
-      state_class: measurement #to be included in long-term statistics
-      attributes:
-        friendly_name: Sonnenintensität
-    - unique_id: sunshine_elevation_ratio
-      name: sunshine_elevation_ratio
-      state: >
-        {% if is_state('sensor.sun_is_shining', 'True') %}
-          {{ (state_attr('sun.sun', 'elevation')|float(0) / states('sensor.sun_elevation_noon')|float(90) * 100.0) | int(default=0) }}
-        {% else %}
-          0
-        {% endif %}
-      state_class: measurement #to be included in long-term statistics
-      unit_of_measurement: '%'
-      attributes:
-        friendly_name: Sonnenschein-Rate
-    - unique_id: sunshine_elevation_ratio_west
-      name: sunshine_elevation_ratio_west
-      state: >
-        {% if is_state('sensor.sunshine_west', 'True') %}
-          {{ states('sensor.sunshine_elevation_ratio') }}
-        {% else %}
-          0
-        {% endif %}
-      unit_of_measurement: '%'
-      attributes:
-        friendly_name: Sonnenschein-Rate (West)
-
-        # {{ state_attr('weather.dwd_weather_ak_stuttgart', 'visibility') }}
-
+        description: 'WAHR: wenn Wahrscheinlichkeit von Sonnenschein [sensor.sunshine_probability] > 50%'
     - unique_id: sunshine_south
       name: sunshine_south
       # 60..240?
@@ -200,6 +194,7 @@ template:
       #state in {True|False}
       attributes:
         friendly_name: Sonnenbestrahlung von Süden
+        description: 'WAHR: Wenn Sonnenschein erkannt und Azimuth in {70°...238°}'
     - unique_id: sunshine_west
       name: sunshine_west
       state: >
@@ -207,6 +202,34 @@ template:
       #state in {True|False}
       attributes:
         friendly_name: Sonnenbestrahlung von Westen
+        description: 'WAHR: Wenn Sonnenschein erkannt und Azimuth in {150°...330°}'
+
+    ########## SONNENSCHEIN-Kurven für Charts ###########
+    - unique_id: sunshine_elevation_ratio
+      name: sunshine_elevation_ratio
+      state: >
+        {% if is_state('sensor.sun_is_shining', 'True') %}
+          {{ states('sensor.sun_elevation_ratio') | int(default=0) }}
+        {% else %}
+          0
+        {% endif %}
+      state_class: measurement #to be included in long-term statistics
+      unit_of_measurement: '%'
+      attributes:
+        friendly_name: Sonnenschein-Rate
+        description: Wenn Sonnenschein erkannt, dann relative Sonnenhöhe, sonst 0%
+    - unique_id: sunshine_elevation_ratio_west
+      name: sunshine_elevation_ratio_west
+      state: >
+        {% if is_state('sensor.sunshine_west', 'True') %}
+          {{ states('sensor.sun_elevation_ratio') | int(default=0) }}
+        {% else %}
+          0
+        {% endif %}
+      unit_of_measurement: '%'
+      attributes:
+        friendly_name: Sonnenschein-Rate (West)
+        description: Wenn Sonnenschein im Westen erkannt, dann relative Sonnenhöhe, sonst 0%
 
 sensor:
   # Statistik
@@ -221,7 +244,7 @@ sensor:
     sampling_size: 750 #sun.sun is updated each 2min
     precision: 1
 
-  # Statistik-Analyse
+  # Statistik-Analyse (Sonnenscheinstunden: gestern, heute, später, morgen)
   - platform: history_stats
     name: sunshine_hours_yesterday
     #name: "Sonnenstunden gestern"
@@ -242,7 +265,6 @@ sensor:
     # start today at 00:00:00
     start: >
       {{ now().replace(hour=0, minute=0, second=0) }}
-    # start 24h before the end time
     end: >
       {{ now() }}
   - platform: template

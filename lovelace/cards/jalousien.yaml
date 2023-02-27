@@ -122,7 +122,7 @@ cards:
                 in_west: true
               confirmation: 
                 text: Sollen die Jalousien nach Westen angehalten werden?
-      - type: section
+      - type: divider
       - entity: switch.enable_jalousie_automation
         toggle: true
         state_color: true
@@ -160,3 +160,17 @@ cards:
               name: nur bei Sonnenschein 
               toggle: true
               state_color: true
+            # Erklärungen zur Steuerung
+            - type: custom:fold-entity-row
+              head:
+                type: section
+                label: Info Jalousiensteuerung
+              open: false
+              padding: off
+              entities:
+              - type: custom:hui-markdown-card
+                content: >
+                  Zur Erinnerung, {{user}}. 
+                  Die 'Automatische Jalousiesteuerung' ist nur aktiv, wenn wir nicht in der Heizperiode sind (siehe Heizungssteuerung) und automatisiert folgendes:
+
+                  - todo

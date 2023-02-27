@@ -26,7 +26,23 @@ homeassistant:
   # entities
     switch.ikea_of_sweden_tradfri_control_outlet_switch:
       icon: mdi:audio-video #mdi:power-socket-de
-      
+    # change Tasmota sensors from energy meter to be stored long term and displayed in energy dashboard 
+    sensor.tasmotawe5_we5_total_in:
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      device_class: energy
+      friendly_name: Total energy consumed
+    sensor.tasmotawe5_we5_total_out:
+      state_class: total_increasing
+      unit_of_measurement: kWh
+      device_class: energy
+      friendly_name: Total energy delivered
+    sensor.tasmotawe5_we5_power_cur:
+      state_class: measurement
+      unit_of_measurement: W
+      device_class: energy
+      friendly_name: current power delivery
+
   # groups, variables
     input_boolean.disable_power_automation:
       <<: *common
@@ -77,6 +93,24 @@ switch:
             mdi:ghost
           {% endif %}
 
+###############################################################################
+##  Sensors
+###############################################################################
+# Per Tasmota WiFi-IR Leser wird der Iskra MT631 Stromzähler ausgelesen.
+# mqtt:
+#   sensor:
+#     - name: "Energy IN"
+#       state_topic: "tele/iskra_MT631_WE5/SENSOR"
+#       value_template: '{{ value_json["WE5"]["Total_in"] }}'
+#       unit_of_measurement: "kWh"
+#       device_class: energy
+#       state_class: total_increasing #measurement 
+#     - name: "Energy OUT"
+#       state_topic: "tele/iskra_MT631_WE5/SENSOR"
+#       value_template: '{{ value_json["WE5"]["Total_out"] }}'
+#       unit_of_measurement: "kWh"
+#       device_class: energy
+#       state_class: total_increasing #measurement 
 
 ###############################################################################
 #                               Automations

@@ -30,6 +30,10 @@ cards:
       show_header_toggle: false
     filter:
       include:
+        - entity_id: switch.fritz_dect_210_solar
+          state: 'unavailable'
+        - entity_id: sensor.tasmotawe5_we5_power_cur
+          state: 'unavailable'
         - entity_id: "binary_sensor.warn*"
           state: 'on'
         - entity_id: "input_boolean.alert_*"
@@ -120,21 +124,41 @@ cards:
         entities:
           - type: divider
           - entity: input_boolean.guests
+            type: custom:multiple-entity-row
+            toggle: true
+            state_color: true
+            entities:
+              - entity: sensor.n_guests_home
+                name: '#Gäste'
+              
 
   #------------------------------------------------
   # show events from home-calendar (if any)
-#  - type: conditional
-#    conditions:
-#      - entity: calendar.home
-#        state_not: 'off'
-#    card:
-  - type: custom:calendar-card # more compact, but not maintained anymore, switch to ...
-  #- type: calendar # ...official card, uses lot of space.
-    title: 'Home-Kalender'
-    initial_view: listWeek #list_view
+  # - type: conditional
+  #   conditions:
+  #     - entity: calendar.home
+  #       state_not: 'off'
+  #   card:
+
+  # - type: calendar # ...official card, uses lot of space.
+  #   title: 'Home-Kalender'
+  #   initial_view: listWeek #list_view
+  #   entities:
+  #     - calendar.home
+  #     - calendar.privat_max
+  - type: 'custom:atomic-calendar-revive'
+    name: Termine
+    showWeekDay: true
+    showLocation: false
     entities:
-      - calendar.home
-      - calendar.privat_max
+    - entity: calendar.home
+      name: 'Home'
+      color: red
+      #allowlist: '(word1)|(word2)'
+    - entity: calendar.privat_max
+      name: 'Max'
+      color: blue
+      #blocklist: '(word1)|(word2)'
 
   #------------------------------------------------
   # status of power switches 

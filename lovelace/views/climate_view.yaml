@@ -378,7 +378,15 @@ cards:
                 entities:
                 - type: custom:hui-markdown-card
                   content: >
-                    Zur Erinnerung, {{user}}:
+                    Zur Erinnerung, {{user}}. 
+                    Der Schalter 'Heizperiode': 
+                    
+                    - an: die Thermostate werden aktiviert und nutzen ihr eingestelltes Profil
+
+                    - aus: die Thermostate werden ausgeschaltet
+
+                    
+                    Die 'Heizsteuerung' automatisiert in der Heizperiode folgendes:
 
                     - beim Verlassen: feste Energiespartemp. (17°C)
                       bei Ankunft: autom. Heizprofil wieder an
@@ -386,13 +394,14 @@ cards:
 
                     - wir haben Gäste: Profil 3 wird aktiv
 
+                    - Umschalten der Profile 1 und 2 halbstündlich (8:30-11:30, 13:30-16:30)
+
 
                     Heizprofil1: Arbeiten ausserhaus
 
                     Heizprofil2: Homeoffice
 
-                    Heizprofil3: Gäste.
-                    wie 1. nur wärmer.
+                    Heizprofil3: Gäste. wie 1, nur wärmer.
 
   # Luftfeuchte und Raumklima - humidity
   - type: custom:vertical-stack-in-card #vertical-stack

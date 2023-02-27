@@ -1,0 +1,81 @@
+# https://community.home-assistant.io/t/apexcharts-card-a-highly-customizable-graph-card/272877/487
+# https://github.com/RomRider/apexcharts-card#data_generator-option
+#------------------------------
+# Themperatur - Chart
+
+type: custom:apexcharts-card
+graph_span: 1d
+all_series_config:
+  fill_raw: last
+  extend_to: false
+  stroke_width: 2
+  curve: stepline
+  show:
+    extremas: false
+    legend_value: false
+    offset_in_name: false
+header:
+  show: true
+  title: 'Temperatur'
+  floating: true
+  standard_format: false
+yaxis:
+  - id: primary
+    decimals: 0
+    apex_config:
+      forceNiceScale: true
+      decimalsInFloat: 0
+      title:
+        text: Innen [°C]
+  - id: secondary
+    show: true
+    decimals: 0
+    opposite: true
+    apex_config:
+      forceNiceScale: true
+      decimalsInFloat: 0
+      title:
+        text: Aussen [°C]
+series:
+  - entity: sensor.lumi_lumi_weather_95154a04_temperature
+    name: Bad #(LUMI)
+    color: "#4F729A" #blue
+    yaxis_id: primary
+  - entity: sensor.hm_thermo_ku_current_temp
+    name: Kü #Küche (HmIP)
+    color: "#8E529E" #violett
+    yaxis_id: primary
+  - entity: sensor.hm_thermo_wz_current_temp
+    name: WZ #Wohnz (HmIP)
+    color: "#5FCFD3" #hellblau
+    yaxis_id: primary
+  - entity: sensor.hm_thermo_gz_current_temp
+    name: GZ #Gästez (HmIP)
+    color: "#EF8632" #orange
+    yaxis_id: primary
+  - entity: sensor.fritz_dect_200_netz_temperature
+    name: IT #Netzwerk-Rack
+    color: "#AA8E2D" #dark_yellow
+    yaxis_id: primary
+  - entity: sensor.fritz_dect_200_gz_temperature
+    name: Desk #Schreibtisch M
+    color: "#7F80C7" #lila
+    yaxis_id: primary
+  - entity: sensor.outside_temperature
+    name: DWD
+    show:
+      in_header: false
+      legend_value: false
+    yaxis_id: secondary
+    type: area
+    curve: smooth
+    color: "#272727" #dark_gray
+  - entity: sensor.fritz_dect_210_solar_temperature
+    name: Terrasse
+    show:
+      in_header: false
+      legend_value: false
+    yaxis_id: secondary
+    type: area
+    curve: smooth
+    color: "#929292" #dark_gray

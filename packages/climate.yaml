@@ -342,6 +342,7 @@ automation:
     trigger:
       - platform: time
         at: 
+          - '08:30:00'
           - '09:00:00'
           - '09:30:00'
           - '10:00:00'
@@ -368,13 +369,16 @@ automation:
           entity_id: input_boolean.automate_heating
           state: 'on'
         # und nicht wenn Gäste anwesend (Profil 3)
-        - condition: state
-          entity_id: input_boolean.guests
-          state: 'off'
+        - condition: numeric_state
+          entity_id: sensor.n_guests_home
+          below: 1
+        # - condition: state
+        #   entity_id: input_boolean.guests
+        #   state: 'off'
         # und Arbeitstagen
-#        - condition: state
-#          entity_id: binary_sensor.workday_sensor
-#          state: 'on'
+        # - condition: state
+        #   entity_id: binary_sensor.workday_sensor
+        #   state: 'on'
     action:
       # Max-Arbeitszimmer
       - choose:
@@ -441,9 +445,12 @@ automation:
   - id: activate_guest_heating
     alias: Change to guest heating profile
     trigger:
-      - platform: state
-        entity_id: input_boolean.guests
-        to: "on"
+      - platform: numeric_state
+        entity_id: sensor.n_guests_home
+        above: 0
+      # - platform: state
+      #   entity_id: input_boolean.guests
+      #   to: "on"
     condition:
       # nur bei aktiver Heizperiode UND aktiver Automatisierung
       - and:
@@ -466,9 +473,12 @@ automation:
   - id: restore_family_heating
     alias: Change to normal heating profile
     trigger:
-      - platform: state
-        entity_id: input_boolean.guests
-        to: "off"
+      - platform: numeric_state
+        entity_id: sensor.n_guests_home
+        below: 1
+      # - platform: state
+      #   entity_id: input_boolean.guests
+      #   to: "off"
     condition:
       # nur bei aktiver Heizperiode und aktiver Automatisierung
       - and:
@@ -666,6 +676,12 @@ automation:
       - service: script.set_temperature_all
         data:
           my_temperature: *heating_off_temp
+          
+      # Fussbodenheizung zentral aus
+      - service: switch.turn_off
+        entity_id: switch.00161d89af7795_14 #Kanal 14 = Schalter 4: Fussbodenheizung Küche
+      - service: switch.turn_off
+        entity_id: switch.00161d89af7795_18 #Kanal 18 = Schalter 5: Fussbodenheizung Bad
 
   - id: start_heating
     alias: Start der Heizperiode
@@ -710,3 +726,9 @@ automation:
         data:
           my_thermostat_id: *thermostat_id_gz  
           my_window_state: "{{ 1 if is_state('group.doors_gz', 'on') else 0 }}" #0=geschlossen, 1=offen
+
+      # Fussbodenheizung zentral an
+      - service: switch.turn_on
+        entity_id: switch.00161d89af7795_14 #Kanal 14 = Schalter 4: Fussbodenheizung Küche
+      - service: switch.turn_on
+        entity_id: switch.00161d89af7795_18 #Kanal 18 = Schalter 5: Fussbodenheizung Bad

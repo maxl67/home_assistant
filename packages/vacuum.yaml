@@ -489,9 +489,18 @@ automation:
         to: 'on'
         for:
           seconds: 5
+      # vacuum device becomes available
+      - platform: state
+        entity_id: vacuum.xiaomi_vacuum_cleaner
+        from: 'unavailable'
     condition:
       condition: and
       conditions:
+        # vacuum device becomes is available (WLAN not turned off)
+        - not:
+          - condition: state
+            entity_id: vacuum.xiaomi_vacuum_cleaner
+            state: 'unavailable'
         # automation is turned on and cleaning not done earlier today...
         - condition: state
           entity_id: input_boolean.disable_automatic_vacuum

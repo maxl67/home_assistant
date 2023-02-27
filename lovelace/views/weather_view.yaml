@@ -217,7 +217,7 @@ cards:
           show_state: false
 
   #------------------------------------------------
-  # Wetter-Entities
+  # Wetter-Entities, Sonnenstand und -schein
   - type: entities
     title: Wetter, Sonne, Regen
     show_header_toggle: false
@@ -240,10 +240,14 @@ cards:
         - entity: sensor.sun_elevation_noon
           name: Höhe max
       - entity: sun.sun
+        type: custom:multiple-entity-row
         icon: mdi:theme-light-dark
+        entities:
+        - entity: sensor.sun_elevation_ratio
+          name: elev.
       - type: section
         label: Sonnenschein
-      - entity: sensor.sunshine_intensity #sensor.sun_is_shining
+      - entity: sensor.sunshine_probability #sensor.sun_is_shining
         type: custom:multiple-entity-row
         name: Sonne scheint
         icon: mdi:white-balance-sunny
@@ -253,8 +257,6 @@ cards:
           name: Süd
         - entity: sensor.sunshine_west
           name: West
-        - entity: sensor.sunshine_elevation_ratio
-          name: elev.
       - entity: sensor.forcast_sunshine_hours_tomorrow
         type: custom:multiple-entity-row
         name: Dauer
@@ -265,11 +267,32 @@ cards:
           name: gestern
           format: precision1
         - entity: sensor.sunshine_hours_today
-          name: heute ist
+          name: heute #ist
           format: precision1
         - entity: sensor.forcast_sunshine_hours_today
-          name: heute noch
-
+          name: später #heute noch
+      #debug:
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Debug
+        open: true
+        padding: false
+        entities:
+          - entity: sensor.fritz_dect_210_solar_power_consumption 
+            name: Solarlistung aktuell
+          - entity: sensor.sun_elevation_ratio
+            type: custom:template-entity-row
+            icon: mdi:calculator
+            name: "Leistung Soll: 250W * {{states('sensor.sun_elevation_ratio')}}% = "
+            state: "{{ 250 * states('sensor.sun_elevation_ratio')|int / 100 }} W" 
+            active: "{{ 250 * states('sensor.sun_elevation_ratio')|int / 100 >= states('sensor.fritz_dect_210_solar_power_consumption') }}"
+          - entity: sensor.sunshine_probability
+            type: custom:template-entity-row
+            icon: mdi:calculator
+            name: "Probability: {{states('sensor.fritz_dect_210_solar_power_consumption')}}W / {{ 250 * states('sensor.sun_elevation_ratio')|int / 100 }}W = [%]"
+            active: "{{ (states('sensor.sunshine_probability')|int)> 50 }}"
+      #end debug
 
   #------------------------------------------------
   # Themperatur - Chart
