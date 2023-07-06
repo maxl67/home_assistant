@@ -144,12 +144,12 @@ cards:
         card:
           # covers living room
           type: glance
-          title: Wohnzimmer Jalousien
+          title: Wohnzimmer
           state_color: false
           <<: *style_header
           entities:
             - entity: cover.00165d89bbacfa_2
-              name: Esszimmer
+              name: Essen
               #type: attribute
               secondary_info: position
               style: |
@@ -161,7 +161,7 @@ cards:
                   {% endif %}
                 }
             - entity: cover.00165d89bbacfa_14
-              name: Wohnen Süd
+              name: Süd
               secondary_info: position
               style: |
                 :host {
@@ -172,7 +172,7 @@ cards:
                   {% endif %}
                 }
             - entity: cover.00165d89bbacfa_10
-              name: Wohnen West
+              name: West
               secondary_info: position
               style: |
                 :host {
@@ -183,7 +183,7 @@ cards:
                   {% endif %}
                 }
             - entity: cover.00165d89bbacf5_6
-              name: Wohnen Nord
+              name: Nord
               secondary_info: position
               style: |
                 :host {
@@ -241,7 +241,7 @@ cards:
         card:
           # covers kitchen
           type: entities
-          title: Küche Jalousien
+          title: Küche
           state_color: false
           <<: *style_header
           entities:
@@ -347,10 +347,15 @@ cards:
   - type: entities
     title: Heizung
     state_color: true
+    show_header_toggle: false
     <<: *style_header
     entities:
       # Heizung an/aus
       - entity: switch.heating_period
+      - entity: switch.00161d89af7795_14 #Kanal 14 = Schalter 4: Fussbodenheizung Küche
+        name: Fussbodenheizung Küche
+      - entity: switch.00161d89af7795_18 #Kanal 18 = Schalter 5: Fussbodenheizung Bad
+        name: Fussbodenheizung Bad
 
       # Automatisierung der Heizung
       - type: custom:fold-entity-row

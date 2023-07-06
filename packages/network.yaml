@@ -59,6 +59,8 @@ homeassistant:
       <<: *common
     binary_sensor.rpi_west:
       <<: *common
+    binary_sensor.rpi_sued:
+      <<: *common
     # other devices
     binary_sensor.smarttv:
       <<: *common
@@ -139,6 +141,11 @@ binary_sensor:
   - platform: ping
     host: raspi2
     name: rpi_west
+    scan_interval: 60
+    count: 2
+  - platform: ping
+    host: raspi3
+    name: rpi_sued
     scan_interval: 60
     count: 2
 

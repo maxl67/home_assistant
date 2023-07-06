@@ -51,7 +51,88 @@ cards:
         icon: mdi:set-all
 
   - type: entities
+    title: ' '
     show_header_toggle: false
+    card_mod:
+      style: |
+        ha-card .card-header {
+          padding: 0px;
+          display: unset;    
+    entities:
+      - type: custom:fold-entity-row
+        head:
+          type: section
+          label: Gäste
+          open: true
+        padding: 0 px
+        entities:
+          - entity: input_boolean.guests
+            type: custom:multiple-entity-row
+            toggle: true
+            state_color: true
+            entities:
+              - entity: sensor.n_guests_home
+                name: '#Gäste'
+          - type: divider
+          - type: custom:multiple-entity-row
+            entity: device_tracker.iphone_winfried_bt
+            name: Winfried
+            state_header: BT-Tracker
+            state_color: true
+            double_tap_action:
+              action: call-service
+              service: script.toogle_bt_device_status
+              service_data:
+                my_device: iphone_winfried_bt
+                my_entity: device_tracker.iphone_winfried_bt
+              confirmation:
+                text: >-
+                  Der BlueTooth-Status des Geräts wird gewechselt und damit der
+                  Status der Person und von 'Home' geändert. Da die Monitor.sh
+                  Konfidenzwerte nicht verändert werden, kann ein
+                  Arrival-/Depature-Scan diese Aktiion evtl. nicht korrigieren.
+            entities:
+              - entity: sensor.winfried_present_w
+                name: '[West]'
+              - entity: sensor.winfried_present_o
+                name: '[_Ost_]'
+              - entity: sensor.home_confidence_winfried
+                name: home
+                format: precision0
+          - type: custom:multiple-entity-row
+            entity: device_tracker.iphone_heidi_bt
+            name: Heidi
+            state_header: BT-Tracker
+            state_color: true
+            double_tap_action:
+              action: call-service
+              service: script.toogle_bt_device_status
+              service_data:
+                my_device: iphone_heidi_bt
+                my_entity: device_tracker.iphone_heidi_bt
+              confirmation:
+                text: >-
+                  Der BlueTooth-Status des Geräts wird gewechselt und damit der
+                  Status der Person und von 'Home' geändert. Da die Monitor.sh
+                  Konfidenzwerte nicht verändert werden, kann ein
+                  Arrival-/Depature-Scan diese Aktiion evtl. nicht korrigieren.
+            entities:
+              - entity: sensor.heidi_present_w
+                name: '[West]'
+              - entity: sensor.heidi_present_o
+                name: '[_Ost_]'
+              - entity: sensor.home_confidence_heidi
+                name: home
+                format: precision0
+
+  - type: entities
+    title: ' '
+    show_header_toggle: false
+    card_mod:
+      style: |
+        ha-card .card-header {
+          padding: 0px;
+          display: unset;    
     entities:
       - type: custom:fold-entity-row
         head:
@@ -129,3 +210,9 @@ cards:
                   service: automation.trigger
                   service_data:
                     entity_id: automation.start_bt_departure_scan
+              - entity: script.restart_monitor
+                name: Monitor Restart
+                icon: mdi:home-export-outline
+                tap_action: 
+                  action: call-service
+                  service: script.restart_monitor

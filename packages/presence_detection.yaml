@@ -160,6 +160,7 @@ group:
     entities:
     # - device_tracker.iphone8_max_wifi  #fallback, if BT scripts wouldn't work anymore
       - device_tracker.iphone8_max_bt
+      - device_tracker.iphone13_max_bt
   phone_ing:
     name: Phone Ingrid
     entities:
@@ -278,6 +279,15 @@ mqtt:
       payload_available: 'online'
       payload_not_available: 'offline'
       json_attributes_topic: 'monitor/west/iphone_max_bt'
+    - name: 'Max present S'
+      state_topic: 'monitor/sued/iphone_max_bt'
+      value_template: "{{ value_json.confidence }}"
+      unit_of_measurement: '%'
+      availability:
+        - topic: 'monitor/sued/status'
+      payload_available: 'online'
+      payload_not_available: 'offline'
+      json_attributes_topic: 'monitor/sued/iphone_max_bt'
 # Person 2
     - name: 'Ing present O'
       state_topic: 'monitor/ost/iphone_ing_bt'
@@ -295,6 +305,14 @@ mqtt:
       payload_available: 'online'
       payload_not_available: 'offline'
       json_attributes_topic: 'monitor/west/iphone_ing_bt'
+    - name: 'Ing present S'
+      state_topic: 'monitor/sued/iphone_ing_bt'
+      value_template: "{{ value_json.confidence }}"
+      unit_of_measurement: '%'
+      availability_topic: 'monitor/sued/status'
+      payload_available: 'online'
+      payload_not_available: 'offline'
+      json_attributes_topic: 'monitor/sued/iphone_ing_bt'
 # Gast 1
 # vorerst als test mit iPad Ing: MQTT-Explorer Topic: 'monitor/setup/ADD STATIC DEVICE' Message: 'D0:4F:7E:7F:3D:CF iphone_heidi_bt' 
     - name: 'Heidi present O'
@@ -340,19 +358,20 @@ mqtt:
 # todo: test and apply to rest
 sensor:
   # Person 1
-  - platform: template
-    sensors:
-      max_home_confidence:
-        friendly_name: 'Max Home Confidence'
-        value_template: "{{ max(states('sensor.max_present_o'),states('sensor.max_present_w')) }}"
-        unit_of_measurement: '%'
-  # - platform: min_max
-  #   name: 'Max Home Confidence'
-  #   type: max
-  #   round_digits: 0
-  #   entity_ids:
-  #     - sensor.max_present_o
-  #     - sensor.max_present_w
+  # - platform: template
+  #   sensors:
+  #     max_home_confidence:
+  #       friendly_name: 'Max Home Confidence'
+  #       value_template: "{{ max(states('sensor.max_present_o'),states('sensor.max_present_w')) }}"
+  #       unit_of_measurement: '%'
+  - platform: min_max
+    name: 'Max Home Confidence'
+    type: max
+    round_digits: 0
+    entity_ids:
+      - sensor.max_present_o
+      - sensor.max_present_w
+      - sensor.max_present_s
   # Person 2
   - platform: min_max
     name: 'Ing Home Confidence'
@@ -361,6 +380,7 @@ sensor:
     entity_ids:
       - sensor.ing_present_o
       - sensor.ing_present_w
+      - sensor.ing_present_s
 
   # Gast 1
   - platform: min_max
@@ -444,6 +464,16 @@ script:
                 dev_id: "{{ my_device }}"
                 location_name: home
                 source_type: bluetooth
+
+  restart_monitor:
+    # if mqtt confidence values get unavailable, then we have to restart monitor script
+    alias: Restart monitor scripts on Raspi's
+    mode: restart
+    sequence:
+      - service: mqtt.publish
+        data:
+          topic: monitor/scan/restart
+
 
 #todo: 
 # Post a message with the mac address separated from an alias (optional) by a space to: monitor/setup/add known device

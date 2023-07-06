@@ -218,81 +218,124 @@ cards:
 
   #------------------------------------------------
   # Wetter-Entities, Sonnenstand und -schein
-  - type: entities
-    title: Wetter, Sonne, Regen
-    show_header_toggle: false
-    <<: *style_header
-    entities:
-      - entity: weather.dwd_weather_ak_stuttgart
-        name: Temperatur (DWD)
-      - entity: weather.home_hourly
-        name: Temperatur (OWM)
-      - type: section
-        label: Sonnenstand
-      - entity: sensor.sun_elevation
-        type: custom:multiple-entity-row
-        name: Azimut
-        icon: mdi:weather-sunset #.orbit
-        state_header: Höhe
+  - type: custom:vertical-stack-in-card
+    cards:
+      - type: entities
+        title: Wetter, Sonne, Regen
+        show_header_toggle: false
+        <<: *style_header
         entities:
-        - entity: sensor.sun_direction
-          name: Richtung
-        - entity: sensor.sun_elevation_noon
-          name: Höhe max
-      - entity: sun.sun
-        type: custom:multiple-entity-row
-        icon: mdi:theme-light-dark
-        entities:
-        - entity: sensor.sun_elevation_ratio
-          name: elev.
+          - entity: weather.dwd_weather_ak_stuttgart
+            name: Temperatur (DWD)
+          - entity: weather.home_hourly
+            name: Temperatur (OWM)
+          - type: section
+            label: Sonnenstand
+          - entity: sensor.sun_elevation
+            type: custom:multiple-entity-row
+            name: Azimut
+            icon: mdi:weather-sunset #.orbit
+            state_header: Höhe
+            entities:
+            - entity: sensor.sun_direction
+              name: Richtung
+            - entity: sensor.sun_elevation_noon
+              name: Höhe max
+          - entity: sun.sun
+            type: custom:multiple-entity-row
+            icon: mdi:theme-light-dark
+            entities:
+            - entity: sensor.sun_elevation_ratio
+              name: elev.
+          - type: section
+            label: Sonnenschein
+          - entity: sensor.sunshine_probability #sensor.sun_is_shining
+            type: custom:multiple-entity-row
+            name: Sonne scheint
+            icon: mdi:white-balance-sunny
+            state_header: prob.
+            entities:
+            - entity: sensor.sunshine_south
+              name: Süd
+            - entity: sensor.sunshine_west
+              name: West
+          - entity: sensor.forcast_sunshine_hours_tomorrow
+            type: custom:multiple-entity-row
+            name: Dauer
+            icon: mdi:sun-wireless #mdi:sun-clock-outline #geht nicht
+            state_header: morgen
+            entities:
+            - entity: sensor.sunshine_hours_yesterday
+              name: gestern
+              format: precision1
+            - entity: sensor.sunshine_hours_today
+              name: heute #ist
+              format: precision1
+            - entity: sensor.forcast_sunshine_hours_today
+              name: später #heute noch
+
+      # # # debug: Sunshine probability calculation
+  - type: conditional
+    conditions:
+      - entity: input_select.debug_mode
+        state: 'all'
+    card:
+      type: entities
+      title: ' '
+      show_header_toggle: false
+      card_mod:
+        style: |
+          ha-card .card-header {
+            padding: 0px;
+            display: unset;
+      entities:   
+      # - type: custom:fold-entity-row
+      #   head:
+      #     type: section
+      #     label: Debug
+      #   open: true
+      #   padding: false
+      #   entities:
       - type: section
-        label: Sonnenschein
-      - entity: sensor.sunshine_probability #sensor.sun_is_shining
-        type: custom:multiple-entity-row
-        name: Sonne scheint
+        label: debug (Süd)
+      - entity: sensor.bkw_sued_power
+        name: Solarleistung aktuell
+      - type: custom:template-entity-row
+        icon: mdi:calculator
+        name: "Leistung Soll: 600W * {{ states('sensor.sun_elevation_ratio') }}% ="
+        state: "{{ (600 * states('sensor.sun_elevation_ratio')|int / 100)|round(0) }} W" 
+        active: "{{ 600 * states('sensor.sun_elevation_ratio')|int / 100 <= states('sensor.bkw_sued_power') }}"
+      - type: custom:template-entity-row
+        icon: mdi:finance
+        name: "Faktor: {{ (150-states('sensor.sun_direction')|float)|abs|round(0) }}° zu 150° (60+{{ (max((150-states('sensor.sun_direction')|float)|abs-60,0))|round(0) }}) ="
+        state: "{{ (max((150-states('sensor.sun_direction')|float)|abs-60,0)/(90-60)+1) |round(1) }}"
+      - type: custom:template-entity-row
         icon: mdi:white-balance-sunny
-        state_header: prob.
-        entities:
-        - entity: sensor.sunshine_south
-          name: Süd
-        - entity: sensor.sunshine_west
-          name: West
-      - entity: sensor.forcast_sunshine_hours_tomorrow
-        type: custom:multiple-entity-row
-        name: Dauer
-        icon: mdi:sun-wireless #mdi:sun-clock-outline #geht nicht
-        state_header: morgen
-        entities:
-        - entity: sensor.sunshine_hours_yesterday
-          name: gestern
-          format: precision1
-        - entity: sensor.sunshine_hours_today
-          name: heute #ist
-          format: precision1
-        - entity: sensor.forcast_sunshine_hours_today
-          name: später #heute noch
-      #debug:
-      - type: custom:fold-entity-row
-        head:
-          type: section
-          label: Debug
-        open: true
-        padding: false
-        entities:
-          - entity: sensor.fritz_dect_210_solar_power_consumption 
-            name: Solarlistung aktuell
-          - entity: sensor.sun_elevation_ratio
-            type: custom:template-entity-row
-            icon: mdi:calculator
-            name: "Leistung Soll: 250W * {{states('sensor.sun_elevation_ratio')}}% = "
-            state: "{{ 250 * states('sensor.sun_elevation_ratio')|int / 100 }} W" 
-            active: "{{ 250 * states('sensor.sun_elevation_ratio')|int / 100 >= states('sensor.fritz_dect_210_solar_power_consumption') }}"
-          - entity: sensor.sunshine_probability
-            type: custom:template-entity-row
-            icon: mdi:calculator
-            name: "Probability: {{states('sensor.fritz_dect_210_solar_power_consumption')}}W / {{ 250 * states('sensor.sun_elevation_ratio')|int / 100 }}W = [%]"
-            active: "{{ (states('sensor.sunshine_probability')|int)> 50 }}"
-      #end debug
+        name: "Probab.: {{ 0 if  is_state('sensor.bkw_sued_power','unavailable') else states('sensor.bkw_sued_power')}}W / {{ (600 * states('sensor.sun_elevation_ratio')|int / 100)|round(0) }}W * Fact. ="
+        state: "{{ 0 if states('sensor.sun_elevation_ratio')|int <= 0 or state_attr('sun.sun', 'azimuth')|float(default=360) >= 240 else (min(states('sensor.bkw_sued_power')|float / (600 * states('sensor.sun_elevation_ratio')|int / 100) * (max((150 - states('sensor.sun_direction')|float)|abs-60,0)/(90-60) + 1), 1) * 100) | int }} %"
+        #"{{ states('sensor.sunshine_probability') }}" 
+        #active: "{{ (states('sensor.sunshine_probability')|int) > 50 }}"
+
+      - type: section
+        label: debug (West)
+      - entity: sensor.fritz_dect_210_solar_power_consumption 
+        name: Solarleistung aktuell
+      - type: custom:template-entity-row
+        icon: mdi:calculator
+        name: "Leistung Soll: 250W * {{ states('sensor.sun_elevation_ratio') }}% ="
+        state: "{{ 250 * states('sensor.sun_elevation_ratio')|int / 100 }} W" 
+        #active: "{{ 250 * states('sensor.sun_elevation_ratio')|int / 100 >= states('sensor.fritz_dect_210_solar_power_consumption') }}"
+      - type: custom:template-entity-row
+        icon: mdi:finance
+        name: "Faktor: {{ (240-states('sensor.sun_direction')|float)|abs|round(0) }}° zu 240° (45+{{ (max((240-states('sensor.sun_direction')|float)|abs-45,0))|round(0) }}) ="
+        state: "{{ (max((240-states('sensor.sun_direction')|float)|abs-45,0)/45+1)|round(1) }}"
+      - type: custom:template-entity-row
+        icon: mdi:white-balance-sunny
+        name: "Probab.: {{ states('sensor.fritz_dect_210_solar_power_consumption')|round(0) }}W / {{ 250 * states('sensor.sun_elevation_ratio')|int / 100 }}W * Fact. ="
+        state: "{{ 0 if states('sensor.sun_elevation_ratio')|int <= 0 or state_attr('sun.sun', 'azimuth')|float(default=360) <= 150 else (min(states('sensor.fritz_dect_210_solar_power_consumption')|float / (250 * states('sensor.sun_elevation_ratio')|int / 100) * (max((240 - states('sensor.sun_direction')|float)|abs-60,0)/(90-60) + 1), 1) * 100) | int }} %"
+
+        #active: "{{ (states('sensor.sunshine_probability')|int) > 50 }}"
+  #end debug
 
   #------------------------------------------------
   # Themperatur - Chart

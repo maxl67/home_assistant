@@ -23,8 +23,9 @@ homeassistant:
       powerswitch_rack_entityid: &powerswitch_rack_entityid switch.fritz_dect_200_netz
       powerswitch_gz_entityid: &powerswitch_gz_entityid switch.fritz_dect_200_gz
       powerswitch_tv_entityid: &powerswitch_tv_entityid switch.ikea_of_sweden_tradfri_control_outlet_switch
+      powerswitch_rpi_sued_entityid: &powerswitch_rpi_sued_entityid switch.outlet_repeater_wz_018780fe_on_off
   # entities
-    switch.ikea_of_sweden_tradfri_control_outlet_switch:
+    switch.ikea_of_sweden_tradfri_control_outlet_switch: 
       icon: mdi:audio-video #mdi:power-socket-de
     # change Tasmota sensors from energy meter to be stored long term and displayed in energy dashboard 
     sensor.tasmotawe5_we5_total_in:
@@ -119,6 +120,7 @@ automation:
   #----------------------------------------------------------------------------------
   # Medien-Rack
   # Ausschalten des Medien-Racks, wenn wir für 10min weg sind
+  # zusaetzlich: Repeater-Outlet EZ ausschalten (fuer RPI Sued)
   - id: power_down_mediarack
     alias: switch off media rack
     trigger: 
@@ -146,9 +148,21 @@ automation:
     action:
       - service: switch.turn_off
         entity_id: *powerswitch_tv_entityid
+      - service: script.kill_raspi3
+      - wait_for_trigger:
+          - platform: state
+            entity_id: binary_sensor.rpi_sued
+            to: 'off'
+        timeout:
+          minutes: 1
+        continue_on_timeout: true  
+      # switch off power outlet EZ (RPI Sued)
+      - service: switch.turn_off
+        entity_id: *powerswitch_rpi_sued_entityid
 
   # Einschalten des Media Racks, wenn wir nach Hause kommen
   # mit 2 Minuten Verzögerung, da das Netzwerk erst wieder hochgefahren sein muss.
+  # zusaetzlich: Repeater-Outlet EZ ausschalten (fuer RPI Sued)
   - id: power_up_mediarack
     alias: switch on media rack
     trigger:
@@ -173,6 +187,9 @@ automation:
     action:
       - service: switch.turn_on
         entity_id: *powerswitch_tv_entityid
+      # switch on power outlet EZ (RPI Sued)
+      - service: switch.turn_on
+        entity_id: *powerswitch_rpi_sued_entityid
 
   #----------------------------------------------------------------------------------
 #todo: Log error: 'Unable to find referenced entities'
@@ -305,6 +322,13 @@ script:
       data_template: 
         ip_address: !secret raspi1_ost_ip
         user: !secret raspi_user
+  kill_raspi3:
+    alias: shutdown Raspi3 (Süd)
+    sequence:
+    - service: shell_command.shutdown_raspi
+      data_template: 
+        ip_address: !secret raspi3_sued_ip
+        user: !secret raspi_user
   reboot_raspi1:
     alias: reboot Raspi1 (Ost)
     sequence:
@@ -319,6 +343,14 @@ script:
       data_template: 
         ip_address: !secret raspi2_west_ip
         user: !secret raspi_user
+  reboot_raspi3:
+    alias: reboot Raspi3 (Süd)
+    sequence:
+    - service: shell_command.reboot_raspi
+      data_template: 
+        ip_address: !secret raspi3_sued_ip
+        user: !secret raspi_user
+
 
 shell_command:
   shutdown_raspi: 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /config/.ssh/id_rsa "{{user}}"@"{{ip_address}}" sudo shutdown now'

@@ -25,13 +25,20 @@ cards:
       - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_c2e41c04_1_6
         name: Gästebad
   - type: entities
+    title: ' '
     show_header_toggle: false
+    card_mod:
+      style: |
+        ha-card .card-header {
+          padding: 0px;
+          display: unset;    
     entities:
       - type: custom:fold-entity-row
         head:
           type: section
           label: Gruppen & Alarm
         open: false
+        padding: 0 px
         entities:
           - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_20a30a04_on_off
             name: Eingang
@@ -51,3 +58,20 @@ cards:
               name: Alarm
           - entity: sensor.count_notification_alerts
             name: Anz. aktiver Alarme
+  - type: divider
+  - type: entities
+    show_header_toggle: false
+    entities:
+      - type: custom:fold-entity-row
+        head:
+          entity: switch.enable_signal_automation
+          name: Statusampel aktivieren
+          state_color: true
+        padding: 0 px
+        open: false
+        entities:
+          - entity: switch.show_signal
+            name: Status dauerhaft anzeigen
+            state_color: true
+          - entity: light.philips_lightstrip_ku
+            name: Lichtleiste Küche

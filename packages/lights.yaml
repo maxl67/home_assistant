@@ -195,19 +195,17 @@ automation:
         event: start      
     condition:
       # 'light_automation' aktiv UND (Home status away ODER nach 0:00)
-      condition: and
-      conditions:
-      - condition: or
-        conditions:
+      - and:
+        - or:
+          - condition: state
+            entity_id: sensor.home_status
+            state: 'Away'
+          - condition: time
+            after: '00:00:00'
+            before: '06:00:00'
         - condition: state
-          entity_id: sensor.home_status
-          state: 'Away'
-        - condition: time
-          after: '00:00:00'
-          before: '06:00:00'
-      - condition: state
-        entity_id: input_boolean.disable_light_automation
-        state: 'off'
+          entity_id: input_boolean.disable_light_automation
+          state: 'off'
     action:
       - service: light.turn_off
         entity_id: 
@@ -219,16 +217,23 @@ automation:
   #----------------------------------------------------------------------------------
   # Lichtampel Durchreiche 
   # Wird die Lichtleiste durch den Wandschalter wieder eingeschaltet, so leuchtet sie dauerhaft mit weissem Licht.
-  # Die Lichtleiste soll nach dem Versorgen mir Strom wieder dunkel werden.
+  # Die Lichtleiste soll nach dem Versorgen mit Strom wieder ausgeschaktet werden.
   - id: switch_off_signal_after_poweron
     alias: Lichtleiste aus nach Stromzufuhr
     trigger: 
+      #falls die Leiste nicht erreicg´habr war (was leider nur nach langen Aus-Phasen passiert)
       - platform: state
         entity_id: light.philips_lightstrip_ku
         from: 'unavailable'
         to: 'on'
         for:
           seconds: 10
+      #wenn schnell wieder eingeschaltet
+      - platform: state
+        entity_id: light.philips_lightstrip_ku
+        to: 'on'
+        for:
+          minutes: 1
     condition:
       - and:
         - condition: state
@@ -240,27 +245,13 @@ automation:
         - condition: state
           entity_id: input_boolean.show_signal
           state: 'off'
-        # - condition: state
-        #   entity_id: light.philips_lightstrip_ku
-        #   attribute: 'hs_color'
+        # white color when powered on
+        - condition: template
+          value_template: >
+            {{ state_attr('light.philips_lightstrip_ku','hs_color')[0]==28.327 and state_attr('light.philips_lightstrip_ku','hs_color')[1]==64.71}}
     action:
       - service: light.turn_off #just turn off light
         entity_id: light.philips_lightstrip_ku
-#        - licht = weiss
-# color_mode: color_temp
-# brightness: 254
-# hs_color:
-#   - 28.327
-#   - 64.71
-# rgb_color:
-#   - 255
-#   - 167
-#   - 89
-# xy_color:
-#   - 0.524
-#   - 0.387
-# color_temp_kelvin: 2732
-# color_temp: 366
 
   #----------------------------------------------------------------------------------
   # HmIP-BRC2 Wandtaster schaltet Lichter an/aus
@@ -317,8 +308,8 @@ automation:
     action:
       - service: light.turn_on
         entity_id: *ambientelight_wz_entityid
-#      - service: light.turn_on
-#        entity_id: *light_az_entityid
+    #  - service: light.turn_on
+    #    entity_id: *light_az_entityid
       - service: light.turn_on
         data:
           brightness_pct: 10

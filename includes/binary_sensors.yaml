@@ -1,7 +1,0 @@
-##########################
-# Binary Sensors
-##########################
- 
-- platform: workday
-  country: DE
-  province: BW

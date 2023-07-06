@@ -175,6 +175,9 @@ cards:
         name: Network-Rack
       - entity: switch.fritz_dect_200_gz
         name: Schreibtisch Max
+      - entity: switch.outlet_repeater_wz_018780fe_on_off
+        name: Raspi3 (WZ)
+        icon: mdi:raspberry-pi
       - type: divider
       - entity: switch.enable_power_automation
 

@@ -107,13 +107,13 @@ camera:
       color_goto_path: [0, 255, 0]
     room_colors:
       1:  *bg_blue   #'Bad' : [1], blau
-      16: *bg_red    #'Küche' : [16], rot
+      20: *bg_red    #'Küche' : [16], rot
       17: *bg_blue   #'Wohnzimmer' : [17], blau
-      18: *bg_yellow #'Gästezimmer' : [18], gelb
-      19: *bg_yellow #'Esszimmer' : [19], gelb
-      20: *bg_yellow #'Schlafzimmer' : [20], gelb
-      21: *bg_green  #'Diele & Flur' : [21], grün
-      22: *bg_blue   #'Gästebad' : [22], blau
+      3:  *bg_yellow #'Gästezimmer' : [18], gelb
+      16: *bg_yellow #'Esszimmer' : [19], gelb
+      19: *bg_yellow #'Schlafzimmer' : [20], gelb
+      18: *bg_green  #'Diele & Flur' : [21], grün
+      2:  *bg_blue   #'Gästebad' : [22], blau
 
 ###############################################################################
 ##  Variables
@@ -269,40 +269,6 @@ sensor:
 
   - platform: template
     sensors:
-#      vacuum_status:
-#        friendly_name: Vacuum status
-#        value_template: >
-#          {% set val =  state_attr('vacuum.xiaomi_vacuum_cleaner','status')  %}
-#          {% if val == 'Definition missing for state 18' %}
-#            Cleaning room
-#          {% else %}
-#            {{ state_attr('vacuum.xiaomi_vacuum_cleaner','status') }}
-#          {% endif %}
-#        icon_template: >
-#          {% set val =  state_attr('vacuum.xiaomi_vacuum_cleaner','status')  %}
-#          {% if val == 'Charging' or val == 'Angedockt' %}
-#            mdi:battery-charging
-#          {% elif val == 'Cleaning' or val == 'Reinigen' %}
-#            mdi:move-resize
-#          {% elif val == 'Returning home' or val == 'Rückkehr zur Dockingstation' %}
-#            mdi:keyboard-return
-#          {% elif val == 'Idle' or val == 'Standby' %}
-#            mdi:dots-horizontal
-#          {% elif val == 'Paused' or val == 'Pausiert' %}
-#            mdi:pause-circle 
-#          {% else %}
-#            mdi:help-circle
-#          {% endif %}
-#      vacuum_fan_speed:
-#        friendly_name: Fan Speed
-#        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','fan_speed') }}"
-#        icon_template: 'mdi:speedometer'
-#      vacuum_battery:
-#        friendly_name: Vacuum Battery
-#        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','battery_level') }}"
-#        unit_of_measurement: '%'
-#        icon_template: "{{ 'mdi:battery' if (state_attr('vacuum.xiaomi_vacuum_cleaner','battery_icon') is none) else state_attr('vacuum.xiaomi_vacuum_cleaner','battery_icon') }}"
-
       vacuum_cleaning_duration:
         friendly_name: Current duration
         value_template: "{{ (states('sensor.roborock_vacuum_s6_current_clean_duration')|float(default=0) / 60) | round(0) }}"
@@ -398,17 +364,17 @@ script:
         data: 
           my_roomid: >
             {{ {
-            'Küche' : [16],
-            'Esszimmer' : [19],
+            'Küche' : [20],
+            'Esszimmer' : [16],
             'Wohnzimmer' : [17],
-            'Diele & Flur' : [21],
+            'Diele & Flur' : [18],
             'Bad' : [1], 
-            'Schlafzimmer' : [20],  
-            'Gästebad' : [22],
-            'Gästezimmer' : [18], 
-            'Kü,Sz,B (auto)' : [16,20,1], 
-            'Kü,Sz,B' : [16,20,1],
-            'Kü,Ez,D&F': [16,19,21]
+            'Schlafzimmer' : [19],  
+            'Gästebad' : [2],
+            'Gästezimmer' : [3],
+            'Kü,Sz,B (auto)' : [20,19,1], 
+            'Kü,Sz,B' : [20,19,1],
+            'Kü,Ez,D&F': [20,16,18]
             } [my_roomname] }}
       # store the last cleaned room
       - delay:

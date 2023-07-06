@@ -166,7 +166,7 @@ cards:
                   entities:
                   - entity: vacuum.xiaomi_vacuum_cleaner
                     name: Status
-                  secondary_info: last-changed
+                  #secondary_info: last-changed
                   style: |
                     :host {
                       {% if is_state('binary_sensor.alert_vacuum_error','on') %}
@@ -178,7 +178,7 @@ cards:
                   name: heute schon gereinigt?
                   type: custom:multiple-entity-row
                   state_color: false
-                  secondary_info: last-changed
+                  #secondary_info: last-changed
                   entities:
                   - entity: sensor.vacuum_cleaned_room
                     name: Bereich

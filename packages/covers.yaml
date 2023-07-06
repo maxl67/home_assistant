@@ -28,6 +28,12 @@ homeassistant:
       cover_entityid_terrace_w: &awning_entityid_w cover.00165d89bbacf5_10
       cover_entityid_terrace_o: &awning_entityid_o cover.00165d89bbacf5_14
   # groups, variabless
+    group.alle_markisen:
+      <<: *common
+    group.alle_jalousien_sued:
+      <<: *common
+    group.alle_jalousien_west:
+      <<: *common
     input_boolean.automate_jalousie:
       <<: *common
     input_boolean.cover_wo_sun:
@@ -48,11 +54,21 @@ homeassistant:
   # automations
     script.position_jalousie:
       <<: *common
-    script.close_jalousie:
+    script.retract_cover:
+      <<: *common
+    script.retract_covers_on_side:
+      <<: *common
+    script.lower_all_covers_on_side:
+      <<: *common
+    script.stop_covers:
       <<: *common
     automation.closing_cover_in_summer:
       <<: *common
-    automation.opening_cover_when_windy:
+    automation.retract_all_cover_when_windy:
+      <<: *common
+    automation.retract_awning_when_windy_or_raining:
+      <<: *common
+    automation.retract_all_cover_without_sun:
       <<: *common
 
 
@@ -166,11 +182,12 @@ sensor:
       - sensor.dwd_current_warn_level_gewitter
       - sensor.dwd_current_warn_level_sturm
       - sensor.dwd_current_warn_level_hagel
-  - platform: template
-    sensors:
-      max_wind_speed:
-        unit_of_measurement: m/s
-        value_template: >-
+
+template:
+  - sensor:
+    - unique_id: max_wind_speed
+      name: max_wind_speed
+      state: >-
           {% set values = [ 
             state_attr('weather.dwd_weather_ak_stuttgart', 'wind_speed')|float/3.6,
             states('sensor.home_hourly_wind_speed')|float, 
@@ -178,7 +195,10 @@ sensor:
             ]
           %}
           {{ values|max }}
-
+      unit_of_measurement: 'm/s'
+      attributes:
+        friendly_name: max. Windgeschwindigkeit
+        description: 'max von weather.dwd_.wind_speed, sensor.home_hourly_wind_speed, sensor.home_hourly_forecast_wind_speed'
 
 ###############################################################################
 ##  Scripts
@@ -187,7 +207,7 @@ script:
   position_jalousie:
     # Lowers via HmIPW-DRBL4 the blind <my_cover_id> to covering value <my_cover_position>. 
     # The script will tilt the blinds at the final position to untangle the slats.
-    alias: Jalousie runter auf Position
+    alias: Jalousie auf Position fahren
     fields:
       my_cover_id:
         description: 'Entity-ID der Jalousie (nicht für Markisen).'
@@ -358,7 +378,7 @@ script:
                     #     entity_id: "{{ repeat.item.cover_id }}"
                     #   data:
                     #     position: "{{ repeat.item.to_position }}"
-                    #TEST: geht nicht. Parallelisierung geht nucht
+                    #TEST: geht nicht. Parallelisierung geht nicht
                     - service: script.position_jalousie
                       data:
                         my_cover_id: "{{ repeat.item.cover_id }}"
@@ -486,7 +506,7 @@ automation:
           - sensor.sunshine_south
         to: 'True'
         for:
-          minutes: 3
+          minutes: 10
       - id: 'config_changed'
         platform: state
         entity_id: 
@@ -497,6 +517,10 @@ automation:
       - id: 'morning_over'
         platform: time
         at: '09:00:10'
+      - id: 'sunrise'
+        platform: numeric_state
+        entity_id: sensor.sun_elevation_ratio
+        above: 0
     condition:
       - and:
         - alias: Automation is turned on
@@ -526,6 +550,9 @@ automation:
             - alias: but not before 9:00
               condition: time
               after: '09:00:00'
+            - alias: and not after 20:00
+              condition: time
+              before: '20:00:00'
         - or:
           - alias: sun is shining
             condition: state
@@ -556,7 +583,7 @@ automation:
         above: 1
       - platform: numeric_state
         entity_id: sensor.max_wind_speed
-        above: 10 # [m/s]
+        above: 20 # [m/s]
     condition: []
     action:
       - service: script.retract_covers_on_side
@@ -577,7 +604,7 @@ automation:
         to: 'rainy'
       - platform: numeric_state
         entity_id: sensor.max_wind_speed
-        above: 5 # [m/s]
+        above: 10 # [m/s]
     condition: []
     action:
       - service: script.retract_covers_on_side
@@ -591,12 +618,18 @@ automation:
     description: ''
     mode: single #Do not start a new run, if running already. 
     trigger:
+      - id: 'sun_down'
+        platform: numeric_state
+        entity_id: sensor.sun_elevation_ratio
+        below: 0.1
+        for:
+          minutes: 5
       - id: 'sunset'
         platform: state
         entity_id: sun.sun
         to: 'below_horizon'
         for:
-          minutes: 5
+          seconds: 5
       - id: 'south_wo_sun'
         platform: template
         value_template: "{{ state_attr('sun.sun','azimuth') | int > 240 }}"
@@ -611,6 +644,6 @@ automation:
     action:
       - service: script.retract_covers_on_side
         data:
-          in_south:   "{{ state_attr('sun.sun', 'azimuth')>=240 or is_state('sun.sun','below_horizon') }}"
-          in_west:    "{{ state_attr('sun.sun', 'azimuth')>=330 or is_state('sun.sun','below_horizon') }}"
+          in_south:   "{{ state_attr('sun.sun', 'azimuth')>=240 or states('sensor.sun_elevation_ratio')|int(0)<=0 }}"
+          in_west:    "{{ state_attr('sun.sun', 'azimuth')>=330 or states('sensor.sun_elevation_ratio')|int(0)<=0 }}"
           on_terrace: "{{ is_state('sun.sun','below_horizon') }}"

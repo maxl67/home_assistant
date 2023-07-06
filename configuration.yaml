@@ -39,6 +39,8 @@ energy:
 system_health:
 # My Home Assistant Service allows redirect to own HA-instance from external documentation.
 my:
+# Sprachsteuerung: https://www.home-assistant.io/integrations/conversation/
+conversation:
 
 # activate SSL
 # Source: https://community.home-assistant.io/t/ssl-and-home-assistant-running-on-a-synology-docker/32102
@@ -52,8 +54,8 @@ http:
 ## Includes (mostly moved to packages)
 ################################################################
 automation: !include automations.yaml #used for blueprints
-binary_sensor: !include includes/binary_sensors.yaml
-zone: !include includes/zones.yaml
+#binary_sensor: !include includes/binary_sensors.yaml
+#zone: !include includes/zones.yaml
 
 ################################################################
 ## Radio-Devices
@@ -208,7 +210,7 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - plant
     entities:
       - binary_sensor.workday_sensor
-      - sensor.sun_direction
+#      - sensor.sun_direction
     # systemmonitor (HA host system)
       - sensor.last_boot 
       - sensor.processor_use
@@ -227,6 +229,8 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - binary_sensor.radiobad
       - binary_sensor.rpi_west
       - binary_sensor.rpi_ost
+      - sensor.raspi1_clock_speed
+      - sensor.raspi2_clock_speed
       - sensor.raspi1_memory_use
       - sensor.raspi2_memory_use
       - sensor.raspi1_disk_use
@@ -265,6 +269,12 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.tasmota_wifi_connect_count
       - sensor.tasmotawe5_signal
       - sensor.tasmotawe5_we5_total_in_cost
+    # Power & solar
+      - sensor.bkw_sued_efficiency
+      - sensor.bkw_sued_powerfactor
+      - sensor.bkw_sued_reactivepower
+      - sensor.bkw_sued_voltage
+      - sensor.bkw_sued_current
     # Media Player
       - media_player.r_n803d_86ae28
       - binary_sensor.netreceiver_online
@@ -279,6 +289,7 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - automation.battery_sensor_from_attributes
       - sensor.vacuum_battery
       - sensor.osram_plug_01_a1bf020a_3_2820
+      - script.flash_light
       #- sensor.lumi_lumi_weather_95154a04_pressure
       - automation.update_requested_temp
       - sensor.geocoded_location
@@ -334,7 +345,7 @@ logbook: #recorded Entities, that will be displayed in Logbook
 
 history: #recorded Entities, that will be displayed in History
 #  include: !include includes/include.yaml
-  exclude: !include includes/exclude.yaml
+#  exclude: !include includes/exclude.yaml
 
 logger: 
   default: warn #critical,fatal,error,warning,warn,info,debug,notset

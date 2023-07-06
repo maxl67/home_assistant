@@ -15,12 +15,6 @@
 # draussen zu warm und heizen > alarm
 # heizperiode an und april..oktober
 
-#data
-#22.12.: 
-# Sonnenauf: 8:23-8:28 (MEWZ), 127,5-128,3°. 0,75-1,21°
-# Mittag: 12:22 (MEWZ), 179,94°, 17,87°
-# Untergang: 
-
 ################################################
 ##  Customize
 ################################################
@@ -279,26 +273,27 @@ automation:
     condition:
       # wenn in der Heizperiode eine Tür offen ist und es draussen kalt ist
       - and:
-        # Heizperiode ist an
-        - condition: state
+        - alias:  Heizperiode ist an
+          condition: state
           entity_id: input_boolean.heating_period
           state: 'on'
-        # eine Terassentür ist offen
-        - condition: state
+        - alias: eine Terassentür ist offen
+          condition: state
           entity_id: group.all_doors
           state: 'on'
         # Aussentemperatur (DWD) kleiner als die im WZ gemessene Temperatur
         - "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'temperature')|float(default=0) < state_attr('climate.000C9A499B5808', 'current_temperature')|float(default=0) }}" 
-        # Ampel-Automation aktiv
-        - condition: state
+        - alias: Ampel-Automation aktiv
+          condition: state
           entity_id: input_boolean.disable_signal_automation
           state: 'off'
-        # nicht wenn Eingangstür offen und die Signal-Ampel an
-        - condition: state
-          entity_id: input_boolean.ll_signals_doorstatus
-          state: 'off'
-        - condition: state
+        - alias: nicht wenn Eingangstür offen ...
+          condition: state
           entity_id: group.entrance_door
+          state: 'off'
+        - alias: ...und wenn die Signal-Ampel an
+          condition: state
+          entity_id: input_boolean.ll_signals_doorstatus
           state: 'off'
     action:
       # speichern des aktuellen Licht-Zustands...
@@ -336,7 +331,7 @@ automation:
             entity_id: light.philips_lightstrip_ku
 
   #-------------------------------
-  # Homeoffice - Profil 2 statt 1
+  # Homeoffice - Profil 2 statt 1 oder zurück
   - id: switch_to_homeofficeprofile
     alias: Heizprofil Home-Office
     trigger:
@@ -372,9 +367,6 @@ automation:
         - condition: numeric_state
           entity_id: sensor.n_guests_home
           below: 1
-        # - condition: state
-        #   entity_id: input_boolean.guests
-        #   state: 'off'
         # und Arbeitstagen
         # - condition: state
         #   entity_id: binary_sensor.workday_sensor
@@ -728,7 +720,7 @@ automation:
           my_window_state: "{{ 1 if is_state('group.doors_gz', 'on') else 0 }}" #0=geschlossen, 1=offen
 
       # Fussbodenheizung zentral an
-      - service: switch.turn_on
-        entity_id: switch.00161d89af7795_14 #Kanal 14 = Schalter 4: Fussbodenheizung Küche
-      - service: switch.turn_on
-        entity_id: switch.00161d89af7795_18 #Kanal 18 = Schalter 5: Fussbodenheizung Bad
+      # - service: switch.turn_on
+      #   entity_id: switch.00161d89af7795_14 #Kanal 14 = Schalter 4: Fussbodenheizung Küche
+      # - service: switch.turn_on
+      #   entity_id: switch.00161d89af7795_18 #Kanal 18 = Schalter 5: Fussbodenheizung Bad

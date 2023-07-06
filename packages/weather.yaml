@@ -12,8 +12,16 @@
 # https://www.dwd.de/DE/wetter/warnungen_aktuell/objekt_einbindung/objekteinbindung.html
 ###############################################################################
 #Sonnenaufgang, Sonnenuntergang und Höhe real:
+#22.12.: 
+# Sonnenauf: 8:23-8:28 (MEWZ), 127,5-128,3°. 0,75-1,21°
+# Mittag: 12:22 (MEWZ), 179,94°, 17,87°
+# Untergang: 
   #24.11   ? 16:15
   #22.04  06:15 20:28 53,5° (MESZ)
+#22.6:
+# Sonnenauf: 5:23-5:40 (MESZ), ?-?°. 0,1-1,9°
+# Mittag: 12:22 (MEWZ), 179,94°, 17,87°
+# Untergang: 
 
 ################################################
 ##  Customize
@@ -55,6 +63,7 @@ homeassistant:
       <<: *common
     sensor.sun_elevation_noon:
       <<: *common
+      description: 'max. Höhe der Somme in den letzten 25h. Im Sommer (21.6, 13:25): 64,7°; im Winter (22.12): 18°?' 
     sensor.sunshine_hours_yesterday:
       <<: *common
     sensor.sunshine_hours_today:
@@ -102,14 +111,14 @@ template:
       unit_of_measurement: '°C'
       attributes:
         friendly_name: Außentemperatur
-        description: 'gebildet aus Attribut temperature des weather-Sensor von DWD (Dt. WetterDienst).'
+        description: 'gebildet aus Attribut [temperature] des weather-Sensor von DWD (Dt. WetterDienst).'
     - unique_id: outside_humidity
       name: outside_humidity
       state: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'humidity')|int(default=0) }}"
       unit_of_measurement: '%'
       attributes:
         friendly_name: Luftfeuchte außen
-        description: 'gebildet aus Attribut humidity des weather-Sensor von DWD (Dt. WetterDienst).'
+        description: 'gebildet aus Attribut [humidity] des weather-Sensor von DWD (Dt. WetterDienst).'
     #outside_visibility:
       #  value_template: "{{ state_attr('weather.dwd_weather_ak_stuttgart', 'visibility')|float(default=0) }}"
       #  unit_of_measurement: '%'
@@ -122,21 +131,21 @@ template:
       unit_of_measurement: '°'
       attributes:
         friendly_name: Sonnenrichtung
-        description: 'gebildet aus Attribut azimuth des sun.sun Sensors'
+        description: 'gebildet aus Attribut [azimuth] des [sun.sun] Sensors'
     - unique_id: sun_elevation
       name: sun_elevation
       state: "{{ state_attr('sun.sun', 'elevation')|float(default=0)|round(1) }}"
       unit_of_measurement: '°'
       attributes:
         friendly_name: Sonnenhöhe
-        description: 'gebildet aus Attribut elevation des sun.sun Sensors'
+        description: 'gebildet aus Attribut [elevation] des [sun.sun] Sensors'
     - unique_id: sun_elevation_ratio
       name: sun_elevation_ratio
-       #Morning: sun arrisen at 2°, evening down an ?° --> we start with 0% at 3°, shift the values 3 down
+       #Morning: sun arrisen at 2°, evening down an ?° --> we start with 0% at 2°, shift the values 2 down
       state: >
-        {% set sun_min_elevation = 3 %}
-        {% if state_attr('sun.sun', 'elevation')|float(default=0) > sun_min_elevation %} 
-          {{ min((state_attr('sun.sun', 'elevation')|float(0) - sun_min_elevation) / (states('sensor.sun_elevation_noon')|float(90) - sun_min_elevation) * 100.0, 100) 
+        {% set sun_min_elevation = 2 if state_attr('sun.sun', 'rising') else 5 %}
+        {% if state_attr('sun.sun', 'elevation')|float(default=0) >= sun_min_elevation %} 
+          {{ min((state_attr('sun.sun', 'elevation')|float(0) - sun_min_elevation) / (states('sensor.sun_elevation_noon')|float(40) - sun_min_elevation) * 100.0, 100) 
             | int(default=0) }}
         {% else %}
           0
@@ -145,20 +154,31 @@ template:
       unit_of_measurement: '%'
       attributes:
         friendly_name: relative Sonnenhöhe #[%]
-        description: 'relat. Höhe der Sonne zum Tagesmaximum (3°=0%, Mittag=100%)'
+        description: 'relat. Höhe der Sonne zum Tagesmaximum (morgens 2°=0%, Mittag=100%, abends 5°=0%)'
 
     ########## SONNENSCHEIN ###########
     - unique_id: sunshine_probability
       name: sunshine_probability
-      # wenn Solarstrom-Messsteckdose erreichbar und Sonnenrichtung < 220° --> Intensität aus Leistung der Solarpanels berechnen
-      #    Propapility = akt Solarleistung / erwartete Solarleistung
-      #    erwartete Solarleistung = Peakleistung (=250) * sun_elevation_ratio
-      # sonst aus den Status der Wetter-Entitäten
+      # wenn Wechselrichter/Solarstrom-Messsteckdose erreichbar und Sonnenrichtung < 240° --> Intensität aus Leistung der Solarpanels berechnen
+      #    Probability = akt. Solarleistung / erwartete Solarleistung * Ausgleichsfaktor
+      #    erwartete Solarleistung = Peakleistung (=600W) * sun_elevation_ratio
+      #    Ausgleichsfaktor = (Sonnenrichtung zu 150°) <60° -> 1, in 60°..90° -> 1..2 
+      #    alt: Ausgleichsfaktor = (Sonnenrichtung zu 150°) <45° -> 1, in 45°..90° -> 1..2 
+      # sonst aus den Status der Wetter-Entitäten berechnen
       state: >
-        {% set peak_solar_power = 250 %}
-        {% if not is_state('switch.fritz_dect_210_solar', 'unavailable') and state_attr('sun.sun', 'azimuth')|float(default=360) < 240 %}
-          {{ (min(states('sensor.fritz_dect_210_solar_power_consumption')|float / (peak_solar_power * states('sensor.sun_elevation_ratio')|int / 100), 1) * 100) | int }}
-        {% elif states('sun_elevation_ratio')|float(0) > 0 %}
+        {%- set compensation_start_angle = 60 -%}
+        {%- set peak_solar_power_s = 600 -%}
+        {%- set orientation_s = 150 -%}
+        {%- set angle_compensation_factor_s = max((orientation_s - states('sensor.sun_direction')|float)|abs-compensation_start_angle,0)/(90-compensation_start_angle) + 1 -%}
+        {%- set peak_solar_power_w = 250 -%}
+        {%- set orientation_w = 240 -%}
+        {%- set angle_compensation_factor_w = max((orientation_w - states('sensor.sun_direction')|float)|abs-compensation_start_angle,0)/(90-compensation_start_angle) + 1 -%}
+
+        {% if not is_state('sensor.bkw_sued_power', 'unavailable') and state_attr('sun.sun', 'azimuth')|float(default=360) > orientation_s-80 and state_attr('sun.sun', 'azimuth')|float(default=360) < orientation_s+90 -%}
+          {{ 0 if states('sensor.sun_elevation_ratio')|int <= 0 else (min(states('sensor.bkw_sued_power')|float / (peak_solar_power_s * states('sensor.sun_elevation_ratio')|int / 100) * angle_compensation_factor_s, 1) * 100) | int }}
+        {% elif not is_state('switch.fritz_dect_210_solar', 'unavailable') and state_attr('sun.sun', 'azimuth')|float(default=360) > orientation_w-90 and state_attr('sun.sun', 'azimuth')|float(default=360) < orientation_w+90 -%}
+          {{ 0 if states('sensor.sun_elevation_ratio')|int <= 5 else (min(states('sensor.fritz_dect_210_solar_power_consumption')|float / (peak_solar_power_w * states('sensor.sun_elevation_ratio')|int / 100) * angle_compensation_factor_w, 1) * 100) | int }}
+        {% elif states('sensor.sun_elevation_ratio')|float(0) > 0 %}
           {% if states('weather.dwd_weather_ak_stuttgart') == 'sunny' and states('weather.home_hourly') == 'sunny' %}
             95
           {% elif states('weather.dwd_weather_ak_stuttgart') == 'sunny' or states('weather.home_hourly') == 'sunny' %}
@@ -177,15 +197,15 @@ template:
       state_class: measurement #to be included in long-term statistics
       attributes:
         friendly_name: Wahrscheinlichkeit von Sonnenschein
-        description: Wenn das Solarpanel verfügbar ist und Sonnenrichtung<240°, dann berechnet aus der aktuellen Solarleistung / (Peakleistung * relat. Sonnenhöhe). Wenn nicht verfügbar, dann berechnet aus den Status der Wettersensoren (sunny, partly cloudy)
+        description: Wenn das Solarpanel verfügbar ist und Sonnenrichtung<240°, dann berechnet aus der aktuellen Solarleistung / (Peakleistung * relat. Sonnenhöhe) * Kompensationsfaktor. Wenn nicht verfügbar, dann berechnet aus den Status der Wettersensoren (sunny, partly cloudy)
     - unique_id: sun_is_shining
       name: sun_is_shining
-      #Morning: sun arrisen at 2°
-      state: "{{ states('sensor.sunshine_probability')|int(0) > 50 }}"
+      #Morning: sun arrisen at 2°, evening: sun down at 5°?
+      state: "{{ states('sensor.sunshine_probability')|int(0) >= 70 }}"
       #state in {True|False}
       attributes:
         friendly_name: Sonne scheint
-        description: 'WAHR: wenn Wahrscheinlichkeit von Sonnenschein [sensor.sunshine_probability] > 50%'
+        description: 'WAHR: wenn Wahrscheinlichkeit von Sonnenschein [sensor.sunshine_probability] >= 70%'
     - unique_id: sunshine_south
       name: sunshine_south
       # 60..240?
@@ -194,7 +214,7 @@ template:
       #state in {True|False}
       attributes:
         friendly_name: Sonnenbestrahlung von Süden
-        description: 'WAHR: Wenn Sonnenschein erkannt und Azimuth in {70°...238°}'
+        description: 'WAHR: Wenn Sonnenschein erkannt und Azimuth in [70°...238°]'
     - unique_id: sunshine_west
       name: sunshine_west
       state: >
@@ -202,7 +222,7 @@ template:
       #state in {True|False}
       attributes:
         friendly_name: Sonnenbestrahlung von Westen
-        description: 'WAHR: Wenn Sonnenschein erkannt und Azimuth in {150°...330°}'
+        description: 'WAHR: Wenn Sonnenschein erkannt und Azimuth in [150°...330°]'
 
     ########## SONNENSCHEIN-Kurven für Charts ###########
     - unique_id: sunshine_elevation_ratio
@@ -295,8 +315,8 @@ sensor:
           {{ sunH.value }}
         unit_of_measurement: 'h'
 
-  - platform: dwd_weather_warnings
-    region_name: !secret dwd_region_name
+  # - platform: dwd_weather_warnings
+  #   region_name: !secret dwd_region_name
     # https://www.home-assistant.io/integrations/dwd_weather_warnings/
     # https://www.dwd.de/DE/leistungen/opendata/help/warnungen/warning_codes_pdf.pdf?__blob=publicationFile&v=5
     # Typen der Warnungen
@@ -529,9 +549,9 @@ automation:
       - condition: state
         entity_id: input_boolean.dwd_weather_alert
         state: 'off'
-#      - condition: state
-#        entity_id: script.send_dwd_warn_mail
-#        state: 'off'
+    #  - condition: state
+    #    entity_id: script.send_dwd_warn_mail
+    #    state: 'off'
       - condition: or
         conditions:
         - "{{ states.sensor.dwd_max_warn_level.state | int(default=0) >= 3 }}"

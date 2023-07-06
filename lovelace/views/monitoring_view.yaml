@@ -136,6 +136,10 @@ anchors:
 title: Netzwerk
 path: network
 icon: mdi:lan #mdi:network
+visible:
+  - user: 69c32196d4d84d41b973eeec6dfe57ab #Max
+#  - user: 3eb1963b87414099aa2ad0edd96086d3 #Ing
+#  - user: 3d604b31fc35442dae08553df3add73a #MaPa
 cards:
   # ========== Home Assistant ==============
   - type: entities
@@ -195,7 +199,7 @@ cards:
               - entity: sensor.fritz_box_6490_cable_device_uptime
                 name: letzter Reboot
                 icon: mdi:restart
-              - entity: binary_sensor.fritz_box_6490_cable_firmware_update
+              - entity: update.fritz_box_6490_cable_fritz_os
                 type: custom:multiple-entity-row
                 name: Firmware
                 entities:
@@ -436,8 +440,10 @@ cards:
               entities:
               - entity: sensor.hera_volume_1_used_space
                 name: Used
+                format: precision1
               - entity: sensor.hera_volume_1_total_size
                 name: Size
+                format: precision1
             # List of Disks
             - type: custom:fold-entity-row
               head:
@@ -609,6 +615,7 @@ cards:
     title: Geräte
     show_state: false
     <<: *style_header
+    columns: 6
     entities:
       - entity: binary_sensor.rpi_ost
         name: RPi-1
@@ -616,8 +623,11 @@ cards:
       - entity: binary_sensor.rpi_west
         name: RPi-2
         icon: mdi:home-automation
+      - entity: binary_sensor.rpi_sued
+        name: RPi-3
+        icon: mdi:raspberry-pi
       - entity: binary_sensor.roborock
-        name: Dusti-E
+        name: Dust-E
       - entity: binary_sensor.hp_laserjet_connectivity #sensor from HP integration
         #entity: binary_sensor.hpdrucker #ping sensor
         name: Drucker
@@ -685,6 +695,12 @@ cards:
                   service: script.kill_raspi1
                   confirmation: 
                     text: Soll RaspPi-1 (Ost) wirklich heruntergefahren werden?
+              - name: Restart Mon
+                entity: script.restart_monitor
+                icon: mdi:restart
+                tap_action: 
+                  action: call-service
+                  service: script.restart_monitor
           - type: section
         - type: horizontal-stack
           cards:
@@ -761,6 +777,12 @@ cards:
                   service: script.reboot_raspi2
                   confirmation: 
                     text: Soll RaspPi-2 (West) wirklich neu gebootet werden?
+              - name: Restart Monitor
+                entity: script.restart_monitor
+                icon: mdi:restart
+                tap_action: 
+                  action: call-service
+                  service: script.restart_monitor
           - type: custom:fold-entity-row
             head:
               type: section
@@ -821,6 +843,85 @@ cards:
       type: markdown
       content: >
         <h3>Raspi2 (West)</h3>
+        Ist offline!!
+
+  # ---- Raspi 3 ----
+  - type: conditional
+    conditions:
+      - entity: binary_sensor.rpi_sued
+        state: 'on'
+    card:
+      type: custom:vertical-stack-in-card
+      cards:
+        - type: entities
+          title: Raspi3 (RPi 4b)
+          <<: *style_header
+          show_header_toggle: false
+          entities:
+          - type: custom:fold-entity-row
+            head:
+              type: section
+              label: System
+            open: false
+            padding: 0 px
+            entities:
+            - entity: sensor.raspi3_last_boot
+              name: letzter Systemstart
+              icon: mdi:restart
+            - entity: sensor.raspi3_updates
+              name: Upgrades pending
+              icon: mdi:new-box
+
+            - type: divider
+            - type: buttons
+              entities:
+              - name: Reboot
+                entity: script.reboot_raspi3
+                icon: mdi:restart
+                tap_action: 
+                  action: call-service
+                  service: script.reboot_raspi3
+                  confirmation: 
+                    text: Soll RaspPi-3 (Süd) wirklich neu gebootet werden?
+              - name: Shutdown!
+                entity: script.kill_raspi3
+                icon: mdi:power
+                tap_action: 
+                  action: call-service
+                  service: script.kill_raspi3
+                  confirmation: 
+                    text: Soll RaspPi-3 (Süd) wirklich heruntergefahren werden?
+          - type: section
+        - type: horizontal-stack
+          cards:
+            - type: custom:mini-graph-card
+              entities:
+                - sensor.raspi3_cpu_usage
+              name: CPU
+              icon: mdi:cpu-64-bit
+              <<: *graph_cpu
+            - type: custom:mini-graph-card
+              entities:
+                - sensor.raspi3_temperature
+              name: Temp
+              <<: *graph_rpi_temp
+        - type: custom:bar-card
+          entities:
+            - entity: sensor.raspi3_memory_use
+              name: RAM
+              icon: mdi:memory
+            - entity: sensor.raspi3_disk_use
+              name: SD-Card
+              icon: mdi:sd
+          <<: *bar_rpi_ram_hdd
+  - type: conditional
+    conditions:
+      - entity: binary_sensor.rpi_sued
+        state: 'off'
+    card:
+      type: markdown
+      content: >
+        <h3>Raspi3 (Süd)</h3>
         Ist offline!!
 
   # ========== Printer ==============

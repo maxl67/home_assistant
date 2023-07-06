@@ -12,6 +12,10 @@ anchors:
 title: Wartung
 path: maintenance
 icon: mdi:tools
+visible:
+  - user: 69c32196d4d84d41b973eeec6dfe57ab #Max
+#  - user: 3eb1963b87414099aa2ad0edd96086d3 #Ing
+#  - user: 3d604b31fc35442dae08553df3add73a #MaPa
 cards:
   - type: entities
     entities:

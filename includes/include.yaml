@@ -1,6 +1,0 @@
-#domains:
-entities:
-  - device_tracker.iphone8_max_wifi
-  - device_tracker.iphone8_max_bt
-  - device_tracker.iphone8_ing_wifi
-  - device_tracker.iphone8_ing_bt
