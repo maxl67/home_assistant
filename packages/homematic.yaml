@@ -1,9 +1,9 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 29.01.2020
+#   @date         : 09.07.23 (29.01.2020)
 #   @package      : homematic
-#   @description  : 
-#   @links        : 
+#   @description  : 2023: Umstellung auf HomaticIP_Local Custom Integration
+#   @links        : https://github.com/danielperna84/custom_homematic
 ###############################################################################
 # Parameter Wandthermostat WZ
 #  ch 0: 
@@ -55,53 +55,38 @@ homeassistant:
       valve: &valve
         unit_of_measurement: "%"
         <<: *common
-        #icon_template: "mdi:valve"  #geht nicht
   # sensors
-    sensor.hm_thermo_wz_current_temp:
-      <<: *temperature
     sensor.hm_thermo_wz_target_temp:
       <<: *temperature
-    sensor.hm_thermo_wz_actor_state:
-      <<: *actor
     sensor.hm_thermo_wz_actor_value:
+      <<: *actor
+    sensor.hm_thermo_wz_actor_state:
       <<: *actor
     sensor.hm_thermo_wz_window_state:
       <<: *common
     sensor.hm_thermo_wz_active_profile:
       <<: *common
+    sensor.hm_thermo_wz_actor_value_graph:
+      <<: *common
   
-    sensor.hm_thermo_ku_current_temp:
-      <<: *temperature
     sensor.hm_thermo_ku_target_temp:
       <<: *temperature
-    sensor.hm_thermo_ku_valve_status:
-      <<: *actor
-    sensor.hm_thermo_ku_actor_value:
-      <<: *valve
-    sensor.hm_thermo_ku_actor_display:
+    sensor.hm_thermo_ku_actor_value_graph:
       <<: *valve
     sensor.hm_thermo_ku_window_state:
       <<: *common
     sensor.hm_thermo_ku_active_profile:
       <<: *common
   
-    sensor.hm_thermo_gz_current_temp:
-      <<: *temperature
     sensor.hm_thermo_gz_target_temp:
       <<: *temperature
-    sensor.hm_thermo_gz_valve_status:
-      <<: *actor
-    sensor.hm_thermo_gz_actor_value:
-      <<: *valve
-    sensor.hm_thermo_gz_actor_display:
+    sensor.hm_thermo_gz_actor_value_graph:
       <<: *valve
     sensor.hm_thermo_gz_window_state:
       <<: *common
     sensor.hm_thermo_gz_active_profile:
       <<: *common
 
-    sensor.hm_ccu_last_reboot:
-      <<: *common
     binary_sensor.hm_homematic_up:
       <<: *common
   # automations
@@ -111,213 +96,222 @@ homeassistant:
 ################################################
 ##   Platforms
 ################################################
+
+#switched to custom integration 2023.07
 # Homematic CCU
-homematic:
-  interfaces:
-    hmip:
-      host: !secret homematic_hmip_host
-      port: 2010
-      username: !secret homematic_hmip_adminusername
-      password: !secret homematic_hmip_adminpassword
-      resolvenames: false
-#deactivated until at least one group is defined. 
-#Otherwise '[pyhomematic._hm] Failed to initialize proxy' error shows up in log.
-#    hmip_groups:
-#      host: !secret homematic_hmip_host
-#      port: 9292 # 39292 mit SSL?
-#      username: !secret homematic_hmip_guestusername
-#      password: !secret homematic_hmip_guestpassword
-#      path: /groups
-#      resolvenames: json
-  hosts:
-    raspi_ccu:
-      host: !secret homematic_hmip_host
-      username: !secret homematic_hmip_adminusername
-      password: !secret homematic_hmip_adminpassword
+# homematic:
+#   interfaces:
+#     hmip:
+#       host: !secret homematic_hmip_host
+#       port: 2010
+#       username: !secret homematic_hmip_adminusername
+#       password: !secret homematic_hmip_adminpassword
+#       resolvenames: false
+  # hosts:
+  #   raspi_ccu:
+  #     host: !secret homematic_hmip_host
+  #     username: !secret homematic_hmip_adminusername
+  #     password: !secret homematic_hmip_adminpassword
 
 ###############################################################################
 ##  Sensors
 ###############################################################################
 # test: new State-based template sensors 
 #  https://www.home-assistant.io/integrations/template/#state-based-template-sensors
+      # - unique_id: hm_thermo_wz_current_temp
+      #   name: hm_thermo_wz_current_temp
+      # # --> entity_id wird: sensor.thermo_wz_current_temp
+      # # --> name wird thermo_wz_current_temp, kann in UI geändert werden
+
+
+#todo: pivccu_v_fensteroffen_wz solle eigentlich '0', '1' sein, nicht ' 1'. in pivCCCO geändert, hier noch nicht reflektiert.
+#todo: pivccu_v_wochenprofil_* und die dahinterliegenden Variablen in der piVCCU sind um 1 höher als das Profil.
+#todo: die MAP in sensor.hm_thermo_wz_active_profile global definieren. wie?
 template:
   - sensor:
+    # ---------------------
     # Thermostat Wohnzimmer
-      - unique_id: hm_thermo_wz_current_temp
-        name: hm_thermo_wz_current_temp
-      # --> entity_id wird: sensor.thermo_wz_current_temp
-      # --> name wird thermo_wz_current_temp, kann in UI geändert werden
-        state: "{{ state_attr('climate.000c9a499b5808','current_temperature') | float(default=0) }}"
-        unit_of_measurement: '°C'
-        state_class: measurement #to be included in long-term statistics
-        icon: mdi:thermometer
-        attributes:
-          friendly_name: "Wohnzimmer Ist-Temperatur" #Info: wird ignoriert, wenn unique_id UND name gesetzt. Name kann in UI gesetzt werden.
-      - unique_id: hm_thermo_wz_target_temp
-        name: hm_thermo_wz_target_temp
-        state: "{{ state_attr('climate.000c9a499b5808','temperature') | float(default=0) }}"
-        unit_of_measurement: '°C'
-        state_class: measurement #to be included in long-term statistics
-        icon: mdi:thermostat
-        attributes:
-          friendly_name: "Wohnzimmer Soll-Temperatur" 
-      - unique_id: hm_thermo_wz_actor_value
-        name: hm_thermo_wz_actor_value
-        state: "{{ 100 if (state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == True) else 0 }}"
-        unit_of_measurement: '%'
-        state_class: measurement #to be included in long-term statistics
-        icon: mdi:valve
-        attributes:
-          friendly_name: "Wohnzimmer Heizungsventilöffnung" 
+    - unique_id: hm_thermo_wz_target_temp
+      name: hm_thermo_wz_target_temp
+      state: "{{ state_attr('climate.wandthermostat_wz','temperature') | float(default=0) }}"
+      unit_of_measurement: '°C'
+      state_class: measurement #to be included in long-term statistics
+      icon: mdi:thermostat
+      attributes:
+        friendly_name: "Wohnzimmer Soll-Temperatur" 
+    - unique_id: hm_thermo_wz_actor_value 
+      name: hm_thermo_wz_actor_value
+      state: "{{ 100 if (states('binary_sensor.wandthermostat_wz_ch9') == 'on') else 0 }}"
+      unit_of_measurement: '%'
+      state_class: measurement #to be included in long-term statistics
+      icon: mdi:valve
+      attributes:
+        friendly_name: Wohnzimmer Heizungsventilöffnung
+        description: Konvertiert den on/off Sensor der HmIP Integration in einen Prozentwert (0%/100%) für Berechnungen
+    # Sensoren für die Oberfläche (lovelace)
+    - unique_id: hm_thermo_wz_actor_state #for simple-thermostat card
+      name: hm_thermo_wz_actor_state
+      state: >-
+        {%- if states('binary_sensor.wandthermostat_wz_ch9') == 'off' -%}
+        zu
+        {%- elif states('binary_sensor.wandthermostat_wz_ch9') == 'on' -%}
+        offen
+        {%- else -%}
+        {{ states('binary_sensor.wandthermostat_wz_ch9') }}
+        {%- endif -%}
+      icon: mdi:valve
+      attributes:
+        friendly_name: Wohnzimmer Heizungsventile
+        description: Konvertiert den on/off Sensor der HmIP Integration in deutsche Sprache für die 'simple-thermostat' Card
+    - unique_id: hm_thermo_wz_actor_value_graph #for mini-graph card
+      name: hm_thermo_wz_actor_value_graph
+      state: >-
+        {%- if is_state('binary_sensor.wandthermostat_wz_ch9','off') -%}
+          {%- if is_state('input_boolean.heating_period','on') -%}
+        0
+          {%- else -%}
+        -5
+          {%- endif -%}
+        {%- elif is_state('binary_sensor.wandthermostat_wz_ch9','on') -%}
+        40
+        {%- endif -%}
+      icon: mdi:valve
+      attributes:
+        friendly_name: Wohnzimmer Heizventile
+        description: Konvertiert den on/off Sensor der HmIP Integration in einen numerischen Wert für die 'mini-graph' Card
+    - unique_id: hm_thermo_wz_window_state #for simple-thermostat card
+      name: hm_thermo_wz_window_state
+      #todo: pivccu_v_fensteroffen_wz solle eigentlich '0', '1' sein, nicht ' 1'. in pivCCCO geändert, hier noch nicht reflektiert.
+      state: >-
+        {%- if is_state('sensor.pivccu_v_fensteroffen_wz','0') -%}
+        zu
+        {%- elif is_state('sensor.pivccu_v_fensteroffen_wz',' 1') -%} 
+        offen
+        {%- else -%}
+        {{ states('sensor.pivccu_v_fensteroffen_wz') }}
+        {%- endif -%}
+      icon: "{% if is_state('sensor.pivccu_v_fensteroffen_wz','0') %} mdi:window-closed-variant {% else %} mdi:window-open-variant {% endif %}"
+      attributes:
+        friendly_name: Fensterstatus Wohnzimmerthermostat
+        description: Konvertiert die 0/1 Variable aus der Homematic CCU in deutsche Sprache für die 'simple-thermostat' Card
+    - unique_id: hm_thermo_wz_active_profile #for simple-thermostat card
+      name: hm_thermo_wz_active_profile
+      state: >-
+        {% set profile_map = {
+          2: '1 - Work (def)',
+          3: '2 - Homeoffice',
+          4: '3 - Gäste' }
+        %}
+        {%- if is_state('sensor.pivccu_v_wochenprofil_wz','False') -%}
+        unbekannt
+        {%- else -%}
+        {{ profile_map[states('sensor.pivccu_v_wochenprofil_wz')|int(0)] }}
+        {%- endif -%}
+      attributes:
+        friendly_name: Heizprofil Wohnzimmerthermostat
+        description: Konvertiert die Variable aus der Homematic CCU in eine Beschreibung für die 'simple-thermostat' Card
 
+    # ---------------------
     # Küche
-      - unique_id: hm_thermo_ku_current_temp
-        name: hm_thermo_ku_current_temp
-        state: "{{ state_attr('climate.000a1a49a10ba3','current_temperature') | float(default=0) }}"
-        unit_of_measurement: '°C'
-        state_class: measurement #to be included in long-term statistics
-        icon: mdi:thermometer
-        attributes:
-          friendly_name: "Küche Ist-Temperatur"
-      - unique_id: hm_thermo_ku_target_temp
-        name: hm_thermo_ku_target_temp
-        state: "{{ state_attr('climate.000a1a49a10ba3','temperature') | float(default=0) }}"
-        unit_of_measurement: '°C'
-        state_class: measurement #to be included in long-term statistics
-        icon: mdi:thermostat
-        attributes:
-          friendly_name: "Küche Soll-Temperatur" 
-      - unique_id: hm_thermo_ku_actor_value
-        name: hm_thermo_ku_actor_value
-        state: "{{ (state_attr('climate.000a1a49a10ba3','level')|float(default=0)*100) | int(default=0) }}"
-        unit_of_measurement: '%'
-        state_class: measurement #to be included in long-term statistics
-        icon: mdi:valve
-        attributes:
-          friendly_name: "Küche Ventilöffnung" 
+    - unique_id: hm_thermo_ku_target_temp
+      name: hm_thermo_ku_target_temp
+      state: "{{ state_attr('climate.heizungsthermostat_ku','temperature') | float(default=0) }}"
+      unit_of_measurement: '°C'
+      state_class: measurement #to be included in long-term statistics
+      icon: mdi:thermostat
+      attributes:
+        friendly_name: "Küche Soll-Temperatur" 
+    # Sensoren für die Oberfläche (lovelace)
+    - unique_id: hm_thermo_ku_actor_value_graph #for mini-graph card
+      name: hm_thermo_ku_actor_value_graph
+      state: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.heizungsthermostat_ku','level')|float(default=0)==0) else state_attr('climate.heizungsthermostat_ku','level')|float(default=0)*40 }}"
+      icon: mdi:valve
+      attributes:
+        friendly_name: Küche Ventilöffnung
+        description: Konvertiert den Sensor der HmIP Integration in einen numerischen Wert für die 'mini-graph' Card
+    - unique_id: hm_thermo_ku_window_state #for simple-thermostat card
+      name: hm_thermo_ku_window_state
+      #todo: pivccu_v_fensteroffen_wz solle eigentlich '0', '1' sein, nicht ' 1'. in pivCCCO geändert, hier noch nicht reflektiert.
+      state: >-
+        {%- if is_state('sensor.pivccu_v_fensteroffen_ku','0') -%}
+        zu
+        {%- elif is_state('sensor.pivccu_v_fensteroffen_ku',' 1') -%} 
+        offen
+        {%- else -%}
+        {{ states('sensor.pivccu_v_fensteroffen_ku') }}
+        {%- endif -%}
+      icon: "{% if is_state('sensor.pivccu_v_fensteroffen_ku','0') %} mdi:window-closed-variant {% else %} mdi:window-open-variant {% endif %}"
+      attributes:
+        friendly_name: Fensterstatus Küchenthermostat
+        description: Konvertiert die 0/1 Variable aus der Homematic CCU in deutsche Sprache für die 'simple-thermostat' Card
+    - unique_id: hm_thermo_ku_active_profile #for simple-thermostat card
+      name: hm_thermo_ku_active_profile
+      state: >-
+        {% set profile_map = {
+          2: '1 - Work (def)',
+          3: '2 - Homeoffice',
+          4: '3 - Gäste' }
+        %}
+        {%- if is_state('sensor.pivccu_v_wochenprofil_ku','False') -%}
+        unbekannt
+        {%- else -%}
+        {{ profile_map[states('sensor.pivccu_v_wochenprofil_ku')|int(0)] }}
+        {%- endif -%}
+      attributes:
+        friendly_name: Heizprofil Küchenthermostat
+        description: Konvertiert die Variable aus der Homematic CCU in eine Beschreibung für die 'simple-thermostat' Card
 
+    # ---------------------
     # Gästezimmer
-      - unique_id: hm_thermo_gz_current_temp
-        name: hm_thermo_gz_current_temp
-        state: "{{ state_attr('climate.000a1a49a107b5','current_temperature') | float(default=0) }}"
-        unit_of_measurement: '°C'
-        state_class: measurement #to be included in long-term statistics
-        icon: mdi:thermometer
-        attributes:
-          friendly_name: "Gästezimmer Ist-Temperatur"
-      - unique_id: hm_thermo_gz_target_temp
-        name: hm_thermo_gz_target_temp
-        state: "{{ state_attr('climate.000a1a49a107b5','temperature') | float(default=0) }}"
-        unit_of_measurement: '°C'
-        state_class: measurement #to be included in long-term statistics
-        icon: mdi:thermostat
-        attributes:
-          friendly_name: "Gästezimmer Soll-Temperatur" 
-      - unique_id: hm_thermo_gz_actor_value
-        name: hm_thermo_gz_actor_value
-        state: "{{ (state_attr('climate.000a1a49a107b5','level')|float(default=0)*100) | int(default=0) }}"
-        unit_of_measurement: '%'
-        state_class: measurement #to be included in long-term statistics
-        icon: mdi:valve
-        attributes:
-          friendly_name: "Gästezimmer Ventilöffnung" 
-sensor:
-  # Thermostat Wohnzimmer
-  - platform: template
-    sensors:
-    # Wohnzimmer
-#      hm_thermo_wz_current_temp:
-#        value_template: "{{state_attr('climate.000c9a499b5808','current_temperature')|float(default=0)}}"
-#        friendly_name: "Wohnzimmer Ist-Temperatur"
-#        unit_of_measurement: "°C"
-#      hm_thermo_wz_target_temp:
-#        value_template: "{{state_attr('climate.000c9a499b5808','temperature')|float(default=0)}}"
-#        friendly_name: "Wohnzimmer Soll-Temperatur"
-      hm_thermo_wz_actor_state:
-        value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ')}}{% endif %}"
-        friendly_name: "Wohnzimmer Heizungsventile"
-        icon_template: "mdi:valve"
-      hm_thermo_wz_actor_value_graph: #for mini-graph
-        friendly_name: "Wohnzimmer Heizventile"
-        value_template: >-
-          {%if state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == False %}
-            {%if is_state('input_boolean.heating_period','on') %}
-          0
-            {% else %}
-          -5
-            {% endif %}
-          {% elif state_attr('homematic.raspi_ccu', 'V_Schaltaktor_WZ') == True %}
-          40
-          {% endif %}
-        icon_template: "mdi:valve"
-      hm_thermo_wz_window_state:
-        value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ')}}{% endif %}"
-        icon_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == False %} mdi:window-closed-variant {% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_WZ') == True %} mdi:window-open-variant {% endif %}"
-        friendly_name: "Fensterstatus Wohnzimmerthermostat"
-      hm_thermo_wz_active_profile:
-        value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Wochenprofil_WZ') == False %}0{% else %}{{state_attr('homematic.raspi_ccu', 'V_Wochenprofil_WZ')}}{% endif %}"
-        friendly_name: "Heizprofil Wohnzimmerthermostat"
-      # Küche
-#      hm_thermo_ku_current_temp:
-#        value_template: "{{state_attr('climate.000a1a49a10ba3','current_temperature')|float(default=0)}}"
-#        friendly_name: "Küche Ist-Temperatur"
-#      hm_thermo_ku_target_temp:
-#        value_template: "{{state_attr('climate.000a1a49a10ba3','temperature')|float(default=0)}}"
-#        friendly_name: "Küche Soll-Temperatur"
-      hm_thermo_ku_valve_status:
-        #Status Adaptierfahrt. 4=ADAPTION_DONE
-        value_template: "{{state_attr('climate.000a1a49a10ba3','valve')|int(default=0)}}"
-        friendly_name: "Küche Ventilstatus"
-        icon_template: "mdi:valve"
-#      hm_thermo_ku_actor_value:
-#        value_template: "{{(state_attr('climate.000a1a49a10ba3','level')|float(default=0)*100)|int(default=0)}}"
-#        friendly_name: "Küche Ventilöffnung"
-#        icon_template: "mdi:valve"
-      hm_thermo_ku_actor_display:  #for mini-graph
-        value_template: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.000a1a49a10ba3','level')|float(default=0)==0) else state_attr('climate.000a1a49a10ba3','level')|float(default=0)*40 }}"
-        friendly_name: "Küche Ventilöffnung"
-        icon_template: "mdi:valve"
-      hm_thermo_ku_window_state:
-        value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU')}}{% endif %}"
-        icon_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU') == False %} mdi:window-closed-variant {% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_KU') == True %} mdi:window-open-variant {% endif %}"
-        friendly_name: "Fensterstatus Küchenthermostat"
-      hm_thermo_ku_active_profile:
-        value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Wochenprofil_KU') == False %}0{% else %}{{state_attr('homematic.raspi_ccu', 'V_Wochenprofil_KU')}}{% endif %}"
-        friendly_name: "Heizprofil Küchenthermostat"
-      # Gästezimmer
-#      hm_thermo_gz_current_temp:
-#        value_template: "{{state_attr('climate.000a1a49a107b5','current_temperature')|float(default=0)}}"
-#        friendly_name: "Gästezimmer Ist-Temperatur"
-#      hm_thermo_gz_target_temp:
-#        value_template: "{{state_attr('climate.000a1a49a107b5','temperature')|float(default=0)}}"
-#        friendly_name: "Gästezimmer Soll-Temperatur"
-      hm_thermo_gz_valve_status:
-        #Status Adaptierfahrt. 4=ADAPTION_DONE
-        value_template: "{{state_attr('climate.000a1a49a107b5','valve')|int(default=0)}}"
-        friendly_name: "Gästezimmer Ventilstatus"
-        icon_template: "mdi:valve"
-#      hm_thermo_gz_actor_value:
-#        value_template: "{{(state_attr('climate.000a1a49a107b5','level')|float(default=0)*100)|int(default=0)}}"
-#        friendly_name: "Gästezimmer Ventilöffnung"
-#        icon_template: "mdi:valve"
-      hm_thermo_gz_actor_display:  #for mini-graph
-        value_template: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.000a1a49a107b5','level')|float(default=0)==0) else state_attr('climate.000a1a49a107b5','level')|float(default=0)*40 }}"
-        friendly_name: "Gästezimmer Ventilöffnung"
-        icon_template: "mdi:valve"
-      hm_thermo_gz_window_state:
-        value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_GZ') == False %}zu{% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_GZ') == True %}offen{% else %}{{state_attr('homematic.raspi_ccu', 'V_Fensteroffen_GZ')}}{% endif %}"
-        icon_template: "{%if state_attr('homematic.raspi_ccu', 'V_Fensteroffen_GZ') == False %} mdi:window-closed-variant {% elif state_attr('homematic.raspi_ccu', 'V_Fensteroffen_GZ') == True %} mdi:window-open-variant {% endif %}"
-        friendly_name: "Fensterstatus Gästethermostat"
-      hm_thermo_gz_active_profile:
-        value_template: "{%if state_attr('homematic.raspi_ccu', 'V_Wochenprofil_GZ') == False %}0{% else %}{{state_attr('homematic.raspi_ccu', 'V_Wochenprofil_GZ')}}{% endif %}"
-        friendly_name: "Heizprofil Gästethermostat"
-    # CCU
-  - platform: template
-    sensors:
-      hm_ccu_last_reboot:
-        value_template: "{{ state_attr('homematic.raspi_ccu', 'V_Last_Reboot') or '01.01.1970 00:00:00' }}"
-        icon_template: "mdi:clock"
-      
+    - unique_id: hm_thermo_gz_target_temp
+      name: hm_thermo_gz_target_temp
+      state: "{{ state_attr('climate.heizungsthermostat_gz','temperature') | float(default=0) }}"
+      unit_of_measurement: '°C'
+      state_class: measurement #to be included in long-term statistics
+      icon: mdi:thermostat
+      attributes:
+        friendly_name: "Gästezimmer Soll-Temperatur" 
+    # Sensoren für die Oberfläche (lovelace)
+    - unique_id: hm_thermo_gz_actor_value_graph #for mini-graph card
+      name: hm_thermo_gz_actor_value_graph
+      state: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.heizungsthermostat_gz','level')|float(default=0)==0) else state_attr('climate.heizungsthermostat_gz','level')|float(default=0)*40 }}"
+      icon: mdi:valve
+      attributes:
+        friendly_name: Gästezimmer Ventilöffnung
+        description: Konvertiert den Sensor der HmIP Integration in einen numerischen Wert für die 'mini-graph' Card
+    - unique_id: hm_thermo_gz_window_state #for simple-thermostat card
+      name: hm_thermo_gz_window_state
+      #todo: pivccu_v_fensteroffen_wz solle eigentlich '0', '1' sein, nicht ' 1'. in pivCCCO geändert, hier noch nicht reflektiert.
+      state: >-
+        {%- if is_state('sensor.pivccu_v_fensteroffen_gz','0') -%}
+        zu
+        {%- elif is_state('sensor.pivccu_v_fensteroffen_gz',' 1') -%} 
+        offen
+        {%- else -%}
+        {{ states('sensor.pivccu_v_fensteroffen_gz') }}
+        {%- endif -%}
+      icon: "{% if is_state('sensor.pivccu_v_fensteroffen_gz','0') %} mdi:window-closed-variant {% else %} mdi:window-open-variant {% endif %}"
+      attributes:
+        friendly_name: Fensterstatus Gästethermostat
+        description: Konvertiert die 0/1 Variable aus der Homematic CCU in deutsche Sprache für die 'simple-thermostat' Card
+    - unique_id: hm_thermo_gz_active_profile #for simple-thermostat card
+      name: hm_thermo_gz_active_profile
+      state: >-
+        {% set profile_map = {
+          2: '1 - Work (def)',
+          3: '2 - Homeoffice',
+          4: '3 - Gäste' }
+        %}
+        {%- if is_state('sensor.pivccu_v_wochenprofil_gz','False') -%}
+        unbekannt
+        {%- else -%}
+        {{ profile_map[states('sensor.pivccu_v_wochenprofil_gz')|int(0)] }}
+        {%- endif -%}
+      attributes:
+        friendly_name: Heizprofil Gästethermostat
+        description: Konvertiert die Variable aus der Homematic CCU in eine Beschreibung für die 'simple-thermostat' Card
+
+
 binary_sensor:
   - platform: template
     sensors:
@@ -328,21 +322,21 @@ binary_sensor:
         #  --> states.sensor.hm_thermo_wz_current_temp.last_changed NOT states_attr(..)
         value_template: >-
           {% set dummy = states('sensor.time') %}
-          {{ (as_timestamp(now()) - as_timestamp(states.sensor.hm_thermo_wz_current_temp.last_changed)) < 3600 }}
+          {{ (as_timestamp(now()) - as_timestamp(states.sensor.wandthermostat_wz_temperatur.last_changed)) < 3600 }}
 
 
 ###############################################################################
 ##  Automations
 ###############################################################################
-automation:
-  # Reconnect to CCU, if sensor has not been updated for over 1 hour or ccu rebooted
-  - alias: Homematic Reconnect
-    id: reconnect_homematic
-    trigger:
-      - platform: state
-        entity_id: binary_sensor.hm_homematic_up
-        to: "off"
-      - platform: state
-        entity_id: sensor.hm_ccu_last_reboot
-    action:
-      service: homematic.reconnect
+# automation:
+#   # Reconnect to CCU, if sensor has not been updated for over 1 hour or ccu rebooted
+#   - alias: Homematic Reconnect
+#     id: reconnect_homematic
+#     trigger:
+#       - platform: state
+#         entity_id: binary_sensor.hm_homematic_up
+#         to: "off"
+#       - platform: state
+#         entity_id: sensor.hm_ccu_last_reboot
+#     action:
+#       service: homematic.reconnect

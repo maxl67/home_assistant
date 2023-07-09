@@ -17,14 +17,14 @@ homeassistant:
         package: 'lights'
   # constants 
       # entity-id's
-      wallswitch_sz_id: &wallswitch_sz_id 0019DBE9943030
+      wallswitch_sz_id: &wallswitch_sz_id lichttaster_sz #.0019DBE9943030
       colorlight_ku_entityid: &colorlight_ku_entityid light.philips_lightstrip_ku
-      ambientelight_wz_entityid: &ambientelight_wz_entityid light.0008da499c8dbd
-      light_az_entityid: &light_az_entityid light.0008dd899c4781
+      ambientelight_wz_entityid: &ambientelight_wz_entityid light.dimmschalter_wz_dimmaktor_wz  #.0008da499c8dbd
+      light_az_entityid: &light_az_entityid light.dimmschalter_buro_dimmaktor_buro  #.0008dd899c4781
   # entities
-    light.0008da499c8dbd:
+    light.dimmschalter_wz_dimmaktor_wz:
       icon: mdi:ceiling-light-multiple-outline
-#    light.0008dd899c4781:
+#    light.dimmschalter_buro_dimmaktor_buro:
 #      icon:
     light.philips_lightstrip_ku:
       icon: mdi:led-strip-variant
@@ -56,17 +56,17 @@ scene:
   - name: Welcome
     icon: 'mdi:flower-tulip'
     entities:
-      light.0008da499c8dbd:
+      light.dimmschalter_wz_dimmaktor_wz:
         state: 'on'
         #brightness: 250 #-->.brightness=249
         brightness: 125 #-->.brightness=
   - name: Movies
     entities:
-      light.0008da499c8dbd:
+      light.dimmschalter_wz_dimmaktor_wz:
         state: 'on'
         #brightness: 125 #-->.brightness=124
         brightness: 75 #-->.brightness=30%
-#      light.0008dd899c4781:
+#      light.dimmschalter_buro_dimmaktor_buro:
 #        state: 'off'
   - name: Office_dark
     entities:
@@ -314,4 +314,4 @@ automation:
         data:
           brightness_pct: 10
         target:
-          entity_id: light.0008dd899c4781
+          entity_id: *light_az_entityid #light.dimmschalter_buro_dimmaktor_buro

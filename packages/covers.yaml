@@ -19,14 +19,14 @@ homeassistant:
       common: &common
         package: "covers"
   # constants 
-      cover_entityid_az_s: &cover_entityid_az_s cover.00165d89bbacf5_2
-      cover_entityid_ku: &cover_entityid_ku cover.00165d89bbacfa_6
-      cover_entityid_ez: &cover_entityid_ez cover.00165d89bbacfa_2
-      cover_entityid_wz_s: &cover_entityid_wz_s cover.00165d89bbacfa_14
-      cover_entityid_wz_ws: &cover_entityid_wz_ws cover.00165d89bbacfa_10
-      cover_entityid_wz_wn: &cover_entityid_wz_wn cover.00165d89bbacf5_6
-      cover_entityid_terrace_w: &awning_entityid_w cover.00165d89bbacf5_10
-      cover_entityid_terrace_o: &awning_entityid_o cover.00165d89bbacf5_14
+      cover_entityid_az_s: &cover_entityid_az_s cover.hmipw_drbl4_2_2_jalu1_buro  #.00165d89bbacf5_2
+      cover_entityid_ku: &cover_entityid_ku cover.hmipw_drbl4_1_6_jalu2_ku  #.00165d89bbacfa_6
+      cover_entityid_ez: &cover_entityid_ez cover.hmipw_drbl4_1_2_jalu3_ez  #.00165d89bbacfa_2
+      cover_entityid_wz_s: &cover_entityid_wz_s cover.hmipw_drbl4_1_14_jalu4_wz_s  #.00165d89bbacfa_14
+      cover_entityid_wz_ws: &cover_entityid_wz_ws cover.hmipw_drbl4_1_10_jalu5_wz_w  #.00165d89bbacfa_10
+      cover_entityid_wz_wn: &cover_entityid_wz_wn cover.hmipw_drbl4_2_6_jalu6_wz_n  #.00165d89bbacf5_6
+      cover_entityid_terrace_w: &awning_entityid_w cover.hmipw_drbl4_2_10_mark_west  #.00165d89bbacf5_10
+      cover_entityid_terrace_o: &awning_entityid_o cover.hmipw_drbl4_2_14_mark_sud  #.00165d89bbacf5_14
   # groups, variabless
     group.alle_markisen:
       <<: *common

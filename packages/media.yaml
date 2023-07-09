@@ -639,7 +639,7 @@ automation:
         entity_id: binary_sensor.smarttv #in addition to media_player, until that one will work correctly
         to: 'on'
       - platform: state
-        entity_id: light.0008da499c8dbd
+        entity_id: light.dimmschalter_wz_dimmaktor_wz
         to: 'on'
     condition:
       condition: and
@@ -653,7 +653,7 @@ automation:
             entity_id: binary_sensor.smarttv #in addition to media_player, until that one will work correctly
             state: 'on'
       - condition: state
-        entity_id: light.0008da499c8dbd
+        entity_id: light.dimmschalter_wz_dimmaktor_wz
         state: 'on'
       - condition: state
         entity_id: input_boolean.disable_power_automation
@@ -664,7 +664,7 @@ automation:
         data:
           store_name: dw_signal_store
           entity_id:
-            - light.0008da499c8dbd
+            - light.dimmschalter_wz_dimmaktor_wz
           overwrite: true
           all_attribs: true  #saves last color and brightness, even if state='off'. turn light on shortly
       - service: scene.turn_on

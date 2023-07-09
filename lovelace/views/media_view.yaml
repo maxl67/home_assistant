@@ -225,7 +225,7 @@ cards:
                   show_name: true
                   show_icon: false
                 - type: custom:button-card
-                  entity: light.0008da499c8dbd
+                  entity: light.dimmschalter_wz_dimmaktor_wz
                   show_name: false
                   hold_action:
                     action: more-info

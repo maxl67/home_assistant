@@ -33,12 +33,12 @@ homeassistant:
       hm_default_profile: &default_profile 1
       hm_home_profile: &home_profile 2
       hm_guest_profile: &guest_profile 3
-      thermostat_id_wz: &thermostat_id_wz 000C9A499B5808
-      thermostat_entityid_wz: &thermostat_entityid_wz climate.000C9A499B5808
-      thermostat_id_ku: &thermostat_id_ku 000A1A49A10BA3
-      thermostat_entityid_ku: &thermostat_entityid_ku climate.000A1A49A10BA3
-      thermostat_id_gz: &thermostat_id_gz 000a1a49a107b5
-      thermostat_entityid_gz: &thermostat_entityid_gz climate.000a1a49a107b5
+      thermostat_id_wz: &thermostat_id_wz fded4d6e23eaefefe305963b47357e83 #wandthermostat_wz
+      thermostat_entityid_wz: &thermostat_entityid_wz climate.wandthermostat_wz
+      thermostat_id_ku: &thermostat_id_ku 5ee2ea2d3204e1391bd380e3e78cc16f #heizungsthermostat_ku
+      thermostat_entityid_ku: &thermostat_entityid_ku climate.heizungsthermostat_ku
+      thermostat_id_gz: &thermostat_id_gz 177b82bd9b6ed9360a46712d62f884b6 #heizungsthermostat_gz
+      thermostat_entityid_gz: &thermostat_entityid_gz climate.heizungsthermostat_gz
       # ...add new Thermostats here.
   # groups, variables
     group.doors_wz:
@@ -228,14 +228,14 @@ script:
         description: 'new heating profile to be set.'
         example: '{1|2|3} (has to be int)'
     sequence:
-      - service: homematic.set_device_value
+      - service: homematicip_local.set_device_value
         data:
-          address: "{{ my_thermostat_id }}" 
+          device_id: "{{ my_thermostat_id }}" 
           value: "{{ my_profile_no }}"
           value_type: 'int' #this new param is needed, because using a template will return a string value otherwise. 
           channel: 1
-          param: "ACTIVE_PROFILE"
-          interface: "hmip"
+          parameter: "ACTIVE_PROFILE"
+        # interface: "hmip"
 
   set_windowstate_thermostat:
     alias: Fensterstatus für uebergebenes Thermostat setzen.
@@ -249,14 +249,14 @@ script:
         description: 'new window state'
         example: '{0|1} (has to be int)'
     sequence:
-      - service: homematic.set_device_value
+      - service: homematicip_local.set_device_value
         data:
-          address: "{{ my_thermostat_id }}" 
+          device_id: "{{ my_thermostat_id }}" 
           value: "{{ my_window_state }}"
           value_type: 'int' #this new param is needed, because using a template will return a string value otherwise. 
           channel: 1
-          param: "WINDOW_STATE"
-          interface: "hmip"
+          parameter: "WINDOW_STATE"
+        # interface: "hmip"
 
 ###############################################################################
 ##  Automations
@@ -561,32 +561,44 @@ automation:
         # bei Time-Trigger nur aufrufen, wenn ein Fenster-Flag offen ist
         - or:
           - condition: state
-            entity_id:  sensor.hm_thermo_wz_window_state
-            state: 'offen' 
+            entity_id:  sensor.pivccu_v_fensteroffen_wz
+            state: '1'
           - condition: state
-            entity_id: sensor.hm_thermo_gz_window_state
-            state: 'offen' 
+            entity_id: sensor.pivccu_v_fensteroffen_gz
+            state: '1' 
           - condition: state
-            entity_id: sensor.hm_thermo_ku_window_state
-            state: 'offen' 
+            entity_id: sensor.pivccu_v_fensteroffen_ku
+            state: '1' 
+          # - condition: state
+          #   entity_id:  sensor.hm_thermo_wz_window_state
+          #   state: 'offen' 
+          # - condition: state
+          #   entity_id: sensor.hm_thermo_gz_window_state
+          #   state: 'offen' 
+          # - condition: state
+          #   entity_id: sensor.hm_thermo_ku_window_state
+          #   state: 'offen' 
     action:
       - choose:
         # WOHNZIMMER
-        - conditions: "{{ trigger.entity_id == 'group.doors_wz' or (is_state('group.doors_wz','off') and is_state('sensor.hm_thermo_wz_window_state','offen')) }}"
+      # - conditions: "{{ trigger.entity_id == 'group.doors_wz' or (is_state('group.doors_wz','off') and is_state('sensor.hm_thermo_wz_window_state','offen')) }}"
+        - conditions: "{{ trigger.entity_id == 'group.doors_wz' or (is_state('group.doors_wz','off') and is_state('sensor.pivccu_v_fensteroffen_wz','1')) }}"
           sequence:
           - service: script.set_windowstate_thermostat
             data:
               my_thermostat_id: *thermostat_id_wz 
               my_window_state: 0 # =geschlossen
         # Küche/Büro
-        - conditions: "{{ trigger.entity_id == 'group.doors_kitchen_office' or (is_state('group.doors_kitchen_office','off') and is_state('sensor.hm_thermo_ku_window_state','offen')) }}"
+      # - conditions: "{{ trigger.entity_id == 'group.doors_kitchen_office' or (is_state('group.doors_kitchen_office','off') and is_state('sensor.hm_thermo_ku_window_state','offen')) }}"
+        - conditions: "{{ trigger.entity_id == 'group.doors_kitchen_office' or (is_state('group.doors_kitchen_office','off') and is_state('sensor.pivccu_v_fensteroffen_ku','1')) }}"
           sequence:
           - service: script.set_windowstate_thermostat
             data:
               my_thermostat_id: *thermostat_id_ku 
               my_window_state: 0 # =geschlossen
         # GÄSTEZIMMER
-        - conditions: "{{ trigger.entity_id == 'group.doors_gz' or (is_state('group.doors_gz','off') and is_state('sensor.hm_thermo_gz_window_state','offen')) }}"
+      #  - conditions: "{{ trigger.entity_id == 'group.doors_gz' or (is_state('group.doors_gz','off') and is_state('sensor.hm_thermo_gz_window_state','offen')) }}"
+        - conditions: "{{ trigger.entity_id == 'group.doors_gz' or (is_state('group.doors_gz','off') and is_state('sensor.pivccu_v_fensteroffen_gz','1')) }}"
           sequence:
           - service: script.set_windowstate_thermostat
             data:
@@ -671,9 +683,9 @@ automation:
           
       # Fussbodenheizung zentral aus
       - service: switch.turn_off
-        entity_id: switch.00161d89af7795_14 #Kanal 14 = Schalter 4: Fussbodenheizung Küche
+        entity_id: switch.hmipw_drs8_ch14 #Kanal 14 = Schalter 4: Fussbodenheizung Küche
       - service: switch.turn_off
-        entity_id: switch.00161d89af7795_18 #Kanal 18 = Schalter 5: Fussbodenheizung Bad
+        entity_id: switch.hmipw_drs8_ch18 #Kanal 18 = Schalter 5: Fussbodenheizung Bad
 
   - id: start_heating
     alias: Start der Heizperiode
@@ -721,6 +733,6 @@ automation:
 
       # Fussbodenheizung zentral an
       # - service: switch.turn_on
-      #   entity_id: switch.00161d89af7795_14 #Kanal 14 = Schalter 4: Fussbodenheizung Küche
+      #   entity_id: switch.hmipw_drs8_ch14 #Kanal 14 = Schalter 4: Fussbodenheizung Küche
       # - service: switch.turn_on
-      #   entity_id: switch.00161d89af7795_18 #Kanal 18 = Schalter 5: Fussbodenheizung Bad
+      #   entity_id: switch.hmipw_drs8_ch18 #Kanal 18 = Schalter 5: Fussbodenheizung Bad

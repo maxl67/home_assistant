@@ -23,10 +23,15 @@ My XIAOMI Roborock S6 will automatically clean the appartment when the last pers
 - Packages:   [vacuum](packages/vacuum.yaml)
 - Views: [vacuum_view](lovelace/views/vacuum_view.yaml)
 
-### Automation of Heating
+### Automation of heating
 Radiators will be turned off as soon as the last person leaves the appartment. Heating will also be turned off in a room, whenever a window/door is opened in that room. Different heating shedules (profiles) will be set automatically for regular work days, home office days or when guests are present. I use HomeMatic IP thermostats. The virtual HomeMatic CCU (piVCCU) runs on one of my rasperry pi's.
 - Packages:   [climate](packages/climate.yaml), [HomeMatic](packages/homematic.yaml)
 - Views: [climate_view](lovelace/views/climate_view.yaml)
+
+### Automation of blinds and awnings
+Blinds and awnings are wired to HomaticIP Wired components. Blinds are automatically lowered on a side (west/south) whenever the sun is shining (on that side). They are retracted when the sun direction leavees this side. Blinds and awnings are also retracted when wind exceeds a threshold. 
+Sunshine is detected from the power output of a plug-in solar panel.
+- Packages:   [covers], [weather](packages/weather.yaml)
 
 ### Weather Forecast and Warnings
 Warnings from the german weather service (DWD integration) are analysed and in case of storm and rain e-mail messages and notifications are send. In the furture I will use this information to automate outside blinds and awnings (as soon as I get them connetced to HA).

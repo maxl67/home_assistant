@@ -480,24 +480,24 @@ sensor:
         icon_template: mdi:snowflake-alert
 
       dwd_current_warn_frost:
-        friendly_name: "Frost"
+        friendly_name: "Frost/Hitze"
         value_template: >
           {% set ns = namespace(found='off') %}
           {% for attr in states.sensor.dwd_weather_warnings_current_warning_level.attributes if attr.endswith('_type') -%}
-              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr] in [5, 22, 82] %}
+              {% if states.sensor.dwd_weather_warnings_current_warning_level.attributes[attr] in [5, 22, 82, 247] %}
                   {% set ns.found = 'on' %}
               {% endif %}
           {% endfor %}
           {{ns.found}}
         icon_template: mdi:thermometer-alert
       dwd_current_warn_level_frost:
-        friendly_name: "Frost Stufe"
+        friendly_name: "Frost/Hitze Stufe"
         value_template: >
           {%- set ns = namespace(level=0) -%}
           {%- for i in range(0, states.sensor.dwd_weather_warnings_current_warning_level.attributes.warning_count) -%}
             {%- set type_attr= 'warning_'+loop.index|string + '_type' -%}
             {%- set lvl_attr=  'warning_'+loop.index|string + '_level' -%}
-            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] in [5, 22, 82] -%}
+            {%- if states.sensor.dwd_weather_warnings_current_warning_level.attributes[type_attr] in [5, 22, 82, 247] -%}
                {%- set ns.level = (ns.level, states.sensor.dwd_weather_warnings_current_warning_level.attributes[lvl_attr])|max  -%}
             {%- endif -%}
           {%- endfor -%}

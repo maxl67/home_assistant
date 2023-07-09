@@ -5,70 +5,70 @@ cards:
     state_color: false
     entities:
       # - type: custom:slider-entity-row
-      #   entity: cover.00165d89bbacfa_2
+      #   entity: cover.hmipw_drbl4_1_2_jalu3_ez
       #   name: Esszimmer
       # - type: divider
-      - entity: cover.00165d89bbacf5_2
+      - entity: cover.hmipw_drbl4_2_2_jalu1_buro
         name: Büro
         secondary_info: position
         style: |
           :host {
-            {% if state_attr('cover.00165d89bbacf5_2','current_position')|int <=95  %}
+            {% if state_attr('cover.hmipw_drbl4_2_2_jalu1_buro','current_position')|int <=95  %}
               --paper-item-icon-color: var(--paper-item-icon-active-color);
             {% else %}
               --paper-item-icon-color: var(--primary-text-color);
             {% endif %}
           }
-      - entity: cover.00165d89bbacfa_6
+      - entity: cover.hmipw_drbl4_1_6_jalu2_ku
         name: Küche
         secondary_info: position
         style: |
           :host {
-            {% if state_attr('cover.00165d89bbacfa_6','current_position')|int <=95  %}
+            {% if state_attr('cover.hmipw_drbl4_1_6_jalu2_ku','current_position')|int <=95  %}
               --paper-item-icon-color: var(--paper-item-icon-active-color);
             {% else %}
               --paper-item-icon-color: var(--primary-text-color);
             {% endif %}
           }
-      - entity: cover.00165d89bbacfa_2
+      - entity: cover.hmipw_drbl4_1_2_jalu3_ez
         name: Esszimmer
         secondary_info: position
         style: |
           :host {
-            {% if state_attr('cover.00165d89bbacfa_2','current_position')|int <=95  %}
+            {% if state_attr('cover.hmipw_drbl4_1_2_jalu3_ez','current_position')|int <=95  %}
               --paper-item-icon-color: var(--paper-item-icon-active-color);
             {% else %}
               --paper-item-icon-color: var(--primary-text-color);
             {% endif %}
           }
-      - entity: cover.00165d89bbacfa_14
+      - entity: cover.hmipw_drbl4_1_14_jalu4_wz_s
         name: Wohnen Süd
         secondary_info: position
         style: |
           :host {
-            {% if state_attr('cover.00165d89bbacfa_14','current_position')|int <=95  %}
+            {% if state_attr('cover.hmipw_drbl4_1_14_jalu4_wz_s','current_position')|int <=95  %}
               --paper-item-icon-color: var(--paper-item-icon-active-color);
             {% else %}
               --paper-item-icon-color: var(--primary-text-color);
             {% endif %}
           }
-      - entity: cover.00165d89bbacfa_10
+      - entity: cover.hmipw_drbl4_1_10_jalu5_wz_w
         name: Wohnen West
         secondary_info: position
         style: |
           :host {
-            {% if state_attr('cover.00165d89bbacfa_10','current_position')|int <=95  %}
+            {% if state_attr('cover.hmipw_drbl4_1_10_jalu5_wz_w','current_position')|int <=95  %}
               --paper-item-icon-color: var(--paper-item-icon-active-color);
             {% else %}
               --paper-item-icon-color: var(--primary-text-color);
             {% endif %}
           }
-      - entity: cover.00165d89bbacf5_6
+      - entity: cover.hmipw_drbl4_2_6_jalu6_wz_n
         name: Wohnen Nord
         secondary_info: position
         style: |
           :host {
-            {% if state_attr('cover.00165d89bbacf5_6','current_position')|int <=95  %}
+            {% if state_attr('cover.hmipw_drbl4_2_6_jalu6_wz_n','current_position')|int <=95  %}
               --paper-item-icon-color: var(--paper-item-icon-active-color);
             {% else %}
               --paper-item-icon-color: var(--primary-text-color);

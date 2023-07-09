@@ -790,7 +790,7 @@ cards:
             open: false
             padding: 0 px
             entities:
-            - entity: sensor.hm_ccu_last_reboot
+            - entity: sensor.pivccu_v_last_reboot
               name: letzter Reboot
               icon: mdi:restart
               #icon: mdi:home-automation

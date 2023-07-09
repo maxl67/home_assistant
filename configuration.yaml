@@ -297,13 +297,13 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - automation.start_bt_arrival_scan
       - automation.start_bt_departure_scan
     # HomeMatic
-      - homematic.raspi_ccu
-      - sensor.hm_ccu_last_reboot
-      - binary_sensor.000c9a499b5808_low_bat # Thermostat WZ
-      - binary_sensor.000a1a49a107b5_low_bat # Thermostat GZ
-      - binary_sensor.000a1a49a10ba3_low_bat # Thermostat KU
-      - sensor.hm_thermo_ku_valve_status
-      - sensor.hm_thermo_gz_valve_status
+      # - homematic.raspi_ccu
+      # - sensor.hm_ccu_last_reboot
+      # - binary_sensor.000c9a499b5808_low_bat # Thermostat WZ
+      # - binary_sensor.000a1a49a107b5_low_bat # Thermostat GZ
+      # - binary_sensor.000a1a49a10ba3_low_bat # Thermostat KU
+      # - sensor.hm_thermo_ku_valve_status
+      # - sensor.hm_thermo_gz_valve_status
     # iOS
       - sensor.last_update_trigger
       - sensor.bssid
@@ -352,9 +352,6 @@ logger:
   logs:
     fritzconnection: info
 #    custom_components.samsungtv_custom.media_player: debug
-
-#    homeassistant.components.homematic: debug
-#    pyhomematic: debug
 
 #    asyncio: debug
 #    homeassistant.components.zha: debug

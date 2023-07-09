@@ -41,15 +41,15 @@ series:
     name: Bad #(LUMI)
     color: "#4F729A" #blue
     yaxis_id: primary
-  - entity: sensor.hm_thermo_ku_current_temp
+  - entity: sensor.heizungsthermostat_ku_temperatur
     name: Kü #Küche (HmIP)
     color: "#8E529E" #violett
     yaxis_id: primary
-  - entity: sensor.hm_thermo_wz_current_temp
+  - entity: sensor.wandthermostat_wz_temperatur
     name: WZ #Wohnz (HmIP)
     color: "#5FCFD3" #hellblau
     yaxis_id: primary
-  - entity: sensor.hm_thermo_gz_current_temp
+  - entity: sensor.heizungsthermostat_gz_temperatur
     name: GZ #Gästez (HmIP)
     color: "#EF8632" #orange
     yaxis_id: primary

@@ -14,7 +14,7 @@ anchors:
   #https://github.com/nervetattoo/simple-thermostat
   simple_thermostat: &simple_thermostat
     layout:
-      step: row #row (-/+)|column (pfeile)
+      step: column #row (-/+)|column (Pfeile)
       mode:  # no text for control buttons
         names: false
         icons: true
@@ -25,6 +25,12 @@ anchors:
     control:
       hvac:
         _hide_when_off: true #hides control buttons when turned off.
+    style: |
+      ha-card {
+        --st-font-size-title: 20px;
+        --st-font-size-xl: 24px;
+        --st-font-size-m: 16px;
+        #--st-spacing: 4px;
 
   #https://github.com/kalkih/mini-graph-card
   graphs_range: &graphs_range
@@ -126,16 +132,16 @@ cards:
         card:
           # thermostat living room
           type: custom:simple-thermostat
-          entity: climate.000c9a499b5808
+          entity: climate.wandthermostat_wz #.000c9a499b5808
           header:
             name: Wohnzimmer Thermostat
           <<: *simple_thermostat
           sensors:
-            - entity: sensor.hm_thermo_wz_actor_state
+            - entity: sensor.hm_thermo_wz_actor_state #.binary_sensor.wandthermostat_wz_ch9
               name: Ventile
-            - entity: sensor.hm_thermo_wz_window_state
+            - entity: sensor.hm_thermo_wz_window_state #.pivccu_v_fensteroffen_wz
               name: Fenster
-            - entity: sensor.hm_thermo_wz_active_profile
+            - entity: sensor.hm_thermo_wz_active_profile #.pivccu_v_wochenprofil_wz
               name: Profil
       - type: conditional
         conditions:
@@ -148,59 +154,58 @@ cards:
           state_color: false
           <<: *style_header
           entities:
-            - entity: cover.00165d89bbacfa_2
+            - entity: cover.hmipw_drbl4_1_2_jalu3_ez
               name: Essen
               #type: attribute
               secondary_info: position
               style: |
                 :host {
-                  {% if state_attr('cover.00165d89bbacfa_2','current_position')|int <=95  %}
+                  {% if state_attr('cover.hmipw_drbl4_1_2_jalu3_ez','current_position')|int <=95  %}
                     --paper-item-icon-color: var(--paper-item-icon-active-color);
                   {% else %}
                     --paper-item-icon-color: var(--primary-text-color);
                   {% endif %}
                 }
-            - entity: cover.00165d89bbacfa_14
+            - entity: cover.hmipw_drbl4_1_14_jalu4_wz_s
               name: Süd
               secondary_info: position
               style: |
                 :host {
-                  {% if state_attr('cover.00165d89bbacfa_14','current_position')|int <=95  %}
+                  {% if state_attr('cover.hmipw_drbl4_1_14_jalu4_wz_s','current_position')|int <=95  %}
                     --paper-item-icon-color: var(--paper-item-icon-active-color);
                   {% else %}
                     --paper-item-icon-color: var(--primary-text-color);
                   {% endif %}
                 }
-            - entity: cover.00165d89bbacfa_10
+            - entity: cover.hmipw_drbl4_1_10_jalu5_wz_w
               name: West
               secondary_info: position
               style: |
                 :host {
-                  {% if state_attr('cover.00165d89bbacfa_10','current_position')|int <=95  %}
+                  {% if state_attr('cover.hmipw_drbl4_1_10_jalu5_wz_w','current_position')|int <=95  %}
                     --paper-item-icon-color: var(--paper-item-icon-active-color);
                   {% else %}
                     --paper-item-icon-color: var(--primary-text-color);
                   {% endif %}
                 }
-            - entity: cover.00165d89bbacf5_6
+            - entity: cover.hmipw_drbl4_2_6_jalu6_wz_n
               name: Nord
               secondary_info: position
               style: |
                 :host {
-                  {% if state_attr('cover.00165d89bbacf5_6','current_position')|int <=95  %}
+                  {% if state_attr('cover.hmipw_drbl4_2_6_jalu6_wz_n','current_position')|int <=95  %}
                     --paper-item-icon-color: var(--paper-item-icon-active-color);
                   {% else %}
                     --paper-item-icon-color: var(--primary-text-color);
                   {% endif %}
                 }
       - type: divider
-
       # temperature chart living room
       - type: custom:mini-graph-card
         name: Wohnzimmer
         <<: *temperature_graph
         entities:
-          - entity: sensor.hm_thermo_wz_current_temp
+          - entity: sensor.wandthermostat_wz_temperatur
             name: Ist HmIP
             <<: *dataset_ist_temp
           - entity: sensor.hm_thermo_wz_target_temp
@@ -223,16 +228,17 @@ cards:
         card:
           # thermostat kitchen
           type: custom:simple-thermostat
-          entity: climate.000a1a49a10ba3
+          entity: climate.heizungsthermostat_ku #.000a1a49a10ba3
           header:
             name: Küche Thermostat
           <<: *simple_thermostat
           sensors:
-            - entity: sensor.hm_thermo_ku_actor_value
+            - entity: sensor.heizungsthermostat_ku_level
               name: Ventilöffn.
-            - entity: sensor.hm_thermo_ku_window_state
+              decimals: 0
+            - entity: sensor.hm_thermo_ku_window_state #.pivccu_v_fensteroffen_ku (={0|1})
               name: Fenster
-            - entity: sensor.hm_thermo_ku_active_profile
+            - entity: sensor.hm_thermo_ku_active_profile #.pivccu_v_wochenprofil_ku 
               name: Profil
       - type: conditional
         conditions:
@@ -245,7 +251,7 @@ cards:
           state_color: false
           <<: *style_header
           entities:
-            - entity: cover.00165d89bbacf5_2
+            - entity: cover.hmipw_drbl4_2_2_jalu1_buro
               name: Büro
               secondary_info: position
               style: |
@@ -256,7 +262,7 @@ cards:
                     --paper-item-icon-color: var(--primary-text-color);
                   {% endif %}
                 }
-            - entity: cover.00165d89bbacfa_6
+            - entity: cover.hmipw_drbl4_1_6_jalu2_ku
               name: Küche
               secondary_info: position
               style: |
@@ -268,19 +274,18 @@ cards:
                   {% endif %}
                 }
       - type: divider
-
       # temperature chart kitchen
       - type: custom:mini-graph-card
         name: Küche
         <<: *temperature_graph
         entities:
-          - entity: sensor.hm_thermo_ku_current_temp
+          - entity: sensor.heizungsthermostat_ku_temperatur
             name: Ist HmIP
             <<: *dataset_ist_temp
           - entity: sensor.hm_thermo_ku_target_temp
             name: Soll HmIP
             <<: *dataset_soll_temp
-          - entity: sensor.hm_thermo_ku_actor_display
+          - entity: sensor.hm_thermo_ku_actor_value_graph
             name: heizen
             <<: *dataset_heizen
           - entity: sensor.sunshine_elevation_ratio
@@ -297,18 +302,18 @@ cards:
         card:
           # thermostat guest room
           type: custom:simple-thermostat
-          entity: climate.000a1a49a107b5
+          entity: climate.heizungsthermostat_gz #.000a1a49a107b5
           header:
             name: Gästezimmer Thermostat
           <<: *simple_thermostat
           sensors:
-            - entity: sensor.hm_thermo_gz_actor_value
+            - entity: sensor.heizungsthermostat_gz_level
               name: Ventilöffn.
-            - entity: sensor.hm_thermo_gz_window_state
+              decimals: 0
+            - entity: sensor.hm_thermo_gz_window_state #.pivccu_v_fensteroffen_gz
               name: Fenster
-            - entity: sensor.hm_thermo_gz_active_profile
+            - entity: sensor.hm_thermo_gz_active_profile #.pivccu_v_wochenprofil_gz
               name: Profil
-
       - type: conditional
         conditions:
           - entity: input_boolean.heating_period
@@ -320,23 +325,18 @@ cards:
           entities:
             - type: section
       - type: divider
-
       # temperature chart guest room
       - type: custom:mini-graph-card
         name: Gästezimmer
         <<: *temperature_graph
         entities:
-          - entity: sensor.hm_thermo_gz_current_temp
+          - entity: sensor.heizungsthermostat_gz_temperatur
             name: Ist HmIP
             <<: *dataset_ist_temp
-          #- entity: sensor.lumi_lumi_weather_95154a04_temperature
-          #  name: Raummessung
-          #  <<: *dataset_room_measurement
-          #  color: *orange
           - entity: sensor.hm_thermo_gz_target_temp
             name: Soll HmIP
             <<: *dataset_soll_temp
-          - entity: sensor.hm_thermo_gz_actor_display
+          - entity: sensor.hm_thermo_gz_actor_value_graph
             name: heizen
             <<: *dataset_heizen
           - entity: sensor.sunshine_elevation_ratio_west
@@ -352,9 +352,9 @@ cards:
     entities:
       # Heizung an/aus
       - entity: switch.heating_period
-      - entity: switch.00161d89af7795_14 #Kanal 14 = Schalter 4: Fussbodenheizung Küche
+      - entity: switch.hmipw_drs8_ch14 #Kanal 14 = Schalter 4: Fussbodenheizung Küche
         name: Fussbodenheizung Küche
-      - entity: switch.00161d89af7795_18 #Kanal 18 = Schalter 5: Fussbodenheizung Bad
+      - entity: switch.hmipw_drs8_ch18 #Kanal 18 = Schalter 5: Fussbodenheizung Bad
         name: Fussbodenheizung Bad
 
       # Automatisierung der Heizung
@@ -417,7 +417,7 @@ cards:
           - entity: sensor.lumi_lumi_weather_95154a04_humidity
             name: Bad (lumi)
             <<: *dataset_humidity_inside
-          - entity: sensor.000c9a499b5808_humidity
+          - entity: sensor.wandthermostat_wz_luftfeuchtigkeit
             name: WZ (HmIP)
             <<: *dataset_humidity_inside
           - entity: sensor.outside_humidity

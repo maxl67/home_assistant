@@ -200,14 +200,14 @@ cards:
 #      }
     entities:
       - type: custom:slider-entity-row
-        entity: light.0008da499c8dbd
+        entity: light.dimmschalter_wz_dimmaktor_wz 
         name: Ambiente Wohnen
         toggle: true
         hide_when_off: false
         min: 25
         max: 100
       - type: custom:slider-entity-row
-        entity: light.0008dd899c4781
+        entity: light.dimmschalter_buro_dimmaktor_buro #.0008dd899c4781
         name: Kiesel Büro
         toggle: true
         hide_when_off: false
