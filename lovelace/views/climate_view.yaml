@@ -256,7 +256,7 @@ cards:
               secondary_info: position
               style: |
                 :host {
-                  {% if state_attr('cover.00165d89bbacf5_2','current_position')|int <=95  %}
+                  {% if state_attr('cover.hmipw_drbl4_2_2_jalu1_buro','current_position')|int <=95  %}
                     --paper-item-icon-color: var(--paper-item-icon-active-color);
                   {% else %}
                     --paper-item-icon-color: var(--primary-text-color);
@@ -267,7 +267,7 @@ cards:
               secondary_info: position
               style: |
                 :host {
-                  {% if state_attr('cover.00165d89bbacfa_6','current_position')|int <=95  %}
+                  {% if state_attr('cover.hmipw_drbl4_1_6_jalu2_ku','current_position')|int <=95  %}
                     --paper-item-icon-color: var(--paper-item-icon-active-color);
                   {% else %}
                     --paper-item-icon-color: var(--primary-text-color);
@@ -474,13 +474,13 @@ cards:
                 name: Feuchte
               - entity: sensor.lumi_lumi_weather_95154a04_pressure
                 name: Druck
-            - entity: sensor.hm_thermo_wz_current_temp
+            - entity: sensor.wandthermostat_wz_temperatur
               type: custom:multiple-entity-row
               name: Wohnzimmer (Thermostat)
               secondary_info: last-changed
               state_header: Temp
               entities:
-              - entity: sensor.000c9a499b5808_humidity
+              - entity: sensor.wandthermostat_wz_luftfeuchtigkeit
                 name: Feuchte
               - entity: sensor.hm_thermo_wz_target_temp
                 name: Soll

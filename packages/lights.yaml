@@ -17,7 +17,8 @@ homeassistant:
         package: 'lights'
   # constants 
       # entity-id's
-      wallswitch_sz_id: &wallswitch_sz_id lichttaster_sz #.0019DBE9943030
+      wallswitch_sz_id: &wallswitch_sz_id 0019DBE9943030 #lichttaster_sz
+      wallswitch_sz_name: &wallswitch_sz_name lichttaster_sz
       colorlight_ku_entityid: &colorlight_ku_entityid light.philips_lightstrip_ku
       ambientelight_wz_entityid: &ambientelight_wz_entityid light.dimmschalter_wz_dimmaktor_wz  #.0008da499c8dbd
       light_az_entityid: &light_az_entityid light.dimmschalter_buro_dimmaktor_buro  #.0008dd899c4781
@@ -66,8 +67,8 @@ scene:
         state: 'on'
         #brightness: 125 #-->.brightness=124
         brightness: 75 #-->.brightness=30%
-#      light.dimmschalter_buro_dimmaktor_buro:
-#        state: 'off'
+      # light.dimmschalter_buro_dimmaktor_buro:
+      #   state: 'off'
   - name: Office_dark
     entities:
       light.0008dd899c4781:
@@ -257,25 +258,33 @@ automation:
   # HmIP-BRC2 Wandtaster schaltet Lichter an/aus
   - id: switch_off_ambientlight_from_sz
     alias: 'Ambientelicht aus (von SZ)'
+    description: ''
     trigger:
-      platform: event
+      platform: device
+      domain: homematicip_local
+      device_id: 248828199b3f92a327f134b7e831fd1f
       event_type: homematic.keypress
-      event_data:
-        name: *wallswitch_sz_id
-        channel: 1
-        param: PRESS_SHORT
+      address: *wallswitch_sz_id
+      device_type: HmIP-BRC2
+      interface_id: piVCCU-HmIP-RF
+      type: press_short
+      subtype: 1
     action:
       service: light.turn_off
       entity_id: *ambientelight_wz_entityid
   - id: switch_off_lights_from_sz
     alias: 'alle Licher aus (von SZ)'
+    description: ''
     trigger:
-      platform: event
+      platform: device
+      domain: homematicip_local
+      device_id: 248828199b3f92a327f134b7e831fd1f
       event_type: homematic.keypress
-      event_data:
-        name: *wallswitch_sz_id
-        channel: 1
-        param: PRESS_LONG
+      address: *wallswitch_sz_id
+      device_type: HmIP-BRC2
+      interface_id: piVCCU-HmIP-RF
+      type: press_long_start
+      subtype: 1
     action:
       - service: light.turn_off
         entity_id: *ambientelight_wz_entityid
@@ -286,32 +295,38 @@ automation:
   
   - id: switch_on_ambientlight_from_sz
     alias: 'Ambientelicht an (von SZ)'
+    description: ''
     trigger:
-      platform: event
+      platform: device
+      domain: homematicip_local
+      device_id: 248828199b3f92a327f134b7e831fd1f
       event_type: homematic.keypress
-      event_data:
-        name: *wallswitch_sz_id
-        channel: 2
-        param: PRESS_SHORT
+      address: *wallswitch_sz_id
+      device_type: HmIP-BRC2
+      interface_id: piVCCU-HmIP-RF
+      type: press_short
+      subtype: 2
     action:
       service: light.turn_on
       entity_id: *ambientelight_wz_entityid
   - id: switch_on_lights_from_sz
     alias: 'Licher an (von SZ)'
+    description: ''
     trigger:
-      platform: event
+      platform: device
+      domain: homematicip_local
+      device_id: 248828199b3f92a327f134b7e831fd1f
       event_type: homematic.keypress
-      event_data:
-        name: *wallswitch_sz_id
-        channel: 2
-        param: PRESS_LONG
+      address: *wallswitch_sz_id
+      device_type: HmIP-BRC2
+      interface_id: piVCCU-HmIP-RF
+      type: press_long_start #press', 'press_cont', 'press_long', 'press_long_release', 'press_long_start', 'press_short'
+      subtype: 2
     action:
       - service: light.turn_on
         entity_id: *ambientelight_wz_entityid
-    #  - service: light.turn_on
-    #    entity_id: *light_az_entityid
       - service: light.turn_on
         data:
           brightness_pct: 10
         target:
-          entity_id: *light_az_entityid #light.dimmschalter_buro_dimmaktor_buro
+          entity_id: *light_az_entityid

@@ -41,6 +41,7 @@ system_health:
 my:
 # Sprachsteuerung: https://www.home-assistant.io/integrations/conversation/
 conversation:
+assist_pipeline:
 
 # activate SSL
 # Source: https://community.home-assistant.io/t/ssl-and-home-assistant-running-on-a-synology-docker/32102

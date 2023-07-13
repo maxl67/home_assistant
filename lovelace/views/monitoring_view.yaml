@@ -891,6 +891,12 @@ cards:
                   service: script.kill_raspi3
                   confirmation: 
                     text: Soll RaspPi-3 (Süd) wirklich heruntergefahren werden?
+              - name: Restart Mon
+                entity: script.restart_monitor
+                icon: mdi:restart
+                tap_action: 
+                  action: call-service
+                  service: script.restart_monitor
           - type: section
         - type: horizontal-stack
           cards:

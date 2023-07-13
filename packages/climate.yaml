@@ -569,19 +569,9 @@ automation:
           - condition: state
             entity_id: sensor.pivccu_v_fensteroffen_ku
             state: '1' 
-          # - condition: state
-          #   entity_id:  sensor.hm_thermo_wz_window_state
-          #   state: 'offen' 
-          # - condition: state
-          #   entity_id: sensor.hm_thermo_gz_window_state
-          #   state: 'offen' 
-          # - condition: state
-          #   entity_id: sensor.hm_thermo_ku_window_state
-          #   state: 'offen' 
     action:
       - choose:
         # WOHNZIMMER
-      # - conditions: "{{ trigger.entity_id == 'group.doors_wz' or (is_state('group.doors_wz','off') and is_state('sensor.hm_thermo_wz_window_state','offen')) }}"
         - conditions: "{{ trigger.entity_id == 'group.doors_wz' or (is_state('group.doors_wz','off') and is_state('sensor.pivccu_v_fensteroffen_wz','1')) }}"
           sequence:
           - service: script.set_windowstate_thermostat
@@ -589,7 +579,6 @@ automation:
               my_thermostat_id: *thermostat_id_wz 
               my_window_state: 0 # =geschlossen
         # Küche/Büro
-      # - conditions: "{{ trigger.entity_id == 'group.doors_kitchen_office' or (is_state('group.doors_kitchen_office','off') and is_state('sensor.hm_thermo_ku_window_state','offen')) }}"
         - conditions: "{{ trigger.entity_id == 'group.doors_kitchen_office' or (is_state('group.doors_kitchen_office','off') and is_state('sensor.pivccu_v_fensteroffen_ku','1')) }}"
           sequence:
           - service: script.set_windowstate_thermostat
@@ -597,7 +586,6 @@ automation:
               my_thermostat_id: *thermostat_id_ku 
               my_window_state: 0 # =geschlossen
         # GÄSTEZIMMER
-      #  - conditions: "{{ trigger.entity_id == 'group.doors_gz' or (is_state('group.doors_gz','off') and is_state('sensor.hm_thermo_gz_window_state','offen')) }}"
         - conditions: "{{ trigger.entity_id == 'group.doors_gz' or (is_state('group.doors_gz','off') and is_state('sensor.pivccu_v_fensteroffen_gz','1')) }}"
           sequence:
           - service: script.set_windowstate_thermostat
