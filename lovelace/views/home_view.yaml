@@ -53,7 +53,7 @@ cards:
         - entity_id: binary_sensor.hera_update_available
           state: 'on'
       template: |
-        {% if states('sensor.latest_version') <> states('sensor.current_version') %}
+        {% if states('sensor.latest_version') != states('sensor.current_version') %}
           {{ sensor.latest_version.entity_id }}
         {% endif %}      
 

@@ -633,6 +633,16 @@ cards:
         name: Drucker
       - entity: binary_sensor.smarttv
         name: TV
+
+      - entity: binary_sensor.devolo_bridge
+        name: dBridge
+        icon: mdi:download-network-outline
+      - entity: binary_sensor.devolo_steuerkasten
+        name: dRail
+        icon: mdi:network-outline
+      - entity: binary_sensor.devolo_keller
+        name: dKeller
+        icon: mdi:access-point-network
 #      - entity: binary_sensor.radiobad
 #        name: Bad-Radio
 

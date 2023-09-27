@@ -61,6 +61,12 @@ homeassistant:
       <<: *common
     binary_sensor.rpi_sued:
       <<: *common
+    binary_sensor.devolo_bridge:
+      <<: *common
+    binary_sensor.devolo_steuerkasten:
+      <<: *common
+    binary_sensor.devolo_keller:
+      <<: *common
     # other devices
     binary_sensor.smarttv:
       <<: *common
@@ -136,7 +142,7 @@ binary_sensor:
   - platform: ping
     host: raspi1
     name: rpi_ost
-    scan_interval: 60
+    scan_interval: 20
     count: 2
   - platform: ping
     host: raspi2
@@ -148,7 +154,21 @@ binary_sensor:
     name: rpi_sued
     scan_interval: 60
     count: 2
-
+  - platform: ping
+    host: !secret devolo_bridge_ip
+    name: devolo_bridge
+    scan_interval: 60
+    count: 2
+  - platform: ping
+    host: !secret devolo_stk_ip
+    name: devolo_steuerkasten
+    scan_interval: 60
+    count: 3
+  - platform: ping
+    host: !secret devolo_keller_ip
+    name: devolo_keller
+    scan_interval: 60
+    count: 4
 ###############################################################################
 #                               Automations
 ###############################################################################

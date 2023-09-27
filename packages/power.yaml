@@ -244,9 +244,22 @@ automation:
               timeout:
                 minutes: 1
               continue_on_timeout: true  
+            # power down Raspi3
+            - service: script.kill_raspi3
+            - wait_for_trigger:
+                - platform: state
+                  entity_id: binary_sensor.rpi_sued
+                  to: 'off'
+              timeout:
+                minutes: 1
+              continue_on_timeout: true  
+            # switch off power outlet EZ (RPI Sued)
+            - service: switch.turn_off
+              entity_id: *powerswitch_rpi_sued_entityid
             # power down Unifi components 
             - service: switch.turn_off
               entity_id: *powerswitch_rack_entityid
+
 
   - id: switch_on_network
     alias: switch_on_network #switch on network components
@@ -275,7 +288,7 @@ automation:
                 state: 'Home'
               - "{{ trigger.entity_id == 'group.entrance_door' }}"
     action:
-      # stop switching off the network (if running)
+      # stop 'switching off the network' (if running)
       - service: automation.turn_off
         entity_id: automation.switch_off_network
       - service: automation.turn_on
@@ -289,26 +302,52 @@ automation:
         data:
           topic: 'monitor/scan/arrive' 
           payload: "{'data' : 'west'}" #this monitor publisher will NOT respond!
-      - delay: '00:01:00'
-      # power up Desk and wait a bit
+      - delay: '00:01:30'
+      # power up Desk ...
       - service: switch.turn_on
         entity_id: *powerswitch_gz_entityid
+      # ...and switch on power outlet EZ (RPI Sued)...
+      - service: switch.turn_on
+        entity_id: *powerswitch_rpi_sued_entityid
+      # ...and wait a bit
       - delay: '00:00:30'
       # reboot Raspi1, if not online and wait for reboot and sensors
       - choose:
         - conditions: "{{ states('sensor.raspi1_lastmessage') == 'unavailable' }}"
           sequence:
             - service: script.reboot_raspi1
+
       - delay: '00:01:00' 
       # switch of and on power for Raspi1. Necessary after longer power off periods
       - choose:
-        - conditions: "{{ states('sensor.raspi1_lastmessage') == 'unavailable' }}"
+        - conditions: "{{ states('binary_sensor.rpi_ost') != 'on'  or  states('sensor.raspi1_lastmessage') == 'unavailable' }}"
           sequence:
             - service: switch.turn_off
               entity_id: *powerswitch_rack_entityid
-            - delay: '00:00:05' 
+            - delay: '00:00:03' 
             - service: switch.turn_on
               entity_id: *powerswitch_rack_entityid
+      # switch of and on power for Raspi3. Necessary after longer power off periods
+      - choose:
+        - conditions: "{{ states('binary_sensor.rpi_sued') != 'on'  or  states('sensor.raspi3_lastmessage') == 'unavailable' }}"
+          sequence:
+            - service: switch.turn_off
+              entity_id: *powerswitch_rpi_sued_entityid
+            - delay: '00:00:05' 
+            - service: switch.turn_on
+              entity_id: *powerswitch_rpi_sued_entityid
+
+      - delay: '00:00:45' 
+      # reboot Raspi3, if not online and wait for reboot and sensors
+      - choose:
+        - conditions: "{{ states('sensor.raspi3_lastmessage') == 'unavailable' }}"
+          sequence:
+            - service: script.reboot_raspi3
+      # reboot Raspi3, if not online and wait for reboot and sensors
+      - choose:
+        - conditions: "{{ states('sensor.raspi3_lastmessage') == 'unavailable' }}"
+          sequence:
+            - service: script.reboot_raspi3
             
 
 ###############################################################################

@@ -189,9 +189,9 @@ template:
       name: max_wind_speed
       state: >-
           {% set values = [ 
-            state_attr('weather.dwd_weather_ak_stuttgart', 'wind_speed')|float/3.6,
-            states('sensor.home_hourly_wind_speed')|float, 
-            states('sensor.home_hourly_forecast_wind_speed')|float,
+            state_attr('weather.dwd_stuttgart_vaihingen', 'wind_speed')|float(default=0)/3.6,
+            states('sensor.home_hourly_wind_speed')|float(default=0), 
+            states('sensor.home_hourly_forecast_wind_speed')|float(default=0),
             ]
           %}
           {{ values|max }}
@@ -599,7 +599,7 @@ automation:
     trigger:
       - platform: state
         entity_id: 
-          - weather.dwd_weather_ak_stuttgart
+          - weather.dwd_stuttgart_vaihingen
           - weather.home_hourly
         to: 'rainy'
       - platform: numeric_state
@@ -632,10 +632,10 @@ automation:
           seconds: 5
       - id: 'south_wo_sun'
         platform: template
-        value_template: "{{ state_attr('sun.sun','azimuth') | int > 240 }}"
+        value_template: "{{ state_attr('sun.sun','azimuth') | int(default=0) > 240 }}"
       - id: 'west_wo_sun'
         platform: template
-        value_template: "{{ state_attr('sun.sun','azimuth') | int > 330 }}"
+        value_template: "{{ state_attr('sun.sun','azimuth') | int(default=0) > 330 }}"
     condition: 
       - alias: Automation is turned on
         condition: state

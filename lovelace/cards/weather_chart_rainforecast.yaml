@@ -28,7 +28,7 @@ yaxis:
         style:
           color: '#E45E65' #var(--paper-toggle-button-checked-button-color)
 series:
-  - entity: sensor.precipitation_ak_stuttgart_2
+  - entity: sensor.stuttgart_vaihingen_niederschlag
     name: Menge
     data_generator: |
       return entity.attributes.data.map((entry) => {
@@ -38,7 +38,7 @@ series:
     type: column
     yaxis_id: first
     color: var(--primary-color)
-  - entity: sensor.precipitation_probability_ak_stuttgart_2
+  - entity: sensor.stuttgart_vaihingen_niederschlagswahrscheinlichkeit
     name: Wahrscheinl. 
     data_generator: |
       return entity.attributes.data.map((entry) => {

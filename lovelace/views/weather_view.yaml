@@ -23,21 +23,28 @@ cards:
   # current weather info and forcast
   - type: custom:vertical-stack-in-card
     cards:
-    - type: custom:weather-chart-card
-      title: #Woche (DWD)
-      entity: weather.dwd_weather_ak_stuttgart
-      show_main: true
-      show_attributes: true
-      units:
-        #pressure: mmHg
-        speed: km/h
-      locale: 'de-DE'
-      icons: /local/images/icons/weather_fill/
-      style: |
-        .card-header {
-          padding: 20px 16px 10px;
-          line-height: 32px;
-        }
+    - type: weather-forecast
+      entity: weather.dwd_stuttgart_vaihingen
+      secondary_info_attribute: precipitation
+      show_current: true
+      show_forecast: true
+      forecast_type: daily
+#geht nicht mehr seit 2023.09
+    # - type: custom:weather-chart-card
+    #   title: #Woche (DWD)
+    #   entity: weather.dwd_stuttgart_vaihingen
+    #   show_main: true
+    #   show_attributes: true
+    #   units:
+    #     #pressure: mmHg
+    #     speed: km/h
+    #   locale: 'de-DE'
+    #   icons: /local/images/icons/weather_fill/
+    #   style: |
+    #     .card-header {
+    #       padding: 20px 16px 10px;
+    #       line-height: 32px;
+    #     }
     - type: divider
     # - type: custom:weather-chart-card
     #   #title: Stündlich (OWM)
@@ -181,12 +188,12 @@ cards:
       defaultTabIndex: 0 # in a 0 based index, 1 = the second tab would be the active tab on render
     styles:
       --mdc-typography-button-font-size: 10
-      --mdc-theme-primary: 
+      --mdc-theme-primary: yellow
     tabs:
       #------------------------------------------------
       # MeteoBlue Meteogram
       - attributes:
-          label: Meteo*
+          label: Meteo
         card:
           type: picture
           image: !secret meteogram_image
@@ -195,7 +202,7 @@ cards:
             url_path: !secret meteogram_url
 
       - attributes:
-          icon: mdi:weather-cloudy
+          icon: 'mdi:weather-cloudy'
         card:
           type: picture-entity
           entity: camera.satelite_clouds
@@ -225,7 +232,7 @@ cards:
         show_header_toggle: false
         <<: *style_header
         entities:
-          - entity: weather.dwd_weather_ak_stuttgart
+          - entity: weather.dwd_stuttgart_vaihingen
             name: Temperatur (DWD)
           - entity: weather.home_hourly
             name: Temperatur (OWM)
@@ -303,38 +310,35 @@ cards:
       - type: custom:template-entity-row
         icon: mdi:calculator
         name: "Leistung Soll: 600W * {{ states('sensor.sun_elevation_ratio') }}% ="
-        state: "{{ (600 * states('sensor.sun_elevation_ratio')|int / 100)|round(0) }} W" 
-        active: "{{ 600 * states('sensor.sun_elevation_ratio')|int / 100 <= states('sensor.bkw_sued_power') }}"
+        state: "{{ (600 * states('sensor.sun_elevation_ratio')|int(default=0) / 100)|round(0) }} W" 
+        active: "{{ 600 * states('sensor.sun_elevation_ratio')|int(default=0) / 100 <= states('sensor.bkw_sued_power') }}"
       - type: custom:template-entity-row
         icon: mdi:finance
-        name: "Faktor: {{ (150-states('sensor.sun_direction')|float)|abs|round(0) }}° zu 150° (60+{{ (max((150-states('sensor.sun_direction')|float)|abs-60,0))|round(0) }}) ="
-        state: "{{ (max((150-states('sensor.sun_direction')|float)|abs-60,0)/(90-60)+1) |round(1) }}"
+        name: "Faktor: {{ (150-states('sensor.sun_direction')|float(default=0))|abs|round(0) }}° zu 150° (60+{{ (max((150-states('sensor.sun_direction')|float(default=0))|abs-60,0))|round(0) }}) ="
+        state: "{{ (max((150-states('sensor.sun_direction')|float(default=0))|abs-60,0)/(90-60)+1) |round(1) }}"
       - type: custom:template-entity-row
         icon: mdi:white-balance-sunny
-        name: "Probab.: {{ 0 if  is_state('sensor.bkw_sued_power','unavailable') else states('sensor.bkw_sued_power')}}W / {{ (600 * states('sensor.sun_elevation_ratio')|int / 100)|round(0) }}W * Fact. ="
-        state: "{{ 0 if states('sensor.sun_elevation_ratio')|int <= 0 or state_attr('sun.sun', 'azimuth')|float(default=360) >= 240 else (min(states('sensor.bkw_sued_power')|float / (600 * states('sensor.sun_elevation_ratio')|int / 100) * (max((150 - states('sensor.sun_direction')|float)|abs-60,0)/(90-60) + 1), 1) * 100) | int }} %"
+        name: "Probab.: {{ 0 if  is_state('sensor.bkw_sued_power','unavailable') else states('sensor.bkw_sued_power')}}W / {{ (600 * states('sensor.sun_elevation_ratio')|int(default=0) / 100)|round(0) }}W * Fact. ="
+        state: "{{ 0 if states('sensor.sun_elevation_ratio')|int(default=0) <= 0 or state_attr('sun.sun', 'azimuth')|float(default=360) >= 240 else (min(states('sensor.bkw_sued_power')|float / (600 * states('sensor.sun_elevation_ratio')|int(default=0) / 100) * (max((150 - states('sensor.sun_direction')|float(default=360))|abs-60,0)/(90-60) + 1), 1) * 100) | int(default=0) }} %"
         #"{{ states('sensor.sunshine_probability') }}" 
-        #active: "{{ (states('sensor.sunshine_probability')|int) > 50 }}"
+        #active: "{{ (states('sensor.sunshine_probability')|int(default=0)) > 50 }}"
 
-      - type: section
-        label: debug (West)
-      - entity: sensor.fritz_dect_210_solar_power_consumption 
-        name: Solarleistung aktuell
-      - type: custom:template-entity-row
-        icon: mdi:calculator
-        name: "Leistung Soll: 250W * {{ states('sensor.sun_elevation_ratio') }}% ="
-        state: "{{ 250 * states('sensor.sun_elevation_ratio')|int / 100 }} W" 
-        #active: "{{ 250 * states('sensor.sun_elevation_ratio')|int / 100 >= states('sensor.fritz_dect_210_solar_power_consumption') }}"
-      - type: custom:template-entity-row
-        icon: mdi:finance
-        name: "Faktor: {{ (240-states('sensor.sun_direction')|float)|abs|round(0) }}° zu 240° (45+{{ (max((240-states('sensor.sun_direction')|float)|abs-45,0))|round(0) }}) ="
-        state: "{{ (max((240-states('sensor.sun_direction')|float)|abs-45,0)/45+1)|round(1) }}"
-      - type: custom:template-entity-row
-        icon: mdi:white-balance-sunny
-        name: "Probab.: {{ states('sensor.fritz_dect_210_solar_power_consumption')|round(0) }}W / {{ 250 * states('sensor.sun_elevation_ratio')|int / 100 }}W * Fact. ="
-        state: "{{ 0 if states('sensor.sun_elevation_ratio')|int <= 0 or state_attr('sun.sun', 'azimuth')|float(default=360) <= 150 else (min(states('sensor.fritz_dect_210_solar_power_consumption')|float / (250 * states('sensor.sun_elevation_ratio')|int / 100) * (max((240 - states('sensor.sun_direction')|float)|abs-60,0)/(90-60) + 1), 1) * 100) | int }} %"
-
-        #active: "{{ (states('sensor.sunshine_probability')|int) > 50 }}"
+      # - type: section
+      #   label: debug (West)
+      # - entity: sensor.fritz_dect_210_solar_power_consumption 
+      #   name: Solarleistung aktuell
+      # - type: custom:template-entity-row
+      #   icon: mdi:calculator
+      #   name: "Leistung Soll: 250W * {{ states('sensor.sun_elevation_ratio') }}% ="
+      #   state: "{{ 250 * states('sensor.sun_elevation_ratio')|int(default=0) / 100 }} W" 
+      # - type: custom:template-entity-row
+      #   icon: mdi:finance
+      #   name: "Faktor: {{ (240-states('sensor.sun_direction')|float)|abs|round(0) }}° zu 240° (45+{{ (max((240-states('sensor.sun_direction')|float)|abs-45,0))|round(0) }}) ="
+      #   state: "{{ (max((240-states('sensor.sun_direction')|float)|abs-45,0)/45+1)|round(1) }}"
+      # - type: custom:template-entity-row
+      #   icon: mdi:white-balance-sunny
+      #   name: "Probab.: {{ states('sensor.fritz_dect_210_solar_power_consumption')|round(0) }}W / {{ 250 * states('sensor.sun_elevation_ratio')|int(default=0) / 100 }}W * Fact. ="
+      #   state: "{{ 0 if states('sensor.sun_elevation_ratio')|int(default=0) <= 0 or state_attr('sun.sun', 'azimuth')|float(default=360) <= 150 else (min(states('sensor.fritz_dect_210_solar_power_consumption')|float / (250 * states('sensor.sun_elevation_ratio')|int(default=0) / 100) * (max((240 - states('sensor.sun_direction')|float)|abs-60,0)/(90-60) + 1), 1) * 100) | int(default=0) }} %"
   #end debug
 
   #------------------------------------------------
@@ -346,7 +350,7 @@ cards:
   # - type: history-graph
   #   hours_to_show: 48
   #   entities:
-  #     - entity: weather.dwd_weather_ak_stuttgart
+  #     - entity: weather.dwd_stuttgart_vaihingen
   #       name: DWD
   #     - entity: weather.home_hourly
   #       name: OWM

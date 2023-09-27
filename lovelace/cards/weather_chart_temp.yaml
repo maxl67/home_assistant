@@ -29,7 +29,7 @@ series:
     show:
       legend_value: true
     yaxis_id: primary
-  - entity: sensor.temperature_ak_stuttgart_2
+  - entity: sensor.stuttgart_vaihingen_temperatur
     name: später
     data_generator: |
       return entity.attributes.data.map((entry) => {
@@ -38,7 +38,7 @@ series:
     color: '#E45E65' #var(--paper-toggle-button-checked-button-color)
     opacity: 0.8
     yaxis_id: primary
-  - entity: sensor.temperature_ak_stuttgart_2
+  - entity: sensor.stuttgart_vaihingen_temperatur
     name: morgen
     offset: +1d
     data_generator: |

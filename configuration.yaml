@@ -81,7 +81,7 @@ zha:
 
 # Support for iOS app
 mobile_app:
-discovery:
+#discovery:
 #ios: #nur noch notwendig für actionable notificatios
 # iOS notification
 #notify:
@@ -142,15 +142,15 @@ frontend:
 
   # lovelace resources for performance improvement
   extra_module_url:
-    - /hacsfiles/lovelace-card-mod/card-mod.js #startimg from card-mod v3.1
+    - /hacsfiles/lovelace-card-mod/card-mod.js #starting from card-mod v3.1
 #map:
 
 ################################################################
 ## Custom Components (in /config/custom_components/)
 ################################################################
 # HA Community Store
-hacs:
-  token: !secret hacs_token
+#hacs:
+#  token: !secret hacs_token
 
 #breaking_changes:
 #  scan_interval: 3600 #sec between updates. default 300.
@@ -207,11 +207,9 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - input_select
       - camera
       - calendar
-      #- weather #wird fuer history_stats gebraucht
       - plant
     entities:
       - binary_sensor.workday_sensor
-#      - sensor.sun_direction
     # systemmonitor (HA host system)
       - sensor.last_boot 
       - sensor.processor_use
@@ -270,12 +268,13 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.tasmota_wifi_connect_count
       - sensor.tasmotawe5_signal
       - sensor.tasmotawe5_we5_total_in_cost
-    # Power & solar
+    # Power & Solar
       - sensor.bkw_sued_efficiency
       - sensor.bkw_sued_powerfactor
       - sensor.bkw_sued_reactivepower
       - sensor.bkw_sued_voltage
       - sensor.bkw_sued_current
+      - sensor.bkw_sued_frequency #?
     # Media Player
       - media_player.r_n803d_86ae28
       - binary_sensor.netreceiver_online
@@ -298,13 +297,17 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - automation.start_bt_arrival_scan
       - automation.start_bt_departure_scan
     # HomeMatic
-      # - homematic.raspi_ccu
-      # - sensor.hm_ccu_last_reboot
       # - binary_sensor.000c9a499b5808_low_bat # Thermostat WZ
       # - binary_sensor.000a1a49a107b5_low_bat # Thermostat GZ
       # - binary_sensor.000a1a49a10ba3_low_bat # Thermostat KU
       # - sensor.hm_thermo_ku_valve_status
       # - sensor.hm_thermo_gz_valve_status
+      - sensor.hmipw_drap_strom_ch1
+      - sensor.hmipw_drap_strom_ch2
+      - sensor.hmipw_drap_spannung_ch1
+      - sensor.hmipw_drap_spannung_ch2
+      - sensor.rpi_rf_mod_001f58a9a7204d_carrier_sense_level
+      - sensor.rpi_rf_mod_001f58a9a7204d_duty_cycle_level
     # iOS
       - sensor.last_update_trigger
       - sensor.bssid
