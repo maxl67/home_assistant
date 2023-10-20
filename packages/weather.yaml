@@ -107,22 +107,25 @@ template:
       # temp: from dwd_weather, should be a own sensor outside
     - unique_id: outside_temperature
       name: outside_temperature
-      state: "{{ state_attr('weather.dwd_stuttgart_vaihingen', 'temperature')|float(default=0) }}"
+      state: "{{ min(states('sensor.fritz_dect_210_solar_temperature')|float(30), states('sensor.bkw_sued_temperature')|float(30)) }}"
       unit_of_measurement: '°C'
       attributes:
         friendly_name: Außentemperatur
-        description: 'gebildet aus Attribut [temperature] des weather-Sensor von DWD (Dt. WetterDienst).'
+        description: 'gebildet aus min(FritzDect Steckdose und Wechselrichter).'
+    # - unique_id: outside_temperature
+    #   name: outside_temperature
+    #   state: "{{ state_attr('weather.dwd_home', 'temperature')|float(default=0) }}"
+    #   unit_of_measurement: '°C'
+    #   attributes:
+    #     friendly_name: Außentemperatur
+    #     description: 'gebildet aus Attribut [temperature] des weather-Sensor von DWD (Dt. WetterDienst).'
     - unique_id: outside_humidity
       name: outside_humidity
-      state: "{{ state_attr('weather.dwd_stuttgart_vaihingen', 'humidity')|int(default=0) }}"
+      state: "{{ state_attr('weather.dwd_home', 'humidity')|int(default=0) }}"
       unit_of_measurement: '%'
       attributes:
         friendly_name: Luftfeuchte außen
         description: 'gebildet aus Attribut [humidity] des weather-Sensor von DWD (Dt. WetterDienst).'
-    #outside_visibility:
-      #  value_template: "{{ state_attr('weather.dwd_stuttgart_vaihingen', 'visibility')|float(default=0) }}"
-      #  unit_of_measurement: '%'
-      #  friendly_name: Sicht
 
     ########## SONNENSTAND ###########
     - unique_id: sun_direction
@@ -179,13 +182,13 @@ template:
         {% if not is_state('sensor.bkw_sued_power', 'unavailable') and state_attr('sun.sun', 'azimuth')|float(default=360) > orientation_s-80 and state_attr('sun.sun', 'azimuth')|float(default=360) < orientation_s+90 -%}
           {{ 0 if states('sensor.sun_elevation_ratio')|int(default=0) <= 0 else (min(states('sensor.bkw_sued_power')|float(default=0) / (peak_solar_power_s * states('sensor.sun_elevation_ratio')|int(default=0) / 100) * angle_compensation_factor_s, 1) * 100) | int }}
         {% elif states('sensor.sun_elevation_ratio')|float(0) > 0 %}
-          {% if states('weather.dwd_stuttgart_vaihingen') == 'sunny' and states('weather.home_hourly') == 'sunny' %}
+          {% if states('weather.dwd_home') == 'sunny' and states('weather.home_hourly') == 'sunny' %}
             95
-          {% elif states('weather.dwd_stuttgart_vaihingen') == 'sunny' or states('weather.home_hourly') == 'sunny' %}
+          {% elif states('weather.dwd_home') == 'sunny' or states('weather.home_hourly') == 'sunny' %}
             70
-          {% elif states('weather.dwd_stuttgart_vaihingen') == 'partlycloudy' and states('weather.home_hourly') == 'partlycloudy' %}
+          {% elif states('weather.dwd_home') == 'partlycloudy' and states('weather.home_hourly') == 'partlycloudy' %}
             40
-          {% elif states('weather.dwd_stuttgart_vaihingen') == 'partlycloudy' or states('weather.home_hourly') == 'partlycloudy' %}
+          {% elif states('weather.dwd_home') == 'partlycloudy' or states('weather.home_hourly') == 'partlycloudy' %}
             20
           {% else %}
             0

@@ -226,8 +226,8 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - binary_sensor.roborock
       #- binary_sensor.smarttv
       - binary_sensor.radiobad
-      - binary_sensor.rpi_west
-      - binary_sensor.rpi_ost
+      #- binary_sensor.rpi_west
+      #- binary_sensor.rpi_ost
       - sensor.raspi1_clock_speed
       - sensor.raspi2_clock_speed
       - sensor.raspi1_memory_use

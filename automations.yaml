@@ -17,9 +17,9 @@
       - service: switch.turn_on
         data: {}
         target:
-          entity_id: switch.ikea_of_sweden_tradfri_control_outlet_switch
+          entity_id: switch.outlet_repeater_hifi_switch
       button_long:
       - service: switch.turn_off
         data: {}
         target:
-          entity_id: switch.ikea_of_sweden_tradfri_control_outlet_switch
+          entity_id: switch.outlet_repeater_hifi_switch

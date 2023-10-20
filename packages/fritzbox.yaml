@@ -50,6 +50,7 @@ homeassistant:
 ###############################################################################
 ##  Sensors
 ###############################################################################
+# todo: umstellen aus Template > Sensor (neue Form)
 sensor:
   - platform: template
     sensors:

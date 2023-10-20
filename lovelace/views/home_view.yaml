@@ -52,10 +52,12 @@ cards:
           state: '>= 2'
         - entity_id: binary_sensor.hera_update_available
           state: 'on'
-      template: |
-        {% if states('sensor.latest_version') != states('sensor.current_version') %}
-          {{ sensor.latest_version.entity_id }}
-        {% endif %}      
+        - entity_id: binary_sensor.latest_version_update_available
+          state: 'on'
+      # template: |
+      #   {% if states('sensor.latest_version') != states('sensor.current_version') %}
+      #     {{ sensor.latest_version.entity_id }}
+      #   {% endif %}      
 
   #------------------------------------------------
   # only show open (or unavailable) door-/window sensors (if any...)
@@ -167,7 +169,7 @@ cards:
     show_header_toggle: false
     state_color: true
     entities:
-      - entity: switch.ikea_of_sweden_tradfri_control_outlet_switch #switch.osram_plug_01_a1bf020a_3
+      - entity: switch.outlet_repeater_hifi_switch #ikea_of_sweden_tradfri_control_outlet_switch 
         name: HiFi & TV
         #icon on:  mdi:television-speaker
         #icon off: mdi:television-speaker-off

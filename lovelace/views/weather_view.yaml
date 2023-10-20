@@ -24,7 +24,7 @@ cards:
   - type: custom:vertical-stack-in-card
     cards:
     - type: weather-forecast
-      entity: weather.dwd_stuttgart_vaihingen
+      entity: weather.dwd_home
       secondary_info_attribute: precipitation
       show_current: true
       show_forecast: true
@@ -32,7 +32,7 @@ cards:
 #geht nicht mehr seit 2023.09
     # - type: custom:weather-chart-card
     #   title: #Woche (DWD)
-    #   entity: weather.dwd_stuttgart_vaihingen
+    #   entity: weather.dwd_home
     #   show_main: true
     #   show_attributes: true
     #   units:
@@ -232,10 +232,19 @@ cards:
         show_header_toggle: false
         <<: *style_header
         entities:
-          - entity: weather.dwd_stuttgart_vaihingen
+          - entity: weather.dwd_home
             name: Temperatur (DWD)
           - entity: weather.home_hourly
             name: Temperatur (OWM)
+          - entity: sensor.outside_temperature
+            name: Temperatur Terasse
+            type: custom:multiple-entity-row
+            state_header: min
+            entities:
+            - entity: sensor.bkw_sued_temperature
+              name: Süd (BKW)
+            - entity: sensor.fritz_dect_210_solar_temperature
+              name: Ost 
           - type: section
             label: Sonnenstand
           - entity: sensor.sun_elevation
@@ -310,8 +319,8 @@ cards:
       - type: custom:template-entity-row
         icon: mdi:calculator
         name: "Leistung Soll: 600W * {{ states('sensor.sun_elevation_ratio') }}% ="
-        state: "{{ (600 * states('sensor.sun_elevation_ratio')|int(default=0) / 100)|round(0) }} W" 
-        active: "{{ 600 * states('sensor.sun_elevation_ratio')|int(default=0) / 100 <= states('sensor.bkw_sued_power') }}"
+        state: "{{ (600 * (states('sensor.sun_elevation_ratio')|int(default=0)) / 100)|round(0) }} W" 
+        active: "{{ 600 * (states('sensor.sun_elevation_ratio')|int(default=0)) / 100 <= states('sensor.bkw_sued_power')|float(0) }}"
       - type: custom:template-entity-row
         icon: mdi:finance
         name: "Faktor: {{ (150-states('sensor.sun_direction')|float(default=0))|abs|round(0) }}° zu 150° (60+{{ (max((150-states('sensor.sun_direction')|float(default=0))|abs-60,0))|round(0) }}) ="
@@ -350,7 +359,7 @@ cards:
   # - type: history-graph
   #   hours_to_show: 48
   #   entities:
-  #     - entity: weather.dwd_stuttgart_vaihingen
+  #     - entity: weather.dwd_home
   #       name: DWD
   #     - entity: weather.home_hourly
   #       name: OWM

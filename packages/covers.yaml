@@ -189,7 +189,7 @@ template:
       name: max_wind_speed
       state: >-
           {% set values = [ 
-            state_attr('weather.dwd_stuttgart_vaihingen', 'wind_speed')|float(default=0)/3.6,
+            state_attr('weather.dwd_home', 'wind_speed')|float(default=0)/3.6,
             states('sensor.home_hourly_wind_speed')|float(default=0), 
             states('sensor.home_hourly_forecast_wind_speed')|float(default=0),
             ]
@@ -198,7 +198,7 @@ template:
       unit_of_measurement: 'm/s'
       attributes:
         friendly_name: max. Windgeschwindigkeit
-        description: 'max von weather.dwd_.wind_speed, sensor.home_hourly_wind_speed, sensor.home_hourly_forecast_wind_speed'
+        description: 'max von weather.dwd_home.wind_speed, sensor.home_hourly_wind_speed, sensor.home_hourly_forecast_wind_speed'
 
 ###############################################################################
 ##  Scripts
@@ -599,7 +599,7 @@ automation:
     trigger:
       - platform: state
         entity_id: 
-          - weather.dwd_stuttgart_vaihingen
+          - weather.dwd_home
           - weather.home_hourly
         to: 'rainy'
       - platform: numeric_state

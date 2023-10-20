@@ -22,10 +22,10 @@ homeassistant:
       # entity-id's
       powerswitch_rack_entityid: &powerswitch_rack_entityid switch.fritz_dect_200_netz
       powerswitch_gz_entityid: &powerswitch_gz_entityid switch.fritz_dect_200_gz
-      powerswitch_tv_entityid: &powerswitch_tv_entityid switch.ikea_of_sweden_tradfri_control_outlet_switch
+      powerswitch_tv_entityid: &powerswitch_tv_entityid switch.outlet_repeater_hifi_switch
       powerswitch_rpi_sued_entityid: &powerswitch_rpi_sued_entityid switch.outlet_repeater_wz_018780fe_on_off
   # entities
-    switch.ikea_of_sweden_tradfri_control_outlet_switch: 
+    switch.outlet_repeater_hifi_switch: 
       icon: mdi:audio-video #mdi:power-socket-de
     # change Tasmota sensors from energy meter to be stored long term and displayed in energy dashboard 
     sensor.tasmotawe5_we5_total_in:
@@ -113,6 +113,21 @@ switch:
 #       device_class: energy
 #       state_class: total_increasing #measurement 
 
+# Im Jahr 2022 beträgt die KWKG-Umlage bei der Belieferung von Haushalten 0,378 ct/kWh
+# Individuelles Netzentgelt 2023 LV GRUPPE A': 0,00417 ct/kWh
+# Offshore-Netzumlage nach § 17f EnWG 2023: 0,591 ct/kWh
+# Konzessionsabgabe: 2,39 ct/kWh ?
+# Die Stromsteuer für Haushalte beträgt 2,05 ct/kWh.
+# --> Nettopreis. Zzgl. MwSt auf alles
+sensor:
+  - platform: template
+    sensors:
+      strompreis_abgaben:
+        friendly_name: 'Abgaben und Steuern auf Börsenstrompreis'
+        value_template: >
+          {{ 0.389 + 0.417 + 0.591 + 2.39 + 2.05 }}
+
+
 ###############################################################################
 #                               Automations
 ###############################################################################
@@ -156,9 +171,9 @@ automation:
         timeout:
           minutes: 1
         continue_on_timeout: true  
-      # switch off power outlet EZ (RPI Sued)
-      - service: switch.turn_off
-        entity_id: *powerswitch_rpi_sued_entityid
+      # # switch off power outlet EZ (RPI Sued)
+      # - service: switch.turn_off
+      #   entity_id: *powerswitch_rpi_sued_entityid
 
   # Einschalten des Media Racks, wenn wir nach Hause kommen
   # mit 2 Minuten Verzögerung, da das Netzwerk erst wieder hochgefahren sein muss.
@@ -187,9 +202,9 @@ automation:
     action:
       - service: switch.turn_on
         entity_id: *powerswitch_tv_entityid
-      # switch on power outlet EZ (RPI Sued)
-      - service: switch.turn_on
-        entity_id: *powerswitch_rpi_sued_entityid
+      # # switch on power outlet EZ (RPI Sued)
+      # - service: switch.turn_on
+      #   entity_id: *powerswitch_rpi_sued_entityid
 
   #----------------------------------------------------------------------------------
 #todo: Log error: 'Unable to find referenced entities'

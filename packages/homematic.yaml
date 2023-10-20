@@ -96,9 +96,8 @@ homeassistant:
 ################################################
 ##   Platforms
 ################################################
-
-#switched to custom integration 2023.07
-# Homematic CCU
+#  switched to custom integration 2023.07
+#  Homematic CCU
 # homematic:
 #   interfaces:
 #     hmip:
@@ -107,26 +106,18 @@ homeassistant:
 #       username: !secret homematic_hmip_adminusername
 #       password: !secret homematic_hmip_adminpassword
 #       resolvenames: false
-  # hosts:
-  #   raspi_ccu:
-  #     host: !secret homematic_hmip_host
-  #     username: !secret homematic_hmip_adminusername
-  #     password: !secret homematic_hmip_adminpassword
+#   hosts:
+#     raspi_ccu:
+#       host: !secret homematic_hmip_host
+#       username: !secret homematic_hmip_adminusername
+#       password: !secret homematic_hmip_adminpassword
 
 ###############################################################################
 ##  Sensors
 ###############################################################################
-# test: new State-based template sensors 
-#  https://www.home-assistant.io/integrations/template/#state-based-template-sensors
-      # - unique_id: hm_thermo_wz_current_temp
-      #   name: hm_thermo_wz_current_temp
-      # # --> entity_id wird: sensor.thermo_wz_current_temp
-      # # --> name wird thermo_wz_current_temp, kann in UI geändert werden
-
-
-#todo: pivccu_v_fensteroffen_wz solle eigentlich '0', '1' sein, nicht ' 1'. in pivCCCO geändert, hier noch nicht reflektiert.
 #todo: pivccu_v_wochenprofil_* und die dahinterliegenden Variablen in der piVCCU sind um 1 höher als das Profil.
 #todo: die MAP in sensor.hm_thermo_wz_active_profile global definieren. wie?
+
 template:
   - sensor:
     # ---------------------
@@ -138,7 +129,7 @@ template:
       state_class: measurement #to be included in long-term statistics
       icon: mdi:thermostat
       attributes:
-        friendly_name: "Wohnzimmer Soll-Temperatur" 
+        friendly_name: Wohnzimmer Soll-Temperatur
     - unique_id: hm_thermo_wz_actor_value 
       name: hm_thermo_wz_actor_value
       state: "{{ 100 if (states('binary_sensor.wandthermostat_wz_ch9') == 'on') else 0 }}"
@@ -181,11 +172,10 @@ template:
         description: Konvertiert den on/off Sensor der HmIP Integration in einen numerischen Wert für die 'mini-graph' Card
     - unique_id: hm_thermo_wz_window_state #for simple-thermostat card
       name: hm_thermo_wz_window_state
-      #todo: pivccu_v_fensteroffen_wz solle eigentlich '0', '1' sein, nicht ' 1'. in pivCCCO geändert, hier noch nicht reflektiert.
       state: >-
         {%- if is_state('sensor.pivccu_v_fensteroffen_wz','0') -%}
         zu
-        {%- elif is_state('sensor.pivccu_v_fensteroffen_wz',' 1') -%} 
+        {%- elif is_state('sensor.pivccu_v_fensteroffen_wz','1') -%} 
         offen
         {%- else -%}
         {{ states('sensor.pivccu_v_fensteroffen_wz') }}
@@ -231,11 +221,10 @@ template:
         description: Konvertiert den Sensor der HmIP Integration in einen numerischen Wert für die 'mini-graph' Card
     - unique_id: hm_thermo_ku_window_state #for simple-thermostat card
       name: hm_thermo_ku_window_state
-      #todo: pivccu_v_fensteroffen_wz solle eigentlich '0', '1' sein, nicht ' 1'. in pivCCCO geändert, hier noch nicht reflektiert.
       state: >-
         {%- if is_state('sensor.pivccu_v_fensteroffen_ku','0') -%}
         zu
-        {%- elif is_state('sensor.pivccu_v_fensteroffen_ku',' 1') -%} 
+        {%- elif is_state('sensor.pivccu_v_fensteroffen_ku','1') -%} 
         offen
         {%- else -%}
         {{ states('sensor.pivccu_v_fensteroffen_ku') }}
@@ -281,11 +270,10 @@ template:
         description: Konvertiert den Sensor der HmIP Integration in einen numerischen Wert für die 'mini-graph' Card
     - unique_id: hm_thermo_gz_window_state #for simple-thermostat card
       name: hm_thermo_gz_window_state
-      #todo: pivccu_v_fensteroffen_wz solle eigentlich '0', '1' sein, nicht ' 1'. in pivCCCO geändert, hier noch nicht reflektiert.
       state: >-
         {%- if is_state('sensor.pivccu_v_fensteroffen_gz','0') -%}
         zu
-        {%- elif is_state('sensor.pivccu_v_fensteroffen_gz',' 1') -%} 
+        {%- elif is_state('sensor.pivccu_v_fensteroffen_gz','1') -%} 
         offen
         {%- else -%}
         {{ states('sensor.pivccu_v_fensteroffen_gz') }}
@@ -311,8 +299,7 @@ template:
         friendly_name: Heizprofil Gästethermostat
         description: Konvertiert die Variable aus der Homematic CCU in eine Beschreibung für die 'simple-thermostat' Card
 
-
-binary_sensor:
+binary_sensor: 
   - platform: template
     sensors:
       hm_homematic_up:
