@@ -23,12 +23,12 @@ homeassistant:
       ambientelight_wz_entityid: &ambientelight_wz_entityid light.dimmschalter_wz_dimmaktor_wz  #.0008da499c8dbd
       light_az_entityid: &light_az_entityid light.dimmschalter_buro_dimmaktor_buro  #.0008dd899c4781
   # entities
-    light.dimmschalter_wz_dimmaktor_wz:
-      icon: mdi:ceiling-light-multiple-outline
-#    light.dimmschalter_buro_dimmaktor_buro:
-#      icon:
-    light.philips_lightstrip_ku:
-      icon: mdi:led-strip-variant
+    # light.dimmschalter_wz_dimmaktor_wz:
+    #   icon: mdi:ceiling-light-multiple-outline
+    # light.dimmschalter_buro_dimmaktor_buro:
+    #   icon: mdi:globe-light
+    # light.philips_lightstrip_ku:
+    #   icon: mdi:led-strip-variant
   # groups, variables
     input_boolean.disable_light_automation:
       <<: *common
@@ -115,20 +115,22 @@ automation:
   # https://community.home-assistant.io/t/new-automation-not-loading-random-switching-of-lights-when-away-on-holiday/211414/14
   - id: random_lights_during_vacation
     alias: zufälliges Urlaubslicht
+    description: 'Schaltet abends das Wohnzimmerlicht zufällig an, wenn wir länger weg sind.'
     trigger:
-      - platform: sun
+      - id: 'sunset'
+        platform: sun
         event: sunset
-      - platform: time
+      - id: 'bedtime'
+        platform: time
         at: '23:00:00'
     condition:
-      condition: and
-      conditions:
-      - condition: state
-        entity_id: input_boolean.disable_light_automation
-        state: 'off'
-      - condition: state
-        entity_id: sensor.home_status
-        state: 'Extended Away'
+      - and:
+        - condition: state
+          entity_id: input_boolean.disable_light_automation
+          state: 'off'
+        - condition: state
+          entity_id: sensor.home_status
+          state: 'Extended Away'
     action:
       - delay:
           minutes: "{{ range(5, 25 if trigger.platform == 'sun' else 90) | random }}"
@@ -143,29 +145,32 @@ automation:
   # Einschalten von Welcome-Licht, wenn wir nach Hause kommen ODER bei Sonnenuntergang
   - id: switch_on_lights
     alias: switch on welcome lights
+    description: 'Schaltet abends das Wohnzimmerlicht zufällig an, wenn wir länger weg sind.'
     trigger:
-      - platform: state
+      - id: 'returned_home'
+        platform: state
         entity_id: sensor.home_status
         to: 'Home'
-      - platform: sun
+      - id: 'sunset'
+        platform: sun
         event: sunset
         offset: '+00:15:00' # Optional time offset. 
-      - platform: state
+      - id: 'config_changed'
+        platform: state
         entity_id: input_boolean.disable_light_automation
         to: 'off'
     condition:
       # 'light_automation' aktiv UND Home status 'Home' UND Sonne untergegangen
-      condition: and
-      conditions:
-      - condition: state
-        entity_id: input_boolean.disable_light_automation
-        state: 'off'
-      - condition: state
-        entity_id: sensor.home_status
-        state: 'Home'
-      - condition: state  # from sunset until sunrise
-        entity_id: sun.sun
-        state: 'below_horizon'
+      - and:
+        - condition: state
+          entity_id: input_boolean.disable_light_automation
+          state: 'off'
+        - condition: state
+          entity_id: sensor.home_status
+          state: 'Home'
+        - condition: state  # from sunset until sunrise
+          entity_id: sun.sun
+          state: 'below_horizon'
       # und nicht nach systemstart
       # todo
     action:
@@ -179,24 +184,32 @@ automation:
   - id: switch_off_lights
     alias: alle Lichter aus
     trigger: 
-      - platform: state
+      - id: 'nobody_home'
+        platform: state
         entity_id: sensor.home_status
         from: 'Home'
         to: 'Away'
         for:
           minutes: 2
-      - platform: state
+      - id: 'bedtime'
+        platform: time 
+        at: '00:01:00'
+      - id: 'sunrise'
+        platform: sun
+        event: sunrise
+      - id: 'config_changed'
+        platform: state
         entity_id: input_boolean.disable_light_automation
         to: 'off'
-      - platform: time 
-        at: '00:01:00'
-      - platform: sun
-        event: sunrise
-      - platform: homeassistant
+      - id: 'ha_started'
+        platform: homeassistant
         event: start      
     condition:
       # 'light_automation' aktiv UND (Home status away ODER nach 0:00)
       - and:
+        - condition: state
+          entity_id: input_boolean.disable_light_automation
+          state: 'off'
         - or:
           - condition: state
             entity_id: sensor.home_status
@@ -204,9 +217,6 @@ automation:
           - condition: time
             after: '00:00:00'
             before: '06:00:00'
-        - condition: state
-          entity_id: input_boolean.disable_light_automation
-          state: 'off'
     action:
       - service: light.turn_off
         entity_id: 
@@ -218,11 +228,11 @@ automation:
   #----------------------------------------------------------------------------------
   # Lichtampel Durchreiche 
   # Wird die Lichtleiste durch den Wandschalter wieder eingeschaltet, so leuchtet sie dauerhaft mit weissem Licht.
-  # Die Lichtleiste soll nach dem Versorgen mit Strom wieder ausgeschaktet werden.
+  # Die Lichtleiste soll nach dem Versorgen mit Strom wieder ausgeschaltet werden.
   - id: switch_off_signal_after_poweron
     alias: Lichtleiste aus nach Stromzufuhr
     trigger: 
-      #falls die Leiste nicht erreicg´habr war (was leider nur nach langen Aus-Phasen passiert)
+      #falls die Leiste nicht erreichbar war (was leider nur nach langen Aus-Phasen passiert)
       - platform: state
         entity_id: light.philips_lightstrip_ku
         from: 'unavailable'

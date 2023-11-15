@@ -282,7 +282,7 @@ automation:
           entity_id: group.all_doors
           state: 'on'
         # Aussentemperatur (DWD) kleiner als die im WZ gemessene Temperatur
-        - "{{ state_attr('weather.dwd_home', 'temperature')|float(default=0) < state_attr('climate.000C9A499B5808', 'current_temperature')|float(default=0) }}" 
+        - "{{ state_attr('weather.dwd_home', 'temperature')|float(default=0) < states('sensor.wandthermostat_wz_temperatur')|float(default=0) }}" 
         - alias: Ampel-Automation aktiv
           condition: state
           entity_id: input_boolean.disable_signal_automation

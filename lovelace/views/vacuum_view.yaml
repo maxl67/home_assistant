@@ -146,6 +146,34 @@ cards:
                 - entity: switch.enable_dustbin_notification
                   name: Staubbehälter-Mitteilungen #enable notifications
                   state_color: true
+                - type: custom:fold-entity-row
+                  head:
+                    type: section
+                    label: Info SaugE-Steuerung
+                  open: false
+                  padding: off
+                  entities:
+                  - type: custom:hui-element
+                    card_type: markdown
+                    content: >
+                      Zur Erinnerung, {{user}}.
+                      Die Saug-E Automatisierung
+
+                      - startet eine Reinugung der gesamten Wohnung MO (oder DI, falls MO nicht gesaugt wurde)
+
+                      - und eine kleine Runde (Küche/Büro, Schlafzimmer und Bad) am Do (oder FR)
+
+
+                      Das Saugen startet 2 min nachdem wir an diesen Tagen die Wohnung verlassen haben, 
+                      nicht aber vor 8:00 und nach 17:00.
+
+                      Wird die Option 'Reinigung auch wenn anwesend' gesetzt, startet die entsprechende Reinigung in diesem Zeitfenster auch wenn jemand zuhause ist.
+
+                      Bei längeren Abwesenheiten (> 24h) wird nicht mehr automatisch gesaugt.
+
+                      Ist die Option 'Staubbehälter-Mitteilungen' aktiv, wird der ersten Person die im Zeitraum 7:30-23:00 nach Hause kommt eine Nachricht an das Telefon gesendet.
+                      
+
             # status & notifications
             - type: custom:fold-entity-row
               head:

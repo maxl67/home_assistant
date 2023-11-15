@@ -142,7 +142,7 @@ binary_sensor:
   - platform: ping
     host: raspi1
     name: rpi_ost
-    scan_interval: 20
+    scan_interval: 15
     count: 2
   - platform: ping
     host: raspi2
@@ -150,9 +150,9 @@ binary_sensor:
     scan_interval: 60
     count: 2
   - platform: ping
-    host: raspi3
+    host: !secret raspi3_sued_ip
     name: rpi_sued
-    scan_interval: 60
+    scan_interval: 15
     count: 2
   - platform: ping
     host: !secret devolo_bridge_ip

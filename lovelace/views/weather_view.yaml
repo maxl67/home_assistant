@@ -61,7 +61,7 @@ cards:
     #     }
     - type: custom:hourly-weather
       entity: weather.home_hourly
-      num_segments: 12 s
+      num_segments: 13 s
       name: null #nächste 12 Stunden
       icons: true
  
@@ -225,28 +225,34 @@ cards:
 
   #------------------------------------------------
   # Wetter-Entities, Sonnenstand und -schein
+
+  - type: entities
+    title: Wetter
+    show_header_toggle: false
+    <<: *style_header
+    entities:
+      - entity: weather.dwd_home
+        name: Temperatur (DWD)
+      - entity: weather.home_hourly
+        name: Temperatur (OWM)
+      - entity: sensor.outside_temperature
+        name: Temperatur Terasse
+        type: custom:multiple-entity-row
+        state_header: min
+        entities:
+        - entity: sensor.bkw_sued_temperature
+          name: Süd (BKW)
+        - entity: sensor.fritz_dect_210_solar_temperature
+          name: Ost 
+
+
   - type: custom:vertical-stack-in-card
     cards:
       - type: entities
-        title: Wetter, Sonne, Regen
+        title: Sonnenstand
         show_header_toggle: false
         <<: *style_header
         entities:
-          - entity: weather.dwd_home
-            name: Temperatur (DWD)
-          - entity: weather.home_hourly
-            name: Temperatur (OWM)
-          - entity: sensor.outside_temperature
-            name: Temperatur Terasse
-            type: custom:multiple-entity-row
-            state_header: min
-            entities:
-            - entity: sensor.bkw_sued_temperature
-              name: Süd (BKW)
-            - entity: sensor.fritz_dect_210_solar_temperature
-              name: Ost 
-          - type: section
-            label: Sonnenstand
           - entity: sensor.sun_elevation
             type: custom:multiple-entity-row
             name: Azimut
@@ -263,6 +269,8 @@ cards:
             entities:
             - entity: sensor.sun_elevation_ratio
               name: elev.
+            - entity: sensor.sun_elevation_ratio_max
+              name: elev.max
           - type: section
             label: Sonnenschein
           - entity: sensor.sunshine_probability #sensor.sun_is_shining

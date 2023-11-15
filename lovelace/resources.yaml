@@ -1,6 +1,8 @@
     # Community Repo
     #   Functionality
-    - url: /hacsfiles/lovelace-card-mod/card-mod.jss
+    - url: /hacsfiles/lovelace-card-mod/card-mod.js
+      type: module
+    - url: /hacsfiles/lovelace-hui-element/hui-element.js
       type: module
     # - url: /hacsfiles/hass-swipe-navigation/swipe-navigation.js 
     #   type: module

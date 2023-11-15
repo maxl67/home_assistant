@@ -40,8 +40,8 @@ system_health:
 # My Home Assistant Service allows redirect to own HA-instance from external documentation.
 my:
 # Sprachsteuerung: https://www.home-assistant.io/integrations/conversation/
-conversation:
-assist_pipeline:
+# conversation:
+# assist_pipeline:
 
 # activate SSL
 # Source: https://community.home-assistant.io/t/ssl-and-home-assistant-running-on-a-synology-docker/32102
@@ -143,19 +143,13 @@ frontend:
   # lovelace resources for performance improvement
   extra_module_url:
     - /hacsfiles/lovelace-card-mod/card-mod.js #starting from card-mod v3.1
-#map:
+
 
 ################################################################
 ## Custom Components (in /config/custom_components/)
 ################################################################
-# HA Community Store
-#hacs:
-#  token: !secret hacs_token
-
-#breaking_changes:
-#  scan_interval: 3600 #sec between updates. default 300.
-
 python_script:
+
 
 ################################################################
 ## Test / Development
@@ -183,15 +177,6 @@ calendar:
     - Ingrid
     - Privat Max
 
-# https://github.com/RubenDijk/homeassistant
-# Test of Custom Component to get number of devices connected to WiFi networks.
-#Does not work
-#  - platform: my_unifi
-#    name: unifi_controller
-#    region: 'home'
-#    username: !secret unifi_adminuser
-#    password: !secret unifi_adminpw 
-#    url: !secret unifi_baseurl    
 
 ################################################################
 ## Recording, Logging, Lockbook

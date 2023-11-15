@@ -27,11 +27,12 @@ cards:
 
   #------------------------------------------------
   #    Test: Person - button
+# siehe auch: https://ui-lovelace-minimalist.github.io/UI/usage/cards/card_room/#default-card-options
   - type: horizontal-stack
     cards:
       - type: custom:button-card
         name: Max
-        entity: sensor.iphonemax8_battery_level  #sensor.max_status
+        entity: sensor.iphonemax13_battery_level  #sensor.max_status
         entity_picture: >
           [[[
             if (['Home','Just arrived'].includes(states['sensor.max_status'].state)) return '/local/max.jpg';

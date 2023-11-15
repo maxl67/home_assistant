@@ -214,7 +214,7 @@ template:
     # Sensoren für die Oberfläche (lovelace)
     - unique_id: hm_thermo_ku_actor_value_graph #for mini-graph card
       name: hm_thermo_ku_actor_value_graph
-      state: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.heizungsthermostat_ku','level')|float(default=0)==0) else state_attr('climate.heizungsthermostat_ku','level')|float(default=0)*40 }}"
+      state: "{{ -5 if (is_state('input_boolean.heating_period','off') and states('sensor.heizungsthermostat_ku_level')|float(default=0)==0) else states('sensor.heizungsthermostat_ku_level')|float(default=0)/100*40 }}"
       icon: mdi:valve
       attributes:
         friendly_name: Küche Ventilöffnung
@@ -263,7 +263,7 @@ template:
     # Sensoren für die Oberfläche (lovelace)
     - unique_id: hm_thermo_gz_actor_value_graph #for mini-graph card
       name: hm_thermo_gz_actor_value_graph
-      state: "{{ -5 if (is_state('input_boolean.heating_period','off') and state_attr('climate.heizungsthermostat_gz','level')|float(default=0)==0) else state_attr('climate.heizungsthermostat_gz','level')|float(default=0)*40 }}"
+      state: "{{ -5 if (is_state('input_boolean.heating_period','off') and states('sensor.heizungsthermostat_gz_level')|float(default=0)==0) else states('sensor.heizungsthermostat_gz_level')|float(default=0)/100*40 }}"
       icon: mdi:valve
       attributes:
         friendly_name: Gästezimmer Ventilöffnung

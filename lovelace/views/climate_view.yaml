@@ -1,15 +1,15 @@
 anchors:
   colours:
-    dark_gray: &dark_gray "#3d3d3d"
+    dark_gray: &dark_gray "var(--primary-background-color)" #"#3d3d3d"
     dark_yellow: &dark_yellow "#91920e"
     dark_blue: &dark_blue "#0d0099"
-    blue: &blue "#3090C7"
+    blue: &blue var(--primary-color) #dezent: "#E45E65" grell:"#3090C7"
     green: &green "#009A00"
     #yellow: &yellow "#f0e91f"
     light_orange: &light_orange "#f4ad01"
     orange: &orange "#e39a24"
     dark_orange: &dark_orange "#d35400"
-    red: &red "#cc1800"
+    red: &red var(--accent-color) #dezent: "#E45E65" grell: "#cc1800"
 
   #https://github.com/nervetattoo/simple-thermostat
   simple_thermostat: &simple_thermostat
@@ -384,7 +384,7 @@ cards:
                 - type: custom:hui-markdown-card
                   content: >
                     Zur Erinnerung, {{user}}. 
-                    Der Schalter 'Heizperiode': 
+                    Der Schalter 'Heizperiode aktiv': 
                     
                     - an: die Thermostate werden aktiviert und nutzen ihr eingestelltes Profil
 
@@ -402,11 +402,11 @@ cards:
                     - Umschalten der Profile 1 und 2 halbstündlich (8:30-11:30, 13:30-16:30)
 
 
-                    Heizprofil1: Arbeiten ausserhaus
+                    Heizprofil 1: Arbeiten ausserhaus
 
-                    Heizprofil2: Homeoffice
+                    Heizprofil 2: Homeoffice
 
-                    Heizprofil3: Gäste. wie 1, nur wärmer.
+                    Heizprofil 3: Gäste. wie 1, nur wärmer.
 
   # Luftfeuchte und Raumklima - humidity
   - type: custom:vertical-stack-in-card #vertical-stack
@@ -470,10 +470,10 @@ cards:
               secondary_info: last-changed
               state_header: Temp
               entities:
-              - entity: sensor.lumi_lumi_weather_95154a04_humidity
-                name: Feuchte
               - entity: sensor.lumi_lumi_weather_95154a04_pressure
                 name: Druck
+              - entity: sensor.lumi_lumi_weather_95154a04_humidity
+                name: Feuchte
             - entity: sensor.wandthermostat_wz_temperatur
               type: custom:multiple-entity-row
               name: Wohnzimmer (Thermostat)
@@ -482,95 +482,68 @@ cards:
               entities:
               - entity: sensor.wandthermostat_wz_luftfeuchtigkeit
                 name: Feuchte
-              - entity: sensor.hm_thermo_wz_target_temp
-                name: Soll
+
 
   #------------------------------------------------
   # Themperatur - Chart
-  - !include ../cards/climate_chart_temp.yaml
+  #- !include ../cards/climate_chart_temp.yaml
 
 
-  # - type: custom:mini-graph-card
-  #   name: Temperatur
-  #   entities:
-  #     - entity: sensor.lumi_lumi_weather_95154a04_temperature
-  #       name: Bad #(LUMI)
-  #       <<: *dataset_room_measurement
-  #       color: *blue
-  #     - entity: sensor.hm_thermo_ku_current_temp
-  #       name: Kü #Küche (HmIP)
-  #       <<: *dataset_room_measurement
-  #       color: *orange
-  #     - entity: sensor.hm_thermo_wz_current_temp
-  #       name: WZ #Wohnz (HmIP)
-  #       <<: *dataset_room_measurement
-  #       color: *green
-  #     - entity: sensor.hm_thermo_gz_current_temp
-  #       name: GZ #Gästez (HmIP)
-  #       <<: *dataset_room_measurement
-  #       color: *red
-  #     - entity: sensor.fritz_dect_200_netz_temperature
-  #       name: IT #Netzwerk-Rack
-  #       <<: *dataset_room_measurement
-  #       color: *dark_yellow
-  #     - entity: sensor.fritz_dect_200_gz_temperature
-  #       name: Desk #Schreibtisch M
-  #       <<: *dataset_room_measurement
-  #       color: *dark_blue
-  #     - entity: sensor.outside_temperature
-  #       name: aussen
-  #       y_axis: 'secondary'
-  #       show_state: true
-  #       color: black #*dark_gray
-  #       show_fill: true
-  #       show_points: false
-  #   #range
-  #   <<: *graphs_range
-  #   points_per_hour: 12
-  #   #formatting
-  #   <<: *graphs_format
-  #   height: 120
-  #   #lower_bound: 35
-  #   #upper_bound: 100
-  #   show:
-  #     labels: true #or hover (y-axis)
-  #     labels_secondary: hover
-  #     icon_adaptive_color: true
-  #   color_thresholds_transition: hard
-  #   color_thresholds:
-  #     - value: 0
-  #       color: *blue
-  #     - value: 40
-  #       color: *green
-  #     - value: 60
-  #       color: *light_orange
-  #     - value: 70
-  #       color: *dark_orange
-
-# #-----------------------
-# # temporary for analysis
-#   - type: custom:vertical-stack-in-card
-#     cards:
-#       - type: history-graph
-#         #title: 'Wohnzimmer'
-#         hours_to_show: 24
-#         entities:
-#           - entity: sensor.lumi_lumi_weather_95154a04_temperature
-#             name: Bad #(LUMI)
-#           - entity: sensor.hm_thermo_ku_current_temp
-#             name: Kü #Küche (HmIP)
-#           - entity: sensor.hm_thermo_wz_current_temp
-#             name: WZ #Wohnz (HmIP)
-#           - entity: sensor.hm_thermo_gz_current_temp
-#             name: GZ #Gästez (HmIP)
-#           - entity: sensor.fritz_dect_200_netz_temperature
-#             name: IT #Netzwerk-Rack
-#           - entity: sensor.fritz_dect_200_gz_temperature
-#             name: Desk #Schreibtisch M
-#       - type: history-graph
-#         hours_to_show: 24
-#         entities:
-#           - entity: sensor.outside_temperature
-#             name: aussen
-#           - entity: sensor.fritz_dect_210_solar_temperature
-#             name: Terrasse
+  - type: custom:mini-graph-card
+    name: Temperatur
+    entities:
+      - entity: sensor.heizungsthermostat_ku_temperatur
+        name: Kü #Küche (HmIP)
+        <<: *dataset_room_measurement
+        color: *orange
+      - entity: sensor.lumi_lumi_weather_95154a04_temperature
+        name: Bad #(LUMI)
+        <<: *dataset_room_measurement
+        color: *blue
+      - entity: sensor.wandthermostat_wz_temperatur
+        name: WZ #Wohnz (HmIP)
+        <<: *dataset_room_measurement
+        color: *green
+      - entity: sensor.heizungsthermostat_gz_temperatur
+        name: GZ #Gästez (HmIP)
+        <<: *dataset_room_measurement
+        color: *red
+      # - entity: sensor.fritz_dect_200_netz_temperature
+      #   name: IT #Netzwerk-Rack
+      #   <<: *dataset_room_measurement
+      #   color: *dark_yellow
+      # - entity: sensor.fritz_dect_200_gz_temperature
+      #   name: Desk #Schreibtisch M
+      #   <<: *dataset_room_measurement
+      #   color: *dark_blue
+      - entity: sensor.outside_temperature
+        name: aussen
+        y_axis: 'secondary'
+        show_state: true
+        color: *dark_gray #black
+        show_fill: true
+        show_points: false
+        smoothing: true
+    #range
+    <<: *graphs_range
+    points_per_hour: 12
+    #formatting
+    <<: *graphs_format
+    height: 190
+    lower_bound: ~17
+    upper_bound: ~23
+    show:
+      state: false
+      labels: true #or hover (y-axis)
+      labels_secondary: true #hover
+      icon_adaptive_color: true
+    color_thresholds_transition: hard
+    color_thresholds:
+      - value: 0
+        color: *blue
+      - value: 40
+        color: *green
+      - value: 60
+        color: *light_orange
+      - value: 70
+        color: *dark_orange

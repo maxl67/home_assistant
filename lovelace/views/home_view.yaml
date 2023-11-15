@@ -54,6 +54,8 @@ cards:
           state: 'on'
         - entity_id: binary_sensor.latest_version_update_available
           state: 'on'
+        - entity_id: binary_sensor.bwk_sued_off_alert
+          state: 'on'
       # template: |
       #   {% if states('sensor.latest_version') != states('sensor.current_version') %}
       #     {{ sensor.latest_version.entity_id }}
@@ -180,8 +182,30 @@ cards:
       - entity: switch.outlet_repeater_wz_018780fe_on_off
         name: Raspi3 (WZ)
         icon: mdi:raspberry-pi
+      #- type: divider
+      #- entity: switch.enable_power_automation
       - type: divider
-      - entity: switch.enable_power_automation
+      - type: custom:fold-entity-row
+        head:
+          entity: switch.enable_power_automation
+          state_color: true
+        padding: 0 px
+        open: false
+        entities:
+          - type: custom:hui-element
+            card_type: markdown
+            content: >
+              Zur Erinnerung, {{user}}. 
+              Bei aktiver Automatisierung werden
+
+              - Netzwerk (Switch, AP's), Schreibtisch Max und Raspi WZ ausgeschaltet, nachdem 20 min niemand zuhause ist und auch Nachts um 0:45
+
+              - diese Geräte wieder eingeschaltet, wenn wir nach Hause kommen, die Eingangstür geöffnet wird und auch Morgens um 6:00, falls wir zuhause sind
+
+              - TV/Hifi ausgeschaltet, nachdem 20 min niemand zuhause ist
+
+              - TV/Hifi wieder eingeschaltet, nachdem wir für 3 min zuhause sind
+
 
   #------------------------------------------------
   # status of lights
@@ -218,8 +242,29 @@ cards:
         name: Lichtsteifen Küche
         toggle: true
         hide_when_off: true
+      #- type: divider
+      #- entity: switch.enable_light_automation
       - type: divider
-      - entity: switch.enable_light_automation
+      - type: custom:fold-entity-row
+        head:
+          entity: switch.enable_light_automation
+          state_color: true
+        padding: 0 px
+        open: false
+        entities:
+          - type: custom:hui-element
+            card_type: markdown
+            content: >
+              Zur Erinnerung, {{user}}. 
+              Bei aktiver Automatisierung werden
+
+              - das Ambientelicht im Wohnzimmer kurz nach Sonnenuntergang eingeschaltet 
+                oder wenn wir nach Sonnenuntergang nach Hause kommen
+              - alle Licher (WZ, Büro, Küche) kurz nachdem wir gegangen sind und auch um Mitternacht ausgeschaltet
+
+
+              Bei längerer Abwesenheit (>1 Tag) wird das Ambientelicht im Wohnzimmer 
+              zu einer zufälligen Zeit nach Sonnenuntergang eingeschaltet und nach 23:00 auch zufällig ausgeschaltet.
 
   #------------------------------------------------
   # operation and options for blinds

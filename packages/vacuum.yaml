@@ -460,9 +460,8 @@ automation:
         entity_id: vacuum.xiaomi_vacuum_cleaner
         from: 'unavailable'
     condition:
-      condition: and
-      conditions:
-        # vacuum device becomes is available (WLAN not turned off)
+      - and:
+        # vacuum device becomes available (WLAN not turned off)
         - not:
           - condition: state
             entity_id: vacuum.xiaomi_vacuum_cleaner
@@ -487,14 +486,13 @@ automation:
         - condition: template
           value_template: "{{ states('sensor.home_status') != 'Extended Away' }}"
         # ...and nobody home OR option 'automatic_vacuum_when_home' is set
-        - condition: or
-          conditions:
-            - condition: state
-              entity_id: sensor.home_status
-              state: 'Away'
-            - condition: state
-              entity_id: input_boolean.automatic_vacuum_when_home
-              state: 'on'
+        - or:
+          - condition: state
+            entity_id: sensor.home_status
+            state: 'Away'
+          - condition: state
+            entity_id: input_boolean.automatic_vacuum_when_home
+            state: 'on'
     variables: 
     # we have to set the variables here, because setting values insite choose block will not reflect outside
       cleanup_area: "{{ 'full' if (now().weekday() in [0,1]) else 'partly'}}"

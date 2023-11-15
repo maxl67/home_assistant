@@ -522,6 +522,7 @@ automation:
         entity_id: sensor.sun_elevation_ratio
         above: 0
     condition:
+      # Beachte: Änderungen an den Bedingungen auch in der Info der Jalousien-Card dokumentieren.
       - and:
         - alias: Automation is turned on
           condition: state
@@ -621,7 +622,7 @@ automation:
       - id: 'sun_down'
         platform: numeric_state
         entity_id: sensor.sun_elevation_ratio
-        below: 0.1
+        below: 0.01
         for:
           minutes: 5
       - id: 'sunset'

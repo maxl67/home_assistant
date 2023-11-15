@@ -63,7 +63,7 @@ homeassistant:
       <<: *common
     sensor.sun_elevation_noon:
       <<: *common
-      description: 'max. Höhe der Somme in den letzten 25h. Im Sommer (21.6, 13:25): 64,7°; im Winter (22.12): 18°?' 
+      description: 'max. Höhe der Sonne in den letzten 25h. Im Sommer (21.6, 13:25 MESZ): 64,7°; im Winter (22.12 ,? MEZ): 18°?' 
     sensor.sunshine_hours_yesterday:
       <<: *common
     sensor.sunshine_hours_today:
@@ -159,6 +159,24 @@ template:
         friendly_name: relative Sonnenhöhe #[%]
         description: 'relat. Höhe der Sonne zum Tagesmaximum (morgens 2°=0%, Mittag=100%, abends 5°=0%)'
 
+    - unique_id: sun_elevation_ratio_max
+      name: sun_elevation_ratio_max
+       #Morning: sun arrisen at 2°, evening down an 5° --> we start with 0% at 2°, shift the values 2 down
+      state: >
+        {% set sun_min_elevation = 2 if state_attr('sun.sun', 'rising') else 5 %}
+        {% if state_attr('sun.sun', 'elevation')|float(default=0) >= sun_min_elevation %} 
+          {{ min((state_attr('sun.sun', 'elevation')|float(0) - sun_min_elevation) / (64.7 - sun_min_elevation) * 100.0, 100) 
+            | int(default=0) }}
+        {% else %}
+          0
+        {% endif %}
+      state_class: measurement #to be included in long-term statistics
+      unit_of_measurement: '%'
+      attributes:
+        friendly_name: relative Sonnenhöhe zum Höchststand #[%]
+        description: 'relat. Höhe der Sonne zum Höchststand im Sommer (morgens 2°=0%, Mittag 64,7°=100%, abends 5°=0%)'
+
+
     ########## SONNENSCHEIN ###########
     - unique_id: sunshine_probability
       name: sunshine_probability
@@ -173,6 +191,10 @@ template:
 #        {%- set angle_compensation_factor_w = max((orientation_w - states('sensor.sun_direction')|float)|abs-compensation_start_angle,0)/(90-compensation_start_angle) + 1 -%}
 #        {% elif not is_state('switch.fritz_dect_210_solar', 'unavailable') and state_attr('sun.sun', 'azimuth')|float(default=360) > orientation_w-90 and state_attr('sun.sun', 'azimuth')|float(default=360) < orientation_w+90 -%}
 #          {{ 0 if states('sensor.sun_elevation_ratio')|int <= 5 else (min(states('sensor.fritz_dect_210_solar_power_consumption')|float / (peak_solar_power_w * states('sensor.sun_elevation_ratio')|int / 100) * angle_compensation_factor_w, 1) * 100) | int }}
+# bis 11/2023
+#         {{ 0 if states('sensor.sun_elevation_ratio')|int(default=0) <= 0 else (min(states('sensor.bkw_sued_power')|float(default=0) / (peak_solar_power_s * states('sensor.sun_elevation_ratio')|int(default=0) / 100) * angle_compensation_factor_s, 1) * 100) | int }}
+ 
+
       state: >
         {%- set compensation_start_angle = 60 -%}
         {%- set peak_solar_power_s = 600 -%}
