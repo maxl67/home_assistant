@@ -172,21 +172,21 @@ cards:
                 card_type: markdown
                 content: >
                   Zur Erinnerung, {{user}}. 
-                  Die 'Automatische Jalousiesteuerung' ist nur aktiv, wenn wir nicht in der Heizperiode sind (siehe Heizungssteuerung) und automatisiert folgendes:
+                  Die 'Automatische Beschattung' ist nur aktiv, wenn wir nicht in der Heizperiode sind (siehe Heizungssteuerung) und automatisiert folgendes:
 
-                  - Die Jalousien werden im Süden oder Westen heruntergefahren, wenn die Sonne 10min lang im Süden oder Westen scheint
+                  - Die Jalousien werden im Süden oder Westen heruntergefahren, wenn die Sonne 10 min lang im Süden oder Westen scheint
                   oder Schalter 'nur bei Sonnenschein' ausgeschaltet ist und die Sonne über dem Horizont ist.
                   Pro Jalousie wird geprüft, ob die zugehörige Tür geschlossen ist
 
-                  - aber nur wenn niemand zuhause ist 
+                  - aber nur, wenn niemand zuhause ist 
                   oder Schalter 'Auto-Beschattung wenn zuhause' gesetzt ist, dann aber nicht vor 9:00 und nach 20:00
 
                   - auch nicht wenn es windig oder stürmig ist (DWD-Warnlevel > 1)
 
                   - Markisen werden nie automatisch ausgefahren
 
-                  - Jalousien werden hochgefahen, wenn die Sonne die Süd-/Westseite verlässt oder unter dem Horizont ist
+                  - Jalousien werden hochgefahen, wenn die Sonne die Süd-/Westseite verlässt oder unter dem Horizont steht
 
                   
                   Die Jalousien und Markisen werden immer (auch bei deaktiver Automatisierung) bei Wind/Sturm hoch-/eingefahren. 
-                  Die Markisen werden zusätzlich bei Wetter 'regnerisch' und Wind > 10m/sec reingefahren.
+                  Die Markisen werden zusätzlich bei Wetter 'regnerisch' und Wind > 10 m/sec reingefahren.

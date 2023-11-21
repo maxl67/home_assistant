@@ -54,12 +54,12 @@ cards:
           state: 'on'
         - entity_id: binary_sensor.latest_version_update_available
           state: 'on'
-        - entity_id: binary_sensor.bwk_sued_off_alert
-          state: 'on'
-      # template: |
-      #   {% if states('sensor.latest_version') != states('sensor.current_version') %}
-      #     {{ sensor.latest_version.entity_id }}
-      #   {% endif %}      
+        # - entity_id: binary_sensor.bwk_sued_offline_alert
+        #   state: 'on'
+      template: |
+        {% if is_state('binary_sensor.bwk_sued_offline_alert','on') %}
+          {{ sensor.bkw_sued_power.entity_id }}
+        {% endif %}      
 
   #------------------------------------------------
   # only show open (or unavailable) door-/window sensors (if any...)
@@ -165,6 +165,47 @@ cards:
       #blocklist: '(word1)|(word2)'
 
   #------------------------------------------------
+  # Energy
+  - type: custom:vertical-stack-in-card
+    cards:
+    - type: entities
+      title: Energie
+      show_header_toggle: false
+      state_color: true
+      entities:
+        - type: custom:multiple-entity-row
+          icon: mdi:transmission-tower-export
+          #entity: sensor.tasmotawe5_we5_power_cur
+          entity: sensor.strombezug_avg_2
+          name: Strom heute
+          state_header: akt.
+          entities:
+            - entity: sensor.einspeisung_heute #daily_energy_out
+              name: out
+              hide_unavailable: true
+            #todo: besser umstellen auf Wh
+            - entity: sensor.bezug_heute #daily_energy_in
+              name: in
+          double_tap_action: 
+            action: url
+            url_path: http://192.168.2.42
+        - type: custom:multiple-entity-row
+          entity: sensor.solar_power_continious #sensor.bkw_sued_power
+          icon: mdi:solar-power-variant-outline
+          name: Solarproduktion
+          state_header: akt.
+          entities:
+            - entity: sensor.daily_solar_consumption_rate
+              name: EVQ # Eigenverbrauchsquote
+              format: precision0
+            - entity: sensor.daily_bkw_sued_yield #nicht 'sensor.bkw_sued_yieldday', da dieser nachts offline
+              name: heute            
+          double_tap_action: 
+            action: url
+            url_path: http://opendtu
+    - type: energy-usage-graph
+
+  #------------------------------------------------
   # status of power switches 
   - type: entities
     title: Power
@@ -196,7 +237,7 @@ cards:
             card_type: markdown
             content: >
               Zur Erinnerung, {{user}}. 
-              Bei aktiver Automatisierung werden
+              Bei aktiver Automatisierung werden:
 
               - Netzwerk (Switch, AP's), Schreibtisch Max und Raspi WZ ausgeschaltet, nachdem 20 min niemand zuhause ist und auch Nachts um 0:45
 
@@ -206,24 +247,23 @@ cards:
 
               - TV/Hifi wieder eingeschaltet, nachdem wir für 3 min zuhause sind
 
-
   #------------------------------------------------
   # status of lights
   - type: entities
     title: Licht
     show_header_toggle: false
     state_color: true
-#  card_mod:
-#    style: |
-#      ha-card {
-#        background: url("/local/lampe.png");
-#        background-size: 60% 120px;
-#        background-position: center;
-#        background-repeat: no-repeat;
-#        --primary-text-color: var(--primary-text-color);
-#        --secondary-text-color: var(--secondary-text-color);
-#        --paper-item-icon-color: var(--primary-text-color);
-#      }
+    # card_mod:
+    #   style: |
+    #     ha-card {
+    #       background: url("/local/lampe.png");
+    #       background-size: 60% 120px;
+    #       background-position: center;
+    #       background-repeat: no-repeat;
+    #       --primary-text-color: var(--primary-text-color);
+    #       --secondary-text-color: var(--secondary-text-color);
+    #       --paper-item-icon-color: var(--primary-text-color);
+    #     }
     entities:
       - type: custom:slider-entity-row
         entity: light.dimmschalter_wz_dimmaktor_wz 
@@ -256,14 +296,14 @@ cards:
             card_type: markdown
             content: >
               Zur Erinnerung, {{user}}. 
-              Bei aktiver Automatisierung werden
+              Bei aktiver Automatisierung werden:
 
               - das Ambientelicht im Wohnzimmer kurz nach Sonnenuntergang eingeschaltet 
                 oder wenn wir nach Sonnenuntergang nach Hause kommen
               - alle Licher (WZ, Büro, Küche) kurz nachdem wir gegangen sind und auch um Mitternacht ausgeschaltet
 
 
-              Bei längerer Abwesenheit (>1 Tag) wird das Ambientelicht im Wohnzimmer 
+              Bei längerer Abwesenheit (>24 h) wird das Ambientelicht im Wohnzimmer 
               zu einer zufälligen Zeit nach Sonnenuntergang eingeschaltet und nach 23:00 auch zufällig ausgeschaltet.
 
   #------------------------------------------------

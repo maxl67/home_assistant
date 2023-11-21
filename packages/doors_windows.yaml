@@ -336,7 +336,7 @@ automation:
       - wait_template: "{{ not states('dw_signal_store.light_philips_lightstrip_ku') == 'unknown' }}"
         timeout: '00:00:03'
       - choose:
-        - conditions: "{{ wait.completed }}" #wait condition was met = entity existes
+        - conditions: "{{ wait.completed }}" #wait condition was met = entity exists
           sequence:
             - service: python_script.light_store
               data:

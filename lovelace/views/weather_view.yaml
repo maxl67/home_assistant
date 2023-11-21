@@ -242,14 +242,15 @@ cards:
         entities:
         - entity: sensor.bkw_sued_temperature
           name: Süd (BKW)
+          hide_unavailable: true
         - entity: sensor.fritz_dect_210_solar_temperature
-          name: Ost 
+          name: Ost
 
 
   - type: custom:vertical-stack-in-card
     cards:
       - type: entities
-        title: Sonnenstand
+        title: Sonne
         show_header_toggle: false
         <<: *style_header
         entities:

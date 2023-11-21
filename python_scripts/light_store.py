@@ -26,7 +26,8 @@ ATTR_WHITE_VALUE = "white_value"
 ATTR_COLOR_TEMP = "color_temp"
 ATTR_HS_COLOR = "hs_color"
 # Save any of these attributes.
-GEN_ATTRS = [ATTR_BRIGHTNESS, ATTR_EFFECT]
+GEN_ATTRS = [ATTR_BRIGHTNESS] #mr: ATTR_EFFECT produces error when restoring because value is 'none'
+#GEN_ATTRS = [ATTR_BRIGHTNESS, ATTR_EFFECT]
 # Save only one of these attributes, in order of precedence.
 COLOR_ATTRS = [ATTR_WHITE_VALUE, ATTR_HS_COLOR, ATTR_COLOR_TEMP]
 
@@ -45,7 +46,7 @@ else:
     # Get optional overwrite parameter (only applies to saving.)
     overwrite = data.get(ATTR_OVERWRITE, True)
 
-    # Get optional parameter ot save and restore all attribs.
+    # Get optional parameter to save and restore all attribs.
     all_attribs = data.get(ATTR_ALLATTRIBS, False) #mr: read new param
 
     # Get optional list (or comma separated string) of switches & lights to
@@ -110,7 +111,7 @@ else:
                             new_state = hass.states.get(entity_id)
                         #read all attributes
                         for attr in GEN_ATTRS:
-                            if attr in new_state.attributes:
+                            if attr in new_state.attributes and not new_state.attributes[attr] is None:
                                 attributes[attr] = new_state.attributes[attr]
                         for attr in COLOR_ATTRS:
                             if attr in new_state.attributes:
@@ -136,12 +137,16 @@ else:
                 turn_on = old_state.state == 'on'
                 service_data = {'entity_id': entity_id}
                 component = entity_id.split('.')[0]
-                #mr: new if-case. if all attribs should be restored, we have to turn and set them before restoring state.
+                logger.debug('Restoring {} to state {} and all_attibs:{} (Domain: {}).'.format(
+                                entity_id, old_state.state, all_attribs, component)) #mr
+                #mr: new if-case. if all attribs should be restored (not just on/off),
+                #    we have to turn light on and set all atttributes before restoring state.
                 if component == 'light' and all_attribs and not turn_on and old_state.attributes:
-                    service_data.update(old_state.attributes)
-                    hass.services.call(component,
-                                    'turn_on',
-                                    service_data)
+                    try:
+                        service_data.update(old_state.attributes)
+                        hass.services.call(component, 'turn_on', service_data)
+                    except:
+                        logger.error('Error restoring attributes: {}.'.format(old_state.attributes))
                     service_data = {'entity_id': entity_id}
                     time.sleep(0.2) #or better wail until hass.states.get(entity_id).state=='on'
                 elif component == 'light' and turn_on and old_state.attributes: #mr: if --> elif

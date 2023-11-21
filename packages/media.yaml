@@ -17,8 +17,12 @@ homeassistant:
       common: &common
         package: 'media'
   # constants 
+      # entity-id's
       receiver_entityid: &receiver_entityid media_player.r_n803d_86ae28
       tv_entityid: &tv_entityid media_player.samsungtv
+      powerswitch_tv_entityid: &powerswitch_tv_entityid switch.outlet_repeater_hifi_switch
+      powerswitch_rack_entityid: &powerswitch_rack_entityid switch.fritz_dect_200_netz
+      ambientelicht_wz_entityid: &ambientelicht_wz_entityid light.dimmschalter_wz_dimmaktor_wz
   # groups, variables
     group.mediadevices_in_use:
       <<: *common
@@ -555,116 +559,116 @@ automation:
   - id: power_off_unused_mediarack
     alias: switch off unused media rack at night
     trigger: 
-      - platform: time
+      - id: 'past_midnight'
+        platform: time
         at: '00:10:00'
-      - platform: state
+      - id: 'devices_unused'
+        platform: state
         entity_id: group.mediadevices_in_use
         to: 'off'
         for:
           minutes: 15
-      - platform: state
+      - id: 'config_changed'
+        platform: state
         entity_id: input_boolean.disable_power_automation
         to: 'off'
     condition:
       # 'power_automation' aktiv UND Home status 'Away'
-      condition: and
-      conditions:
-      - condition: or
-        conditions:
+      - and:
+        - or:
           - condition: time
             after: '23:00:00'
           - condition: time
             before: '07:00:00'    
-      - condition: state
-        entity_id: group.mediadevices_in_use
-        state: 'off'
-      - condition: state
-        entity_id: input_boolean.disable_power_automation
-        state: 'off'
+        - condition: state
+          entity_id: group.mediadevices_in_use
+          state: 'off'
+        - condition: state
+          entity_id: input_boolean.disable_power_automation
+          state: 'off'
     action:
       - service: switch.turn_off
-        entity_id: switch.outlet_repeater_hifi_switch
+        entity_id: *powerswitch_tv_entityid
 
   # Einschalten des Media Racks nachmittags, wenn wir zuhause sind
   - id: power_on_mediarack_for_use
     alias: switch on media rack for use
     trigger:
-      - platform: time
+      - id: 'afternoon'
+        platform: time
         at: '17:00:00'
-        id: 'afternoon'
-      - platform: time
+      - id: 'morning'
+        platform: time
         at: '07:00:00'
-        id: 'morning'
-      - platform: state
+      - id: 'config_changed'
+        platform: state
         entity_id: input_boolean.disable_power_automation
         to: 'off'
     condition:
       # 'power_automation' aktiv UND Home status 'Home' UND WLAN ist an
-      condition: and
-      conditions:
-      - condition: state
-        entity_id: input_boolean.disable_power_automation
-        state: 'off'
-      - condition: state
-        entity_id: sensor.home_status
-        state: 'Home'
-      - condition: state
-        entity_id: switch.fritz_dect_200_netz
-        state: 'on'
+      - and:
+        - condition: state
+          entity_id: input_boolean.disable_power_automation
+          state: 'off'
+        - condition: state
+          entity_id: sensor.home_status
+          state: 'Home'
+        - condition: state
+          entity_id: *powerswitch_rack_entityid
+          state: 'on'
       # UND am Wochenende/Feiertag morgens, sonst nachmittags
-      - condition: or
-        conditions:
+        - or:
           - condition: trigger
             id: 'afternoon'
-          - condition: and
-            conditions:
-              - condition: trigger
-                id: 'morning'
-              - condition: state
-                entity_id: 'binary_sensor.workday_sensor'
-                state: 'off'
+          - and:
+            - condition: trigger
+              id: 'morning'
+            - condition: state
+              entity_id: 'binary_sensor.workday_sensor'
+              state: 'off'
     action:
       - service: switch.turn_on
-        entity_id: switch.outlet_repeater_hifi_switch
+        entity_id: *powerswitch_tv_entityid
 
   #----------------------------------------------------------------------------------
   # Licht-Szene für Fernsehen
   - id: set_scene_movies
     alias: Scene 'Movies' 
     trigger:
-      - platform: state
+      - id: 'tv_playing'
+        platform: state
         entity_id: media_player.samsungtv 
         to: 'on'
-      - platform: state
+      - id: 'tv_online'
+        platform: state
         entity_id: binary_sensor.smarttv #in addition to media_player, until that one will work correctly
         to: 'on'
-      - platform: state
-        entity_id: light.dimmschalter_wz_dimmaktor_wz
+      - id: 'lights_on'
+        platform: state
+        entity_id: *ambientelicht_wz_entityid
         to: 'on'
     condition:
-      condition: and
-      conditions:
-      - condition: or
-        conditions:
+      - and:
+        - or:
           - condition: state
             entity_id: media_player.samsungtv
             state: 'on'
           - condition: state
             entity_id: binary_sensor.smarttv #in addition to media_player, until that one will work correctly
             state: 'on'
-      - condition: state
-        entity_id: light.dimmschalter_wz_dimmaktor_wz
-        state: 'on'
-      - condition: state
-        entity_id: input_boolean.disable_power_automation
-        state: 'off'
+        - condition: state
+          entity_id: *ambientelicht_wz_entityid
+          state: 'on'
+        - condition: state
+          entity_id: input_boolean.disable_power_automation
+          state: 'off'
     action:
       # speichern des aktuellen Licht-Zustands...
       - service: python_script.light_store
         data:
           store_name: dw_signal_store
           entity_id:
-            - light.dimmschalter_wz_dimmaktor_wz
+            - *ambientelicht_wz_entityid
           overwrite: true
           all_attribs: true  #saves last color and brightness, even if state='off'. turn light on shortly
       - service: scene.turn_on

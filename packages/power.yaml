@@ -1,9 +1,11 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 08.10.2020
+#   @date         : v1 20.11.23, v0 08.10.2020
 #   @package      : power
 #   @description  : light/power consumtion and regulation
 #   @links        : 
+#   notification & alerts: 20.11.2023
+#   todo: shell command produzieren einen Fehler in Log wegen falschem return-code.
 ###############################################################################
 
 ################################################
@@ -24,6 +26,9 @@ homeassistant:
       powerswitch_gz_entityid: &powerswitch_gz_entityid switch.fritz_dect_200_gz
       powerswitch_tv_entityid: &powerswitch_tv_entityid switch.outlet_repeater_hifi_switch
       powerswitch_rpi_sued_entityid: &powerswitch_rpi_sued_entityid switch.outlet_repeater_wz_018780fe_on_off
+      # delays for notifications 
+      int_seconds_alert_send_delay: &int_seconds_alert_send_delay 180 #default: 5
+      int_seconds_alert_reset_delay: &int_seconds_alert_reset_delay 1 #default: 1
   # entities
     switch.outlet_repeater_hifi_switch: 
       icon: mdi:audio-video #mdi:power-socket-de
@@ -43,14 +48,32 @@ homeassistant:
       unit_of_measurement: W
       device_class: energy
       friendly_name: current power delivery
-
   # groups, variables
     input_boolean.disable_power_automation:
       <<: *common
     switch.enable_power_automation:
       <<: *common
   # sensors
-    binary_sensor.bwk_sued_off_alert:
+    binary_sensor.bwk_sued_offline_alert:
+      <<: *common
+    binary_sensor.powermeter_offline_alert:
+      <<: *common
+    sensor.average_current_power_delivery:
+      <<: *common
+      attributes:
+        friendly_name: Strombezug geglättet
+        description: Mittelwert aus den letzten 4 Werten (25sec Zeitraum) der Sensorwerte am Stromzähler (sensor.tasmotawe5_we5_power_cur)
+    sensor.daily_energy_in:
+      <<: *common
+    sensor.daily_energy_out:
+      <<: *common
+    sensor.daily_bkw_sued_yield:
+      <<: *common
+      attributes:
+        description: Solarertrag heute
+    sensor.solar_power_continious:
+      <<: *common
+    sensor.daily_solar_consumption_rate:
       <<: *common
   # automations
     automation.power_down_mediarack:
@@ -60,6 +83,10 @@ homeassistant:
     automation.switch_off_network:
       <<: *common
     automation.switch_on_network:
+      <<: *common
+    automation.send_notification_powersensor_offline:
+      <<: *common
+    automation.reset_notification_powersensor_offline:
       <<: *common
     script.kill_raspi1:
       <<: *common
@@ -76,9 +103,17 @@ homeassistant:
 #                               Variables
 ###############################################################################
 input_boolean:
+  # Schalter zum Ein-/Ausschalten der Automatisierungen
   disable_power_automation:
     name: Stromabschaltung deaktivieren
     icon: mdi:robot
+  # Variablen für das Versenden der Notifications
+  bwk_sued_offline_notification:
+    name: Benachrichtigung über BKW offline versandt
+    icon: mdi:alert-box-outline
+  powermeter_offline_notification:
+    name: Benachrichtigung über Stromsensor offline versandt  
+    icon: mdi:alert-box-outline
 
 switch:
   - platform: template
@@ -107,33 +142,109 @@ switch:
 # Per Tasmota WiFi-IR Leser wird der Iskra MT631 Stromzähler ausgelesen.
 # mqtt:
 #   sensor: (autodiscover)
-
-# Im Jahr 2022 beträgt die KWKG-Umlage bei der Belieferung von Haushalten 0,378 ct/kWh
-# Individuelles Netzentgelt 2023 LV GRUPPE A': 0,00417 ct/kWh
-# Offshore-Netzumlage nach § 17f EnWG 2023: 0,591 ct/kWh
-# Konzessionsabgabe: 2,39 ct/kWh ?
-# Die Stromsteuer für Haushalte beträgt 2,05 ct/kWh.
-# --> Nettopreis. Zzgl. MwSt auf alles
-sensor: 
+sensor:
+  # Im Jahr 2022 beträgt die KWKG-Umlage bei der Belieferung von Haushalten 0,378 ct/kWh
+  # Individuelles Netzentgelt 2023 LV GRUPPE A': 0,00417 ct/kWh
+  # Offshore-Netzumlage nach § 17f EnWG 2023: 0,591 ct/kWh
+  # Konzessionsabgabe: 2,39 ct/kWh ?
+  # Die Stromsteuer für Haushalte beträgt 2,05 ct/kWh.
+  # --> Nettopreis. Zzgl. MwSt auf alles
   - platform: template
     sensors:
+#todo: oben zufügen
       strompreis_abgaben:
         friendly_name: 'Abgaben und Steuern auf Börsenstrompreis'
         value_template: >
           {{ 0.357 + 0.417 + 0.591 + 2.39 + 2.05 }}
 
+  # # Berechnet zwar den Mittelwert der gelieferten Energie (macht keinen Sinn), 
+  # # stellt aber auch die min(max Werte aus dem verarbeiteten Intervall) als Appribute bereit.
+  # # Der min-Wert vor 30 Sec ist das, was wir brauchen
+  # - platform: average # custom component --> wieder deinstalliert
+  #   unique_id: recent_power_in
+  #   name: recent_power_in
+  #   duration:
+  #     minutes: 0
+  #     seconds: 25    
+  #   precision: 3
+  #   entities:
+  #     - sensor.tasmotawe5_we5_total_in
+
+  # berechnet den Durchschnitt über die letzten 4 Messwerte des Stromflusses am Zähler
+  - platform: statistics
+    unique_id: average_current_power_delivery
+    name: strombezug_avg #todo: entity noch umbenennen (hat *_2)
+    entity_id: sensor.tasmotawe5_we5_power_cur #is updated every 10sec
+    state_characteristic: mean
+    max_age:
+      minutes: 0
+      seconds: 25
+    precision: 0
+
+# Hier Utility Meter Integration (in Core)
+# Berechnet das tägliche Wachstum
+utility_meter:
+  daily_energy_in:
+    source: sensor.tasmotawe5_we5_total_in
+    unique_id: energy_in_today
+    name: Bezug heute
+    cycle: daily
+  daily_energy_out:
+    source: sensor.tasmotawe5_we5_total_out
+    unique_id: energy_out_today
+    name: Einspeisung heute
+    cycle: daily
+
+mqtt:
+  sensor:
+    # Sensor zeigt den gleichen Wert wie Sensor 'sensor.bkw_sued_yieldday' an, ist aber nachts nicht offline.
+    - name: daily_bkw_sued_yield
+      unique_id: daily_bkw_sued_yield
+      state_topic: solar/114184615394/0/yieldday
+      state_class: total_increasing
+      unit_of_measurement: 'Wh'
+      device_class: energy
+      #suggested_display_precision: 0
+      availability_topic: solar/dtu/status
+      icon: mdi:solar-power-variant-outline
+
 template:
   - binary_sensor:
     # ---------------------
-    # Alarm, wenn die Aussensteckdose ausgeschaltet ist
-    - unique_id: bwk_sued_off_alert
-      name: bwk_sued_off_alert
-##      state: "{{ is_state('binary_sensor.bkw_sued_reachable','on') and is_state('binary_sensor.bkw_sued_producing','off') }}"
+    # Alarm, wenn die Aussensteckdose ausgeschaltet ist (geprüft wird die Netzfrequenz)
+    - unique_id: bwk_sued_offline_alert
+      name: bwk_sued_offline_alert
       state: "{{ is_state('binary_sensor.bkw_sued_reachable','on') and states('sensor.bkw_sued_frequency')|float(0) < 40.0 }}"
-      icon: mdi:alert-box-outline
+      icon: mdi:weather-sunny-off
       attributes:
-        friendly_name: BKW Süden ausgeschaltet
+        friendly_name: BKW Süden ausgeschaltet #active warning: solar panel switched off
+    
+    # Alarm, wenn der Sensor am Stromzähler nicht mehr sendet (Tasmota)
+    - unique_id: powermeter_offline_alert
+      name: powermeter_offline_alert
+      state: "{{ is_state('sensor.tasmotawe5_we5_power_cur','unavailable') }}"
+      icon: mdi:transmission-tower-import
+      attributes:
+        friendly_name: Stromzähler nicht erreichbar   #active warning: Powermeter sensor offline
+  
+  - sensor:
+    # Sensoren für die durchgehende Anzeige der BKW-Werte, auch den der Wechselrichter aus ist.
+    - unique_id: solar_power_continious
+      name: solar_power_continious
+      state: "{{ (0 if is_state('sensor.bkw_sued_power','unavailable') else states('sensor.bkw_sued_power'))|int(0) }}"
+      unit_of_measurement: 'W'
+      #state_class: measurement
+      icon: mdi:transmission-tower-import
+      attributes:
+        friendly_name: aktuelle Solarstromproduktion
 
+    # berechnet die Eigenverbrauchsquote für den aktuellen Tag
+    - unique_id: daily_solar_consumption_rate
+      name: daily_solar_consumption_rate
+      state: "{{ (1 - (states('sensor.einspeisung_heute')|float(0)*1000/states('sensor.daily_bkw_sued_yield')|float(1)))*100 }}"
+      unit_of_measurement: '%'
+      attributes:
+        friendly_name: heutiger Eigenverbrauch
 
 ###############################################################################
 #                               Automations
@@ -173,17 +284,17 @@ automation:
     action:
       - service: switch.turn_off
         entity_id: *powerswitch_tv_entityid
-      - service: script.kill_raspi3
-      - wait_for_trigger:
-          - platform: state
-            entity_id: binary_sensor.rpi_sued
-            to: 'off'
-        timeout:
-          minutes: 1
-        continue_on_timeout: true  
-      # switch off power outlet EZ (RPI Sued)
-      - service: switch.turn_off
-        entity_id: *powerswitch_rpi_sued_entityid
+      # - service: script.kill_raspi3
+      # - wait_for_trigger:
+      #     - platform: state
+      #       entity_id: binary_sensor.rpi_sued
+      #       to: 'off'
+      #   timeout:
+      #     minutes: 1
+      #   continue_on_timeout: true  
+      # # switch off power outlet EZ (RPI Sued)
+      # - service: switch.turn_off
+      #   entity_id: *powerswitch_rpi_sued_entityid
 
   # Einschalten des Media Racks, wenn wir nach Hause kommen
   # mit 3 Minuten Verzögerung, da das Netzwerk erst wieder hochgefahren sein muss.
@@ -214,16 +325,16 @@ automation:
     action:
       - service: switch.turn_on
         entity_id: *powerswitch_tv_entityid
-      # switch on power outlet EZ (RPI Sued)
-      - service: switch.turn_on
-        entity_id: *powerswitch_rpi_sued_entityid
+      # # switch on power outlet EZ (RPI Sued)
+      # - service: switch.turn_on
+      #   entity_id: *powerswitch_rpi_sued_entityid
 
   #----------------------------------------------------------------------------------
 #todo: Log error: 'Unable to find referenced entities'
 # - service: automation.turn_off, entity_id: automation.switch_off_network
     # FritzDect1 schaltet WLAN, Unify-Switch und Raspi aus.
   - id: switch_off_network
-    alias: switch off network components
+    alias: switch off network #components
     mode: restart
     description: 'Schaltet Netzkomponenten (nicht wenn SaugE aktiv) und Raspi3 aus, 20 min nach dem Verlassen oder nach Mitternacht.'
     trigger: 
@@ -234,14 +345,38 @@ automation:
         to: 'Away'
         for:
           minutes: *int_minutes_away_for_power_down
-      - id: 'past midnight'
+      - id: 'past_midnight'
         platform: time
         at: '00:45:00'
+      - id: 'duste_docked'
+        platform: state
+        entity_id: vacuum.xiaomi_vacuum_cleaner
+        to: 'docked'
+        from: 
+          - 'cleaning'
+          - 'returning'
+        for:
+          minutes: 5
     condition:
       # 'power_automation' aktiv (und Saug-E nicht aktiv für Netzwerk) 
       - condition: state
         entity_id: input_boolean.disable_power_automation
         state: 'off'
+      - or:
+      # Wenn von SaugE getriggert, dann darf niemand zuhause sein 
+        - and:
+          - condition: trigger
+            id: duste_docked
+          - condition: state
+            entity_id: sensor.home_status
+            state: 
+              - 'Away'
+              - 'Extended Away'
+      # nicht von SaugE getriggert, dann immer ausführen
+        - not:
+          - condition: trigger
+            id: duste_docked
+
     action:
       # stop switching on the network
       - service: automation.turn_off
@@ -275,10 +410,10 @@ automation:
             - choose:
               - conditions: "{{ states('sensor.raspi3_last_message') != 'unavailable' }}"
                 sequence:
-#                  - service: script.kill_raspi3
+                  #- service: script.kill_raspi3
                   - service: script.turn_on #https://www.home-assistant.io/integrations/script/#waiting-for-script-to-complete
                     target:
-                      entity_id: kill_raspi3
+                      entity_id: script.kill_raspi3
                   - wait_for_trigger:
                       - platform: state
                         entity_id: binary_sensor.rpi_sued
@@ -294,7 +429,7 @@ automation:
               entity_id: *powerswitch_rack_entityid
 
   - id: switch_on_network
-    alias: switch_on_network #switch on network components
+    alias: switch on network #switch on network components
     mode: restart
     description: 'Schaltet Netzkomponenten und Raspi3 wieder an - bei Rückkehr nach Hause, wenn die Eingangstür aufgeht und morgens um 6:00'
     trigger: 
@@ -352,14 +487,14 @@ automation:
       - delay: '00:00:30'
       # reboot Raspi1, if not online and wait for reboot and sensors
       - choose:
-        - conditions: "{{ states('sensor.raspi1_lastmessage') == 'unavailable' }}"
+        - conditions: "{{ states('sensor.raspi1_last_message') == 'unavailable' }}"
           sequence:
             - service: script.reboot_raspi1
 
       - delay: '00:01:00' 
       # switch of and on power for Raspi1. Necessary after longer power off periods
       - choose:
-        - conditions: "{{ states('binary_sensor.rpi_ost') != 'on'  or  states('sensor.raspi1_lastmessage') == 'unavailable' }}"
+        - conditions: "{{ states('binary_sensor.rpi_ost') != 'on'  or  states('sensor.raspi1_last_message') == 'unavailable' }}"
           sequence:
             - service: switch.turn_off
               entity_id: *powerswitch_rack_entityid
@@ -368,7 +503,7 @@ automation:
               entity_id: *powerswitch_rack_entityid
       # switch of and on power for Raspi3. Necessary after longer power off periods
       - choose:
-        - conditions: "{{ states('binary_sensor.rpi_sued') != 'on'  or  states('sensor.raspi3_lastmessage') == 'unavailable' }}"
+        - conditions: "{{ states('binary_sensor.rpi_sued') != 'on'  or  states('sensor.raspi3_last_message') == 'unavailable' }}"
           sequence:
             - service: switch.turn_off
               entity_id: *powerswitch_rpi_sued_entityid
@@ -379,10 +514,113 @@ automation:
       - delay: '00:00:45' 
       # reboot Raspi3, if not online and wait for reboot and sensors
       - choose:
-        - conditions: "{{ states('sensor.raspi3_lastmessage') == 'unavailable' }}"
+        - conditions: "{{ states('sensor.raspi3_last_message') == 'unavailable' }}"
           sequence:
             - service: script.reboot_raspi3
-            
+
+  - alias: Notify - Powersensor offline
+    id: send_notification_powersensor_offline_2
+    trigger:
+      # Stromzähler Sensor ist offline
+      - id: 'powermeter_offline'
+        platform: state
+        entity_id: binary_sensor.powermeter_offline_alert
+        to: 'on'
+        for:
+          seconds: *int_seconds_alert_send_delay
+      # BWK Süd Wechselrichter ist offline
+      - id: 'solarpanel_offline'
+        platform: state
+        entity_id: binary_sensor.bwk_sued_offline_alert
+        to: 'on'
+        for:
+          seconds: *int_seconds_alert_send_delay
+    variables:
+      # wer wird informiert
+      notification_service: >
+        {{ 'notify.family_main_devices' if is_state('sensor.ing_status', 'Home') else 'notify.max' }}
+      # in welcher Variable wird die versendete Benachrichtigung gespeichert
+      notification_entity_id: >
+         {{ 'input_boolean.powermeter_offline_notification' if trigger.id == 'powermeter_offline' else 'input_boolean.bwk_sued_offline_notification' }}
+    action:
+      - service: input_boolean.turn_on
+        data_template:
+          entity_id: "{{ notification_entity_id }}"
+      - service: "{{ notification_service }}"
+        data:
+          title: 'Smart Home Alarm'
+          message: >
+            {{ 'Der Stromzählersensor im Keller ist nicht erreichbar' if trigger.id == 'powermeter_offline' else 'Das Solarpanel ist offline. Vermutlich wurde der Schalter im Esszimmer ausgeschaltet'}}.
+          data:
+            subtitle: 'Power-Sensor offline!'
+            push:
+              badge: "{{states('sensor.count_notification_alerts')|int(default=0)}}"
+              sound:
+                name: default 
+                #name: "US-EN-Daisy-Back-Door-Open.wav" 
+                critical: 1
+                volume: 1.0
+              thread-id: 'power-notification-group'
+            apns_headers:
+              'apns-collapse-id': 'power-sensor-offline'
+            clickAction: '/lovelace/strom_analyse'
+  
+  - alias: Reset alert - Powersensor offline
+    id: reset_notification_powersensor_offline
+    trigger:
+      # beide Alert-Sensoren aus
+      - id: 'all_sensors_online'
+        platform: template
+        value_template: >
+          {{ is_state('binary_sensor.powermeter_offline_alert', 'off') 
+              and is_state('binary_sensor.bwk_sued_offline_alert', 'off') }}
+        for:
+          seconds: *int_seconds_alert_reset_delay
+      # - id: 'sensor_online'
+      #   platform: state
+      #   entity_id: 
+      #     - binary_sensor.bwk_sued_offline_alert
+      #     - binary_sensor.powermeter_offline_alert
+      #   to: 'off'
+      #   for:
+      #     seconds: *int_seconds_alert_send_delay
+    condition:
+      - or:
+        - and:
+          - alias: Notification BKW offline was sent
+            condition: state
+            entity_id: input_boolean.bwk_sued_offline_notification
+            state: 'on'
+          - alias: Alert BKW offline went to off 
+            condition: state
+            entity_id: input_boolean.bwk_sued_offline_alert
+            state: 'off'
+        - and:
+          - alias: Notification powermeter sensor offline was sent
+            condition: state
+            entity_id: input_boolean.powermeter_offline_notification
+            state: 'on'
+          - alias: Alert powermeter offline went to off 
+            condition: state
+            entity_id: input_boolean.powermeter_offline_alert
+            state: 'off'
+    action:
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.powermeter_offline_notification
+      - service: input_boolean.turn_off
+        entity_id: input_boolean.bwk_sued_offline_notification
+      - service: notify.family_main_devices
+        data:
+          title: 'Smart Home ...'
+          message: 'Power-Sensoren wieder online.'
+          data:
+            push:
+              badge: "{{states('sensor.count_notification_alerts')|int(default=0)}}"
+              thread-id: 'power-notification-group-group'
+            apns_headers:
+              'apns-collapse-id': 'power-sensor-offline'
+            clickAction: '/lovelace/strom_analyse'
+
 
 ###############################################################################
 ##  Scripts
@@ -428,7 +666,6 @@ script:
       data_template: 
         ip_address: !secret raspi3_sued_ip
         user: !secret raspi_user
-
 
 shell_command:
   shutdown_raspi: 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i /config/.ssh/id_rsa "{{user}}"@"{{ip_address}}" sudo shutdown now'

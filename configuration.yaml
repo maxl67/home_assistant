@@ -341,6 +341,7 @@ logger:
   logs:
     fritzconnection: info
 #    custom_components.samsungtv_custom.media_player: debug
+#    homeassistant.components.python_script: debug  #für debug von light_store.py etc.
 
 #    asyncio: debug
 #    homeassistant.components.zha: debug

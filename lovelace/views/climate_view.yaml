@@ -381,7 +381,8 @@ cards:
                 open: false
                 padding: off
                 entities:
-                - type: custom:hui-markdown-card
+                - type: custom:hui-element
+                  card_type: markdown
                   content: >
                     Zur Erinnerung, {{user}}. 
                     Der Schalter 'Heizperiode aktiv': 

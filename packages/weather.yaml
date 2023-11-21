@@ -102,6 +102,11 @@ input_boolean:
 ##  Sensors
 ###############################################################################
 template:
+
+#todo: regen (mm) in den letzten 24/48h. für bewässerung
+#siehe https://community.home-assistant.io/u/sciurius
+# mit sql-sensor?
+
   - sensor:
     ########## WETTTER ###########
       # temp: from dwd_weather, should be a own sensor outside
