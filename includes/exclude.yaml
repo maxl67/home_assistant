@@ -46,4 +46,4 @@ entities:
   # power control
   - sensor.osram_plug_01_a1bf020a_3_2820
   # climate
-  - sensor.lumi_lumi_weather_95154a04_pressure
+  - sensor.weathersensor01_druck

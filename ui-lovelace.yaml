@@ -39,6 +39,9 @@ views:
   # 4: view for room climate control
   - !include lovelace/views/climate_view.yaml
 
+  # 6: view for plant sensors and care taking
+  - !include lovelace/views/plants_view.yaml
+
   # 3: view to operate the vacuum cleaner and all related params
   - !include lovelace/views/vacuum_view.yaml
 
@@ -50,9 +53,6 @@ views:
 
   # 8: table with zigbee devices
   - !include lovelace/views/zigbee_view.yaml
-
-  # 6: view for plant sensors and care taking
-#  - !include lovelace/views/plants_view.yaml
 
   # 9: HA-Administration
   - !include lovelace/views/maintenance_view.yaml

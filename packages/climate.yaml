@@ -23,7 +23,7 @@ homeassistant:
   # definitions
     package.node_anchors:
       common: &common
-        package: "climate"
+        package: 'climate'
       door: &door
         <<: *common
         icon: mdi:door-open
@@ -40,6 +40,17 @@ homeassistant:
       thermostat_id_gz: &thermostat_id_gz 177b82bd9b6ed9360a46712d62f884b6 #heizungsthermostat_gz
       thermostat_entityid_gz: &thermostat_entityid_gz climate.heizungsthermostat_gz
       # ...add new Thermostats here.
+  # sensors
+    sensor.zimmer_temperature:
+        <<: *common
+    sensor.tursensoren_temperature:
+        <<: *common
+    sensor.netzwerk_gerate_temperature:
+        <<: *common
+    sensor.hmipw_gerate_temperature:
+        <<: *common
+    sensor.weathersensor01_batterie:
+      battery last changed: 10.06.2024 #14.012.2022
   # groups, variables
     group.doors_wz:
       <<: *door
@@ -70,20 +81,21 @@ group:
   doors_wz:
     name: Wohnzimmer Türen 
     entities:
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_03139f7b_1_6 #2 Wohnzimmer W
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_9ac61c04_1_6 #3 Wohnzimmer S
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_f2fd4604_1_6 #4 Esszimmer
-      #- binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6 #5 Küche
+      - binary_sensor.door_w1_offnung #2 Wohnzimmer W
+      - binary_sensor.door_w2_offnung #3 Wohnzimmer S
+      - binary_sensor.door_e1_offnung #4 Esszimmer
+      #- binary_sensor.door_k1_offnung #5 Küche
   doors_kitchen_office:
     name: Türen Küche/Büro
     entities:
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6 #5 Küche
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_0aa90a04_on_off #6 Arbeitszimmer S
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_0ee51c04_1_6 #7 Arbeitszimmer O
+      - binary_sensor.door_k1_offnung #5 Küche
+      - binary_sensor.door_a2_offnung #6 Arbeitszimmer S
+      - binary_sensor.door_a1_offnung #7 Arbeitszimmer O
   doors_gz:
     name: Gästezimmer Türen 
     entities:
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_031b3225_1_6 #1 Gästezimmer
+      - binary_sensor.door_g1_offnung #1 Gästezimmer
+
     
 ###############################################################################
 ##  Variables
@@ -136,6 +148,85 @@ switch:
           {% else %}
             mdi:ghost
           {% endif %}
+
+###############################################################################
+##  Sensors
+###############################################################################
+sensor:
+  - platform: average
+    unique_id: avg_room_temperature
+    name: 'Zimmer Temperatur'
+    #entity_id: sensor.zimmer_temperature
+    entities:
+      - sensor.wandthermostat_wz_temperatur #Wohnzimmer
+      - sensor.heizungsthermostat_ku_temperatur #Küche/Büro
+      - sensor.heizungsthermostat_gz_temperatur #Gästezimmer
+      - sensor.weathersensor01_temperatur #Bad
+      - sensor.fritz_dect_440_1_temperatur  #Button1
+    duration:
+      minutes: 2
+      seconds: 0    
+    precision: 1
+
+  - platform: average
+    unique_id: avg_hmipw_temperature
+    name: 'HmIPW-Geräte Temperatur'
+    # entity_id: sensor.hmipw_gerate_temperature
+    entities:
+      - sensor.hmipw_drap_temperatur
+      - sensor.hmipw_drbl4_1_temperatur
+      - sensor.hmipw_drbl4_2_temperatur
+      - sensor.hmipw_dri32_temperatur
+      - sensor.hmipw_drs8_temperatur
+      #evtl noch Powerlne
+    duration:
+      minutes: 2
+      seconds: 0    
+    precision: 1
+
+  - platform: average
+    unique_id: avg_device_temperature
+    name: 'Netzwerk-Geräte Temperatur'
+    # entity_id: sensor.netzwerk_gerate_temperature
+    entities:
+      # Fritzbox? fehlt noch
+      - sensor.fritz_dect_200_gz_temperature
+      - sensor.fritz_dect_200_netz_temperature
+      #- sensor.fritz_dect_210_solar_temperatur #diesen nicht, da aussen
+      #- sensor.bkw_sued_temperature
+      # Powerlan: keine Temp-Sensoren
+      - sensor.hera_temperature
+      - sensor.hera_volume_1_maximum_disk_temp
+      #- sensor.hera_volume_1_average_disk_temp
+      #Tasmota: kein Temp-Sensor
+      - sensor.raspi1_temperature
+      - sensor.raspi2_temperature
+      - sensor.raspi3_temperature
+    duration:
+      minutes: 2
+      seconds: 0    
+    precision: 1
+
+  - platform: average
+    unique_id: avg_door_temperature
+    name: 'Türsensoren Temperatur'
+    # entity_id: sensor.tursensoren_temperature
+    entities:
+      - sensor.door_a2_geratetemperatur # 6 Arbeitszimmer S
+      - sensor.door_a1_geratetemperatur # 7 Arbeitszimmer O
+      - sensor.door_eingang_geratetemperatur # 9 Eingang
+      - sensor.door_g1_geratetemperatur # 1 Gästezimmer
+      - sensor.door_k1_geratetemperatur # 5 Küche
+      - sensor.window_b1_geratetemperatur #12 Bad
+      - sensor.door_w1_geratetemperatur # 2 Wohnen W
+      - sensor.door_w2_geratetemperatur # 3 Wohnen S
+      - sensor.window_b2_geratetemperatur #13 Gästebad
+      - sensor.door_s1_geratetemperatur # 8 Schlafen
+      - sensor.door_e1_geratetemperatur # 4 Essen
+    duration:
+      minutes: 0
+      seconds: 15    
+    precision: 1
 
 ###############################################################################
 ##  Scripts
@@ -234,7 +325,7 @@ script:
           value: "{{ my_profile_no }}"
           value_type: 'int' #this new param is needed, because using a template will return a string value otherwise. 
           channel: 1
-          parameter: "ACTIVE_PROFILE"
+          parameter: 'ACTIVE_PROFILE'
         # interface: "hmip"
 
   set_windowstate_thermostat:
@@ -255,7 +346,7 @@ script:
           value: "{{ my_window_state }}"
           value_type: 'int' #this new param is needed, because using a template will return a string value otherwise. 
           channel: 1
-          parameter: "WINDOW_STATE"
+          parameter: 'WINDOW_STATE'
         # interface: "hmip"
 
 ###############################################################################
@@ -271,7 +362,7 @@ automation:
       - platform: time_pattern
         minutes: '/3'
     condition:
-      # wenn in der Heizperiode eine Tür offen ist und es draussen kalt ist
+      # wenn in der Heizperiode eine Tür offen ist und es draussen kalt istz
       - and:
         - alias:  Heizperiode ist an
           condition: state
@@ -311,7 +402,7 @@ automation:
           brightness: 255
           rgb_color:  [0, 0, 255] #blau
           transition: 0.1
-      - alias: "Lichtleiste blinken lassen"
+      - alias: Lichtleiste blinken lassen
         service: script.flash_light
         data:
           light_id: philips_lightstrip_ku #hier ohne domain 'light.'
@@ -498,7 +589,7 @@ automation:
           - group.doors_wz
           - group.doors_kitchen_office
           - group.doors_gz
-        to: "on"
+        to: 'on'
     condition:
       # nur bei aktiver Heizperiode und aktiver Automatisierung
       - and:
@@ -543,7 +634,7 @@ automation:
           - group.doors_wz
           - group.doors_kitchen_office
           - group.doors_gz
-        to: "off"
+        to: 'off'
         id: 'door_closed'
       # regelmässig prüfen, weil gelegentlich ein Event verpasst wird
       - platform: time_pattern

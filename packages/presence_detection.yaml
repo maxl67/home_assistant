@@ -1,6 +1,7 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 23.02.2023 (created: 08.08.2020)
+#   @date         : 20.06.2024
+#   @created:     : 08.08.2020
 #   @package      : presence_detection
 #   @description  : Presence Detection with different states based of bluetooth monitor script.
 #   @links        : 
@@ -10,6 +11,7 @@
 #   to add a new device to monitor: Publish in MQTT-Explorer Topic: 'monitor/setup/ADD STATIC DEVICE' Message: '00:11:22:33:44:55 guest_phone'
 #   to delete an existing device  : Publish in MQTT-Explorer Topic: 'monitor/setup/DELETE STATIC DEVICE' Message: '00:11:22:33:44:55'
 # Group als trigger: https://community.home-assistant.io/t/automation-trigger-on-any-member-of-a-group-is-it-possible/55795
+# Use file 'known_devices.yaml' to add a new or change an existing BT device_tracker entity.
 ###############################################################################
 
 ################################################
@@ -29,11 +31,12 @@ homeassistant:
         <<: *common
   # constants
     # timespans for presence status shifts 
-      #   (Attention: automation.person_and_home_status_correction does not use these values)
+      # (Attention: automation.person_and_home_status_correction does not use these values)
       int_minutes_after_being_home: &int_minutes_after_being_home 10 #default: 10 [min]
       int_minutes_after_being_away: &int_minutes_after_being_away 10 #default: 10 [min]
       int_hours_after_being_extendedaway: &int_hours_after_being_extendedaway 24 #default: 24 [h]
       int_minutes_after_being_extendedaway: &int_minutes_after_being_extendedaway 0 #default: 0 [min]
+        #minutes value is used for tesing status shift to 'extended away'
     # confidence threshold values (presence detection)
       int_confidence_threshold_home: &int_confidence_threshold_home 10 # 10[%] 
         #above this confidence value a device will be set to 'home', below to 'not_home'
@@ -54,18 +57,22 @@ homeassistant:
     sensor.home_status:
       entity_picture: /local/home.jpg
       <<: *common
-    device_tracker.iphone8_max_wifi:
+    device_tracker.iphonemax13_wifi:
       <<: *device_wifi
     device_tracker.iphone8_ing_wifi:
       <<: *device_wifi
-    device_tracker.iphone8_max_bt:
+    device_tracker.iphone_max_bt:
       <<: *device_bt
-    device_tracker.iphone8_ing_bt:
+      description: defined in known_devices.yaml
+    device_tracker.iphone_ing_bt:
       <<: *device_bt
+      description: defined in known_devices.yaml
     device_tracker.iphone_heidi_bt:
       <<: *device_bt
+      description: defined in known_devices.yaml
     device_tracker.iphone_winfried_bt:
       <<: *device_bt
+      description: defined in known_devices.yaml
     sensor.max_present_o:
       <<: *common
     sensor.max_present_w:
@@ -148,24 +155,25 @@ homeassistant:
       <<: *common
     automation.set_home_status_vacation:
       <<: *common
+    automation.reconnect_monitor_sensors:
+      <<: *common
       
 ###############################################################################
 ##  Groups
 ###############################################################################
 group:
-  # 'group.phone_* is used to have a central location to map (and change) the current device per person.
-  #   Werden mehrere Geräte angegeben, dann ist Gruppe 'on'='anwesend' wenn mindestens ein Gerät 'on' ist.
+  # 'group.phone_* is used to have a central location to map (and change) the current device(_tracker) per person.
+  #  Werden mehrere Geräte angegeben, dann ist Gruppe 'on'='anwesend' falls mindestens ein Gerät 'on' ist.
   phone_max:
     name: Phone Max
     entities:
-    # - device_tracker.iphone8_max_wifi  #fallback, if BT scripts wouldn't work anymore
-      - device_tracker.iphone8_max_bt
-      - device_tracker.iphone13_max_bt
+    # - device_tracker.iphonemax13_wifi  #fallback, if BT scripts wouldn't work anymore
+      - device_tracker.iphone_max_bt
   phone_ing:
     name: Phone Ingrid
     entities:
     # - device_tracker.iphone8_ing_wifi  #fallback, if BT scripts wouldn't work anymore
-      - device_tracker.iphone8_ing_bt
+      - device_tracker.iphone_ing_bt
   guest_phones:
     name: phones of known guests
     entities:
@@ -222,16 +230,16 @@ input_boolean:
 ## Structure of sensors & automations
 #
 # ON RASPBERRY PI's
-# 1) monitor.sh is running on 2 raspi (area east & west) and scans for known devices using bluetooth.
+# 1) monitor.sh is running on 3 raspi (area east, west & south) and scans for known devices using bluetooth.
 #    Each area script reports a confidence value [0..100] via MQTT for each device.
-#    All devices that are scanned for are configured for the script locally on the raspi's (MAC and name).
+#    All devices that are scanned for are configured for the script locally on the raspi's (BT-MAC and name).
 # IN HOME-ASSISTANT
-# 2) For each device 2 MQTT sensors are listening to these confidence values (sensor '<person> present {O|W}')
-# 3) These 2 sensors per device are combined (max function) and a confidence for the device being present is calculated
+# 2) For each device 2 or 3 MQTT sensors are listening to these confidence values (sensor '<person> present {O|W|S}')
+# 3) These sensors are combined per device (max function) and a confidence for the device being present is calculated
 #    (sensor '<person> Home Confidence'). Range [0..100].
-# 4) 2 automations will set the device_tracker for the BT-device to 'home' or 'not_home' 
+# 4) 1 automation will set the device_tracker entity for the BT-devices to 'home' or 'not_home' 
 #    in case the home confidence level is above/below a threshhold ('&int_confidence_threshold_home').
-#    (automation '<person> Occupancy On', '<person> Occupancy Off')
+#    (automation 'change person occupancy')
 # 5) The BT-device is part of the group 'phone_<person>' which could contain other devices_trackers.
 #    The group is turned 'on', if at least one device in the group is 'home'.
 # From this point on only the group is used in status automation triggers to be independent of devices.
@@ -314,7 +322,7 @@ mqtt:
       payload_not_available: 'offline'
       json_attributes_topic: 'monitor/sued/iphone_ing_bt'
 # Gast 1
-# vorerst als test mit iPad Ing: MQTT-Explorer Topic: 'monitor/setup/ADD STATIC DEVICE' Message: 'D0:4F:7E:7F:3D:CF iphone_heidi_bt' 
+# MQTT-Explorer Topic: 'monitor/setup/ADD STATIC DEVICE' Message: 'D0:4F:7E:7F:3D:CF iphone_heidi_bt' 
     - name: 'Heidi present O'
       state_topic: 'monitor/ost/iphone_heidi_bt'
       value_template: "{{ value_json.confidence }}"
@@ -334,7 +342,7 @@ mqtt:
       payload_not_available: 'offline'
       json_attributes_topic: 'monitor/west/iphone_heidi_bt'
 # Gast 2
-# vorerst als test mit iPad Max: MQTT-Explorer Topic: 'monitor/setup/ADD STATIC DEVICE' Message: 'F0:DB:F8:1C:A7:A2 iphone_winfried_bt' 
+# MQTT-Explorer Topic: 'monitor/setup/ADD STATIC DEVICE' Message: 'F0:DB:F8:1C:A7:A2 iphone_winfried_bt' 
     - name: 'Winfried present O'
       state_topic: 'monitor/ost/iphone_winfried_bt'
       value_template: "{{ value_json.confidence }}"
@@ -355,15 +363,8 @@ mqtt:
 
 # combining all area values into a total confidence value for the device being present
 # min-max sensors will dispay 1 digit in a glance card. So rather use a template sensor.
-# todo: test and apply to rest
 sensor:
   # Person 1
-  # - platform: template
-  #   sensors:
-  #     max_home_confidence:
-  #       friendly_name: 'Max Home Confidence'
-  #       value_template: "{{ max(states('sensor.max_present_o'),states('sensor.max_present_w')) }}"
-  #       unit_of_measurement: '%'
   - platform: min_max
     name: 'Max Home Confidence'
     type: max
@@ -448,6 +449,16 @@ script:
   #   my_entity: must be the home assistant entity_id
   #   my_device: just the name without 'device_tracker.'
   toogle_bt_device_status:
+    alias: 'toogle BT-device status'
+    description: "Wechselt den Status eines BT-Geräts von 'home' <-> 'not_home'"
+    fields:
+      my_entity:
+        description: 'Name der BT-Geräts aus der Domain device_tracker'
+        example: 'device_tracker.my_iphone_bt'
+      my_device:
+        description: 'Gerätename ohne Domain'
+        example: 'my_phone_bt'
+    mode: parallel
     sequence:
       - choose:
           conditions: >
@@ -474,22 +485,86 @@ script:
         data:
           topic: monitor/scan/restart
 
-
 #todo: 
 # Post a message with the mac address separated from an alias (optional) by a space to: monitor/setup/add known device
 # Post a message with the mac address to: monitor/setup/delete known device
-# How can I restart a this script node? post a message with blank content to monitor/scan/restart
+
 
 ###############################################################################
 ##  Automations
 ###############################################################################
+
+# Sometimes after reloading YAML code or restarting one of the raspberry pi's
+# the MQTT sensors are unavailable. Can be fixed by sending a MQTT reconnet command. 
 automation:
-  # Update device_tracker bluetooth states from the confidence values derived from BlueTooth monitor.sh 
+  - alias: reconnect monitors
+    id: reconnect_monitor_sensors 
+    mode: queued
+    trigger: 
+      - id: mon_w_missing
+        platform: state
+        entity_id:
+          - sensor.max_present_w
+          - sensor.ing_present_w
+        to: 'unavailable'
+        for:
+          seconds: 5
+      - id: mon_o_missing
+        platform: state
+        entity_id:
+          - sensor.max_present_o
+          - sensor.ing_present_o
+        to: 'unavailable'
+        for:
+          seconds: 5
+      - id: mon_s_missing
+        platform: state
+        entity_id:
+          - sensor.max_present_s
+          - sensor.ing_present_s
+        to: 'unavailable'
+        for:
+          seconds: 5
+      - id: raspi_back_online
+        platform: state
+        entity_id:
+          - binary_sensor.rpi_west
+          - binary_sensor.rpi_ost
+          - binary_sensor.rpi_sued
+        from: 'off'
+        to: 'on'        
+    condition:
+      - or:
+        - and:
+          - condition: trigger
+            id: mon_w_missing
+          - condition: state
+            entity_id: binary_sensor.rpi_west
+            state: 'on'
+        - and:
+          - condition: trigger
+            id: mon_o_missing
+          - condition: state
+            entity_id: binary_sensor.rpi_ost
+            state: 'on'
+        - and:
+          - condition: trigger
+            id: mon_s_missing
+          - condition: state
+            entity_id: binary_sensor.rpi_sued
+            state: 'on'
+        - condition: trigger
+          id: raspi_back_online
+    action:
+      - service: script.restart_monitor
+
+  # Update bluetooth device_tracker states from the confidence values derived from BlueTooth monitor.sh 
   # We stick to the device_tracker sensors because they were already in use...input_boolean would be fine too...
   # ...and I like the idea, that the monitor.sh scripts are just a better source for the intended bluetooth device_trackers.
 
-  - alias: change occupancy
+  - alias: change person occupancy
     id: change_person_occupancy
+    description: 'Changes the BT device tracker status for a person when the home confidence value drops or raises above threshold.'
     mode: queued # oder: parallel ?
     trigger:
       - platform: numeric_state
@@ -508,8 +583,8 @@ automation:
     variables:
       <<: &sensor_device_map
         device_map:
-          sensor.max_home_confidence: iphone8_max_bt # Person 1
-          sensor.ing_home_confidence: iphone8_ing_bt # Person 2
+          sensor.max_home_confidence: iphone_max_bt # Person 1
+          sensor.ing_home_confidence: iphone_ing_bt # Person 2
           sensor.home_confidence_heidi: iphone_heidi_bt # Gast 1
           sensor.home_confidence_winfried: iphone_winfried_bt # Gast2
       device_tracker_entity: >
@@ -547,11 +622,19 @@ automation:
             - sensor.winfried_present_o
         below: *int_confidence_threshold_area_arrival_scan
         id: device_leaving_east
+      - platform: numeric_state
+        <<: &sensor_presence_s_list
+          entity_id: 
+            - sensor.max_present_s
+            - sensor.ing_present_s
+        below: *int_confidence_threshold_area_arrival_scan
+        id: device_leaving_south
     variables:
       <<: &id_payload_map
         id_payload_map:
           device_leaving_west: "{'data' : 'west'}"  #this monitor publisher will NOT respond!
           device_leaving_east: "{'data' : 'ost'}"  #this monitor publisher will NOT respond!
+          device_leaving_south: "{'data' : 'south'}"  #this monitor publisher will NOT respond!
       payload: >
         {{ id_payload_map[trigger.id] }}
     action:
@@ -588,15 +671,15 @@ automation:
           topic: 'monitor/scan/depart' 
           payload: "{{ payload }}"  #this monitor publisher will NOT respond!
 
-  # 3) If WiFi detects an arrival, we trigger a BT arrival scan (in case monitor.sh missed that)
-  #    if frontdoor opens (and stays open for some time) too.
+  # 3) If WiFi detects an arrival, we trigger a BT arrival scan (in case monitor.sh missed that).
+  #    If frontdoor opens (and stays open for some time) too.
   - alias: Start BT Arrival Scan
     id: start_bt_arrival_scan
     trigger: 
       - platform: state
         <<: &device_tracker_wifi_list
           entity_id: 
-            - device_tracker.iphone8_max_wifi
+            - device_tracker.iphonemax13_wifi
             - device_tracker.iphone8_ing_wifi
         from: 'not_home'
         to: 'home'
@@ -612,7 +695,7 @@ automation:
           topic: 'monitor/scan/arrive'
           payload: ''
 
-  # 4) If WiFi detects a departure, we trigger a BT depart scan (in case monitor.sh missed that)
+  # 4) If WiFi detects a departure, we trigger a BT depart scan (in case monitor.sh missed that).
   #    If frontdoor is closed (and stays closed for some time) too.
   #    We do a depart scan 20secs, 1min and 2 min after frontdoor is closed.
   - alias: Start BT Departure Scan
@@ -648,7 +731,7 @@ automation:
           payload: ''
 
   # Save the time a presence status was changed last, because these values will be reset every time HA is rebooted.
-  #   we need that time to trigger status changes (e.g 'extended_away')
+  #   We need that time to trigger status changes (e.g 'extended_away').
   - alias: Save last time person status changed
     id: personstatus_last_changed_date_and_time #Person-Status and home-status last changed date and time
     trigger:
@@ -666,7 +749,7 @@ automation:
           date: "{{ (as_timestamp(now()) | timestamp_custom('%Y-%m-%d', true)) }}"
 
 # if a device_tracker changed while HA was offline, we have to correct the input_select.*_status_dropdown after restart.
-# We also do that once a day (00:30 at night) in case a trigger was missed.
+# We also do that twice a day (00:30 at night and 6:10 in the morning) in case a trigger was missed.
 # Becasue *.last_changed value is reset at boot time, we use a persistent variable 'input_datetime.*_status_dropdown_last_changed'.
   - alias: Person- and Home-Status correction
     id: person_and_homestatus_correction
@@ -675,8 +758,10 @@ automation:
         event: start
       - platform: time
         at: '00:30:00'
-    # only, if both Raspis are online (because of BT-Monitor script)
+      - platform: time
+        at: '06:10:00'
     condition: "{{ states('sensor.raspi1_last_message') != 'unavailable' and states('sensor.raspi2_last_message') != 'unavailable' }}"
+      # only, if both Raspis are online (because of BT-Monitor script)
     action:
       # first update device status from MQTT (BlueTooth monitor.sh) 
       - service: mqtt.publish
@@ -698,7 +783,7 @@ automation:
         data:
           entity_id: input_select.max_status_dropdown
           option: >
-           {% if is_state('group.phone_max','home') %}
+            {% if states('group.phone_max') in ['home', 'on'] %}
               {% if states('input_select.max_status_dropdown') in ['Just Arrived','Just Left'] %}
                 Home
               {% elif states('input_select.max_status_dropdown') in ['Away', 'Extended Away'] %}
@@ -725,7 +810,7 @@ automation:
         data:
           entity_id: input_select.ing_status_dropdown
           option: >
-            {% if is_state('group.phone_ing','home') %}
+            {% if states('group.phone_ing') in ['home', 'on'] %}
               {% if states('input_select.ing_status_dropdown') in ['Just Arrived','Just Left'] %}
                 Home
               {% elif states('input_select.ing_status_dropdown') in ['Away', 'Extended Away'] %}
@@ -767,7 +852,7 @@ automation:
 
 # STATUS-Übergänge Personen / status transitions for persons
 #
-#         /-----------------------------------------------[10min]------------------------------------------------\
+#        /------------------------------------------------[10min]-------------------------------------------------\
 #        |                                                                                                        |
 #        |                                                               /--------[DeviceTracker: home]------\    |
 #        |                                                              |                                     |   |
@@ -775,20 +860,26 @@ automation:
 #       Away  --[DeviceTracker: home]-->  Just Arrived  --[10min]-->  Home  --[DeviceTracker: not_home]-->  Just Left
 #        |                                    A   |                                                             A
 #      [24h]                                  |   |                                                             |
-#        V                                    |   \---------------------------[DeviceTracker: not_home]---------´ 
-#   Extended Away  ---[DeviceTracker: home]---/
+#        |                                    |   \---------------------------[DeviceTracker: not_home]---------´ 
+#        V                                    |
+#   Extended Away  ---[DeviceTracker: home]---´
 #
-  - alias: Mark person as just arrived
+  - alias: Set person status to just arrived
     id: mark_person_as_just_arrived
     mode: queued
     trigger:
       - platform: state
-        <<: &phone_person_groups_list
+        <<: &person_phone_groups_list
           entity_id: 
             - group.phone_max 
             - group.phone_ing
         from: 'not_home'
         to: 'home'
+      # we need this too, because states of groups containing device_trackers changed back and force in v2024.05/.06
+      - platform: state
+        <<: *person_phone_groups_list
+        from: 'off' #'not_home'
+        to: 'on' #'home'
     variables:
       <<: &device_person_map
         device_map:
@@ -807,14 +898,18 @@ automation:
           option: >
             {{ state_map[states(input_select_entity)] if states(input_select_entity) in state_map else 'Just Arrived' }}
   
-  - alias: Mark person as just left
+  - alias: Set person status to just left
     id: mark_person_as_just_left
     mode: queued
     trigger:
       - platform: state
-        <<: *phone_person_groups_list
+        <<: *person_phone_groups_list
         from: 'home'
         to: 'not_home'
+      - platform: state
+        <<: *person_phone_groups_list
+        from: 'on' #'home'
+        to: 'off' #'not_home'
     variables:
       <<: *device_person_map
       input_select_entity: >
@@ -826,12 +921,12 @@ automation:
             {{ input_select_entity }}
           option: Just Left
   
-  - alias: Mark person as home #('Just Arrived' vor 10min) oder ('Just Arrived' nach 'Just Left')
+  - alias: Set person status to home #('Just Arrived' vor 10min) oder ('Just Arrived' nach 'Just Left')
     id: mark_person_as_home
     mode: queued
     trigger:
       - platform: state
-        <<: &person_satus_dropdows_list
+        <<: &person_status_dropdowns_list
           entity_id: 
             - input_select.max_status_dropdown
             - input_select.ing_status_dropdown
@@ -839,7 +934,7 @@ automation:
         for:
           minutes: *int_minutes_after_being_home # default:10
       - platform: state
-        <<: *person_satus_dropdows_list
+        <<: *person_status_dropdowns_list
         from: 'Just Left'
         to: 'Just Arrived'
     action:
@@ -848,12 +943,12 @@ automation:
           entity_id: "{{ trigger.entity_id }}"
           option: Home
   
-  - alias: Mark person as away  #('Just Left' vor 10min)
+  - alias: Set person status to away  #('Just Left' vor 10min)
     id: mark_person_as_away
     mode: queued
     trigger:
       - platform: state
-        <<: *person_satus_dropdows_list
+        <<: *person_status_dropdowns_list
         to: 'Just Left'
         for:
           minutes: *int_minutes_after_being_away # default: 10
@@ -863,12 +958,12 @@ automation:
           entity_id: "{{ trigger.entity_id }}"
           option: Away
   
-  - alias: Mark person as extended away  #('Away' für 24h)
+  - alias: Set person status to extended away  #('Away' für 24h)
     id: mark_person_as_extended_away
     mode: queued
     trigger:
       - platform: state
-        <<: *person_satus_dropdows_list
+        <<: *person_status_dropdowns_list
         to: 'Away'
         for:
           hours: *int_hours_after_being_extendedaway # default: 24

@@ -1,18 +1,19 @@
-anchors:
-  style_entitycard_header: &style_header
-    card_mod: 
-      style: |
-        .card-header {
-          font-size: 20px;
-          padding: 10px 16px;
-        }
-  style_entitycard_noheader: &style_noheader
-    card_mod:
-      style: |
-        ha-card .card-header {
-          padding: 0px;
-          display: unset;
-        }
+# exported to single style files and added by !include
+# anchors:
+#   style_entitycard_header: &style_header
+#     card_mod: 
+#       style: |
+#         .card-header {
+#           font-size: 20px;
+#           padding: 10px 16px;
+#         }
+#   style_entitycard_noheader: &style_noheader
+#     card_mod:
+#       style: |
+#         ha-card .card-header {
+#           padding: 0px;
+#           display: unset;
+#         }
 
 #==================================================
 title: Wetter
@@ -20,52 +21,41 @@ path: weather
 icon: mdi:weather-partly-cloudy
 cards:
   #------------------------------------------------
-  # current weather info and forcast
+  # current weather info and forcast (7d and 12h)
   - type: custom:vertical-stack-in-card
     cards:
-    - type: weather-forecast
-      entity: weather.dwd_home
-      secondary_info_attribute: precipitation
-      show_current: true
-      show_forecast: true
-      forecast_type: daily
-#geht nicht mehr seit 2023.09
-    # - type: custom:weather-chart-card
-    #   title: #Woche (DWD)
+    # - type: weather-forecast
     #   entity: weather.dwd_home
-    #   show_main: true
-    #   show_attributes: true
-    #   units:
-    #     #pressure: mmHg
-    #     speed: km/h
-    #   locale: 'de-DE'
-    #   icons: /local/images/icons/weather_fill/
-    #   style: |
-    #     .card-header {
-    #       padding: 20px 16px 10px;
-    #       line-height: 32px;
-    #     }
+    #   forecast_type: daily
+    #   secondary_info_attribute: precipitation
+    #   #show_attributes: false
+
+    # jetzt https://github.com/mlamberts78/weather-chart-card
+    - type: custom:weather-chart-card
+      entity: weather.dwd_home
+      forecast:
+        type: daily
+        show_probability: true
+      show_main: true
+      show_attributes: false
+      show_pressure: true
+      units:
+        #pressure: 'mmHg'
+        speed: 'km/h'
+      locale: 'de'
+      icons: /local/images/icons/weather_fill/
+      style: |
+        .card-header {
+          padding: 20px 16px 10px;
+          line-height: 32px;
+        }
     - type: divider
-    # - type: custom:weather-chart-card
-    #   #title: Stündlich (OWM)
-    #   entity: weather.home_hourly
-    #   show_main: false
-    #   show_attributes: false
-    #   units:
-    #     #pressure: mmHg
-    #     speed: km/h
-    #   style: |
-    #     .card-header {
-    #       padding: 20px 16px 10px;
-    #       line-height: 32px;
-    #     }
     - type: custom:hourly-weather
       entity: weather.home_hourly
-      num_segments: 13 s
-      name: null #nächste 12 Stunden
+      num_segments: 13 # next 12 h
+      name: # no title
       icons: true
  
-
   #------------------------------------------------
   # show weather alerts (if current_warn_count > 0)
   - type: conditional
@@ -74,7 +64,6 @@ cards:
         state_not: '0'
     card:
       type: custom:vertical-stack-in-card
-      #title: Deutscher Wetterdienst  #title is too big here...
       cards:
         # show the text of all DWD warnings
         - type: markdown
@@ -126,7 +115,7 @@ cards:
         # show warning count and status received from DWD
         - type: entities
           title: ' '
-          <<: *style_noheader
+          card_mod: !include ../templates/styles/style_entitycard_noheader.yaml
           entities:
             - type: custom:fold-entity-row
               head:
@@ -161,14 +150,14 @@ cards:
                     state_color: true
                     show_name: false
                     columns: 8
-                    card_mod: #todo: das geht noch nicht. Wie den 2. Teil adressieren?
-                        style: |
-                          ha-card {
-                            border: 0px solid green;
-                          };
-                          ha-card div.entities.no-header {
-                            padding-top: 0px;
-                          };
+                    card_mod: # todo: das geht noch nicht. Wie den 2. Teil adressieren?
+                      style: |
+                        ha-card {
+                          border: 0px solid green;
+                        };
+                        ha-card div.entities.no-header {
+                          padding-top: 0px;
+                        };
                   entities:
                     - entity: sensor.dwd_current_warn_level
                       name: DWD Warnstufe
@@ -201,35 +190,34 @@ cards:
             action: url
             url_path: !secret meteogram_url
 
-      - attributes:
-          icon: 'mdi:weather-cloudy'
-        card:
-          type: picture-entity
-          entity: camera.satelite_clouds
-          name: Bewölkung #clouds
-          show_state: false
+      # - attributes:
+      #     icon: 'mdi:weather-cloudy'
+      #   card:
+      #     type: picture-entity
+      #     entity: camera.satelite_clouds
+      #     name: Bewölkung #clouds
+      #     show_state: false
       - attributes:
           icon: mdi:weather-pouring
         card:
           type: picture-entity
-          entity: camera.satelite_rain
+          entity: camera.morgenwirdes_de
           name: Regen #rain
           show_state: false
-      - attributes:
-          icon: mdi:weather-snowy-heavy
-        card:
-          type: picture-entity
-          entity: camera.satelite_snow
-          name: Schnee #snow
-          show_state: false
+      # - attributes:
+      #     icon: mdi:weather-snowy-heavy
+      #   card:
+      #     type: picture-entity
+      #     entity: camera.satelite_snow
+      #     name: Schnee #snow
+      #     show_state: false
 
   #------------------------------------------------
   # Wetter-Entities, Sonnenstand und -schein
-
   - type: entities
     title: Wetter
     show_header_toggle: false
-    <<: *style_header
+    card_mod: !include ../templates/styles/style_entitycard_header.yaml
     entities:
       - entity: weather.dwd_home
         name: Temperatur (DWD)
@@ -238,21 +226,21 @@ cards:
       - entity: sensor.outside_temperature
         name: Temperatur Terasse
         type: custom:multiple-entity-row
+        format: precision1
         state_header: min
         entities:
         - entity: sensor.bkw_sued_temperature
           name: Süd (BKW)
           hide_unavailable: true
-        - entity: sensor.fritz_dect_210_solar_temperature
+        - entity: sensor.fritz_dect_210_solar_temperatur
           name: Ost
-
-
+  #------------------------------------------------
   - type: custom:vertical-stack-in-card
     cards:
       - type: entities
         title: Sonne
         show_header_toggle: false
-        <<: *style_header
+        card_mod: !include ../templates/styles/style_entitycard_header.yaml
         entities:
           - entity: sensor.sun_elevation
             type: custom:multiple-entity-row
@@ -274,7 +262,7 @@ cards:
               name: elev.max
           - type: section
             label: Sonnenschein
-          - entity: sensor.sunshine_probability #sensor.sun_is_shining
+          - entity: sensor.sunshine_probability
             type: custom:multiple-entity-row
             name: Sonne scheint
             icon: mdi:white-balance-sunny
@@ -284,7 +272,7 @@ cards:
               name: Süd
             - entity: sensor.sunshine_west
               name: West
-          - entity: sensor.forcast_sunshine_hours_tomorrow
+          - entity: sensor.sonnenstunden_morgen #forcast_sunshine_hours_tomorrow
             type: custom:multiple-entity-row
             name: Dauer
             icon: mdi:sun-wireless #mdi:sun-clock-outline #geht nicht
@@ -294,10 +282,10 @@ cards:
               name: gestern
               format: precision1
             - entity: sensor.sunshine_hours_today
-              name: heute #ist
+              name: heute 
               format: precision1
-            - entity: sensor.forcast_sunshine_hours_today
-              name: später #heute noch
+            - entity: sensor.restliche_sonnenstunden_heute #forcast_sunshine_hours_today
+              name: später
 
       # # # debug: Sunshine probability calculation
   - type: conditional
@@ -322,7 +310,7 @@ cards:
       #   padding: false
       #   entities:
       - type: section
-        label: debug (Süd)
+        label: Sonnenschein Wahrschein. (debug)
       - entity: sensor.bkw_sued_power
         name: Solarleistung aktuell
       - type: custom:template-entity-row
@@ -331,11 +319,17 @@ cards:
         state: "{{ (600 * (states('sensor.sun_elevation_ratio')|int(default=0)) / 100)|round(0) }} W" 
         active: "{{ 600 * (states('sensor.sun_elevation_ratio')|int(default=0)) / 100 <= states('sensor.bkw_sued_power')|float(0) }}"
       - type: custom:template-entity-row
-        icon: mdi:finance
-        name: "Faktor: {{ (150-states('sensor.sun_direction')|float(default=0))|abs|round(0) }}° zu 150° (60+{{ (max((150-states('sensor.sun_direction')|float(default=0))|abs-60,0))|round(0) }}) ="
+        icon: mdi:sun-compass #chart-multiline
+        name: "Faktor Richtung: {{ (150-states('sensor.sun_direction')|float(default=0))|abs|round(0) }}° zu 150° (60+{{ (max((150-states('sensor.sun_direction')|float(default=0))|abs-60,0))|round(0) }}) ="
         state: "{{ (max((150-states('sensor.sun_direction')|float(default=0))|abs-60,0)/(90-60)+1) |round(1) }}"
+        active: "{{ (max((150-states('sensor.sun_direction')|float(default=0))|abs-60,0)/(90-60)+1) >= 1.1 and is_state('sun.sun','above_horizon') }}"
       - type: custom:template-entity-row
-        icon: mdi:white-balance-sunny
+        icon: mdi:chart-bell-curve
+        name: "Faktor Höhe: 65°/{{ states('sensor.sun_elevation_noon') }}° * 0.5) ="
+        state: "{{ (max(1, 65 / states('sensor.sun_elevation_noon')|float(default=65) * 0.5)) |round(1) }}"
+        active: "{{ (65 / states('sensor.sun_elevation_noon')|float(default=65) *0.5 ) >= 1.1 }}"
+      - type: custom:template-entity-row
+        icon: mdi:brightness-percent
         name: "Probab.: {{ 0 if  is_state('sensor.bkw_sued_power','unavailable') else states('sensor.bkw_sued_power')}}W / {{ (600 * states('sensor.sun_elevation_ratio')|int(default=0) / 100)|round(0) }}W * Fact. ="
         state: "{{ 0 if states('sensor.sun_elevation_ratio')|int(default=0) <= 0 or state_attr('sun.sun', 'azimuth')|float(default=360) >= 240 else (min(states('sensor.bkw_sued_power')|float / (600 * states('sensor.sun_elevation_ratio')|int(default=0) / 100) * (max((150 - states('sensor.sun_direction')|float(default=360))|abs-60,0)/(90-60) + 1), 1) * 100) | int(default=0) }} %"
         #"{{ states('sensor.sunshine_probability') }}" 

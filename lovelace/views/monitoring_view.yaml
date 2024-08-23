@@ -160,13 +160,14 @@ cards:
           url_path: https://www.home-assistant.io/blog/categories/release-notes/
       - entity: sensor.hacs
         name: HACS updates
-        style: |
-          :host {
-            {% if states('sensor.hacs')|int(default=0)>0 %}
-              color: var(--paper-item-icon-active-color);
-              --paper-item-icon-color: #FF7738;
-            {% endif %}
-          }
+        card_mod:
+          style: |
+            :host {
+              {% if states('sensor.hacs')|int(default=0)>0 %}
+                color: var(--paper-item-icon-active-color);
+                --paper-item-icon-color: #FF7738;
+              {% endif %}
+            }
       # - entity: sensor.potential_breaking_changes
       #   type: custom:multiple-entity-row
       #   name: Breaking changes
@@ -207,14 +208,15 @@ cards:
                     name: aktuell
                   - attribute: latest_available_version
                     name: neu
-                style: |
-                  :host {
-                    {% if is_state('binary_sensor.fritz_box_6490_cable_firmware_update','on') %}
-                      color: var(--paper-item-icon-active-color);
-                      --paper-item-icon-color: #FF7738;
-                    {% endif %}
-                  }
-                #      --paper-item-icon-color: var(--accent-color);
+                card_mod:
+                  style: |
+                    :host {
+                      {% if is_state('binary_sensor.fritz_box_6490_cable_firmware_update','on') %}
+                        color: var(--paper-item-icon-active-color);
+                        --paper-item-icon-color: #FF7738;
+                      {% endif %}
+                    }
+                  #      --paper-item-icon-color: var(--accent-color);
               - type: divider
 #              - type: button
 #                name: Reboot!
@@ -291,7 +293,7 @@ cards:
             <<: *graph_bandwidth
             decimals: 0
             lower_bound: 0
-            upper_bound: 160
+            upper_bound: 260 #160
             color_thresholds:
               - value: 0
                 color: *dark_red
@@ -316,7 +318,7 @@ cards:
             <<: *graph_bandwidth
             decimals: 1
             lower_bound: 0
-            upper_bound: 12
+            upper_bound: 55 #12
             color_thresholds:
               - value: 0
                 color: *dark_red
@@ -353,13 +355,14 @@ cards:
               - entity: update.hera_dsm_update
                 name: DSM
                 attribute: latest_version
-              style: |
-                :host {
-                  {% if is_state('update.hera_dsm_update','on') %}
-                    color: var(--paper-item-icon-active-color);
-                    --paper-item-icon-color: #FF7738;
-                  {% endif %}
-                }
+              card_mod:
+                style: |
+                  :host {
+                    {% if is_state('update.hera_dsm_update','on') %}
+                      color: var(--paper-item-icon-active-color);
+                      --paper-item-icon-color: #FF7738;
+                    {% endif %}
+                  }
             - entity: sensor.cert_expiry_timestamp_hera
               name: Ablaufdatum Zertifikat
               icon: mdi:certificate
@@ -414,29 +417,31 @@ cards:
               secondary_info: last-changed
               state_header: state
               entities:
-#                - entity: sensor.hera_volume_1_max_disk_temp #own calculated max sensor.
+#                - entity: sensor.hera_max_disk_temp #own calculated max sensor.
                 - entity: sensor.hera_volume_1_maximum_disk_temp
                   name: max temp
                 #- entity: sensor.hera_volume_1_average_disk_temp
                 #  name: avg temp
-              style: |
-                :host {
-                  {% if not is_state('sensor.hera_volume_1_status','normal') or states('sensor.hera_volume_1_max_disk_temp')|float(default=0)>=40 %}
-                    color: var(--paper-item-icon-active-color);
-                    --paper-item-icon-color: #FF7738;
-                  {% endif %}
-                }
+              card_mod:
+                style: |
+                  :host {
+                    {% if not is_state('sensor.hera_volume_1_status','normal') or states('sensor.hera_max_disk_temp')|float(default=0)>=40 %}
+                      color: var(--paper-item-icon-active-color);
+                      --paper-item-icon-color: #FF7738;
+                    {% endif %}
+                  }
             - entity: sensor.hera_volume_1_volume_used
               type: custom:multiple-entity-row
               name: Usage Volume 1
               icon: mdi:chart-pie
-              style: |
-                :host {
-                  {% if states('sensor.hera_volume_1_volume_used')|float(default=0)>=90 %}
-                    color: var(--paper-item-icon-active-color);
-                    --paper-item-icon-color: #FF7738;
-                  {% endif %}
-                }
+              card_mod:
+                style: |
+                  :host {
+                    {% if states('sensor.hera_volume_1_volume_used')|float(default=0)>=90 %}
+                      color: var(--paper-item-icon-active-color);
+                      --paper-item-icon-color: #FF7738;
+                    {% endif %}
+                  }
               entities:
               - entity: sensor.hera_volume_1_used_space
                 name: Used
@@ -470,14 +475,23 @@ cards:
                 entities:
                 - entity: sensor.hera_drive_2_temperature
                   name: temp
-              - entity: sensor.hera_drive_3_status
+              # - entity: sensor.hera_drive_3_status
+              #   type: custom:multiple-entity-row
+              #   icon: mdi:harddisk
+              #   name: Disk3 (sdc)
+              #   secondary_info: last-changed
+              #   state_header: state
+              #   entities:
+              #   - entity: sensor.hera_drive_3_temperature
+              #     name: temp
+              - entity: sensor.hera_drive_4_status
                 type: custom:multiple-entity-row
                 icon: mdi:harddisk
-                name: Disk3 (sdc)
+                name: Disk4 (sdd)
                 secondary_info: last-changed
                 state_header: state
                 entities:
-                - entity: sensor.hera_drive_3_temperature
+                - entity: sensor.hera_drive_4_temperature
                   name: temp
           - type: section
       - type: horizontal-stack
@@ -627,9 +641,9 @@ cards:
         name: RPi-3
         icon: mdi:raspberry-pi
       - entity: binary_sensor.roborock
-        name: Dust-E
-      - entity: binary_sensor.hp_laserjet_connectivity #sensor from HP integration
-        #entity: binary_sensor.hpdrucker #ping sensor
+        name: Saug-E
+      #- entity: binary_sensor.hp_laserjet_connectivity #sensor from HP integration
+      - entity: binary_sensor.hp_drucker #ping sensor
         name: Drucker
       - entity: binary_sensor.smarttv
         name: TV
@@ -771,12 +785,6 @@ cards:
               name: Upgrades pending
               icon: mdi:new-box
             - type: divider
-#            - type: button
-#              name: Reboot
-#              secondary_info: last-triggered
-#              tap_action: 
-#                action: call-service
-#                service: script.reboot_raspi2
             - type: buttons
               entities:
               - name: Reboot
@@ -808,20 +816,14 @@ cards:
               name: Verbindung
               icon: mdi:sync
               secondary_info: last-changed
-#            - type: button
-#              name: Reconnect
-#              secondary_info: last-triggered
-#              tap_action: 
-#                action: call-service
-#                service: homematic.reconnect
-            - type: buttons
-              entities:
-              - name: Reconnect
-                entity: homematic.reconnect
-                icon: mdi:swap-horizontal-bold
-                tap_action: 
-                  action: call-service
-                  service: homematic.reconnect
+            # - type: buttons
+            #   entities:
+            #   - name: Reconnect
+            #     entity: homematic.reconnect
+            #     icon: mdi:swap-horizontal-bold
+            #     tap_action: 
+            #       action: call-service
+            #       service: homematic.reconnect
           - type: section
         - type: horizontal-stack
           cards:
@@ -940,76 +942,76 @@ cards:
         <h3>Raspi3 (Süd)</h3>
         Ist offline!!
 
-  # ========== Printer ==============
-  # ---- HP Color Laserjet 400 ----
-  - type: 'custom:stack-in-card'
-    title: HP Color LaserJet 400
-    <<: *style_header
-    mode: vertical
-    keep:
-      background: false
-      border_radius: false
-      box_shadow: false
-      margin: false
-      outer_padding: false
-    cards:
-      - type: entities
-        entities:
-          - entity: sensor.hp_laserjet_status
-            icon: 'mdi:information-variant'
-            name: 'Status'
-            secondary_info: last-changed
-          - entity: sensor.hp_laserjet_printer
-            type: custom:multiple-entity-row
-            name: Seiten gedruckt
-            icon: 'mdi:counter'
-            state_header: Gesamt
-            unit: ' '
-            entities:
-              - attribute: Color
-                name: color
-              - attribute: Monochrome
-                name: s/w
-          - type: custom:fold-entity-row
-            head:
-              type: section
-              label: Toner-Level
-            padding: 0 px
-            open: false
-            entities:
-            - type: 'custom:bar-card'
-              entities:
-                - entity: sensor.hp_laserjet_toner_black
-                  color: '#333333'
-                  name: Schwarz
-                - entity: sensor.hp_laserjet_toner_cyan
-                  entity_config: null
-                  name: Cyan
-                  color: '#00FFFF'
-                - entity: sensor.hp_laserjet_toner_magenta
-                  entity_config: null
-                  name: Magenta
-                  color: '#FF00FF'
-                - entity: sensor.hp_laserjet_toner_yellow
-                  entity_config: null
-                  name: Gelb
-                  color: '#FFFf00'
-              animation:
-                speed: 1
-                delay: 2
-                state: 'on'
-              direction: up
-              entity_row: false
-              height: 120px
-              width: 70%
-              limit_value: true
-              min: 0
-              max: 100
-              stack: horizontal
-              target: 15
-              positions:
-                icon: 'off'
-                indicator: 'off'
-                title: outside
-                minmax: 'off'
-                value: inside
+  # # ========== Printer ==============
+  # # ---- HP Color Laserjet 400 ----
+  # - type: 'custom:stack-in-card'
+  #   title: HP Color LaserJet 400
+  #   <<: *style_header
+  #   mode: vertical
+  #   keep:
+  #     background: false
+  #     border_radius: false
+  #     box_shadow: false
+  #     margin: false
+  #     outer_padding: false
+  #   cards:
+  #     - type: entities
+  #       entities:
+  #         - entity: sensor.hp_laserjet_status
+  #           icon: 'mdi:information-variant'
+  #           name: 'Status'
+  #           secondary_info: last-changed
+  #         - entity: sensor.hp_laserjet_printer_gesamtfarbseiten
+  #           type: custom:multiple-entity-row
+  #           name: Seiten gedruckt
+  #           icon: 'mdi:counter'
+  #           state_header: Gesamt
+  #           unit: ' '
+  #           entities:
+  #             - entity: sensor.hp_laserjet_printer_gesamtfarbseiten
+  #               name: color
+  #             - entity: sensor.hp_laserjet_printer_gesamtschwarz_weiss_seiten
+  #               name: s/w
+  #         - type: custom:fold-entity-row
+  #           head:
+  #             type: section
+  #             label: Toner-Level
+  #           padding: 0 px
+  #           open: false
+  #           entities:
+  #           - type: 'custom:bar-card'
+  #             entities:
+  #               - entity: sensor.hp_laserjet_black_toner_ebene
+  #                 color: '#333333'
+  #                 name: Schwarz
+  #               - entity: sensor.hp_laserjet_cyan_toner_ebene
+  #                 entity_config: null
+  #                 name: Cyan
+  #                 color: '#00FFFF'
+  #               - entity: sensor.hp_laserjet_magenta_toner_ebene
+  #                 entity_config: null
+  #                 name: Magenta
+  #                 color: '#FF00FF'
+  #               - entity: sensor.hp_laserjet_yellow_toner_ebene
+  #                 entity_config: null
+  #                 name: Gelb
+  #                 color: '#FFFf00'
+  #             animation:
+  #               speed: 1
+  #               delay: 2
+  #               state: 'on'
+  #             direction: up
+  #             entity_row: false
+  #             height: 120px
+  #             width: 70%
+  #             limit_value: true
+  #             min: 0
+  #             max: 100
+  #             stack: horizontal
+  #             target: 15
+  #             positions:
+  #               icon: 'off'
+  #               indicator: 'off'
+  #               title: outside
+  #               minmax: 'off'
+  #               value: inside

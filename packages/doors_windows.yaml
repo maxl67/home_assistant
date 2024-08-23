@@ -1,6 +1,7 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 29.04.2022
+#   @date         : 23.06.2024
+#   @created:     : 29.04.2022
 #   @package      : doors_windows
 #   @description  : Notifications of status of open doors and windows
 #   @links        : 
@@ -26,37 +27,41 @@ homeassistant:
       int_seconds_alert_send_delay: &int_seconds_alert_send_delay 5 #default: 5
       int_seconds_alert_reset_delay: &int_seconds_alert_reset_delay 1 #default: 1
   # sensors
-    binary_sensor.lumi_lumi_sensor_magnet_aq2_031b3225_1_6:
+    binary_sensor.door_g1_offnung:
       friendly_name: Gästezimmer
       <<: *door
-    binary_sensor.lumi_lumi_sensor_magnet_aq2_03139f7b_1_6:
+    binary_sensor.door_w1_offnung:
       friendly_name: Wohnzimmer W
+      battery last changed: 08.06.2024
       <<: *door
-    binary_sensor.lumi_lumi_sensor_magnet_aq2_9ac61c04_1_6:
+    binary_sensor.door_w2_offnung:
       friendly_name: Wohnzimmer S
+      battery last changed: 02.02.2024
       <<: *door
-    binary_sensor.lumi_lumi_sensor_magnet_aq2_f2fd4604_1_6:
+    binary_sensor.door_e1_offnung:
       friendly_name: Esszimmer
+      battery last changed: 14.12.2023
       <<: *door
-    binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6:
+    binary_sensor.door_k1_offnung:
       friendly_name: Küche
       <<: *door
-    binary_sensor.lumi_lumi_sensor_magnet_aq2_0aa90a04_on_off:
+    binary_sensor.door_a2_offnung:
       friendly_name: Arbeitszimmer S
       <<: *door
-    binary_sensor.lumi_lumi_sensor_magnet_aq2_0ee51c04_1_6:
+    binary_sensor.door_a1_offnung:
       friendly_name: Arbeitszimmer O
       <<: *door
-    binary_sensor.lumi_lumi_sensor_magnet_aq2_032b77ce_1_6:
+    binary_sensor.door_s1_offnung:
       friendly_name: Schlafzimmer
       <<: *door
-    binary_sensor.lumi_lumi_sensor_magnet_aq2_20a30a04_on_off:
+    binary_sensor.door_eingang_offnung:
       friendly_name: Eingang
       <<: *door
-    binary_sensor.lumi_lumi_sensor_magnet_aq2_73c61c04_1_6:
+    binary_sensor.window_b1_offnung:
       friendly_name: Bad
+      battery last changed: 05.06.2023
       <<: *window
-    binary_sensor.lumi_lumi_sensor_magnet_aq2_c2e41c04_1_6:
+    binary_sensor.window_b2_offnung:
       friendly_name: Gästebad
       <<: *window
   # groups, variables
@@ -106,26 +111,26 @@ group:
     name: alle Türen
     icon: mdi:door
     entities:
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_031b3225_1_6 #1 Gästezimmer
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_03139f7b_1_6 #2 Wohnzimmer W
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_9ac61c04_1_6 #3 Wohnzimmer S
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_f2fd4604_1_6 #4 Esszimmer
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6 #5 Küche
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_0aa90a04_on_off #6 Büro S
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_0ee51c04_1_6 #7 Büro O
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_032b77ce_1_6 #8 Schlafzimmer
+      - binary_sensor.door_g1_offnung #1 Gästezimmer
+      - binary_sensor.door_w1_offnung #2 Wohnzimmer W
+      - binary_sensor.door_w2_offnung #3 Wohnzimmer S
+      - binary_sensor.door_e1_offnung #4 Esszimmer
+      - binary_sensor.door_k1_offnung #5 Küche
+      - binary_sensor.door_a2_offnung #6 Büro S
+      - binary_sensor.door_a1_offnung #7 Büro O
+      - binary_sensor.door_s1_offnung #8 Schlafzimmer
   all_windows:
     name: alle Fenster
     icon: mdi:window-closed
     entities:
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_73c61c04_1_6 #12: Bad
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_c2e41c04_1_6 #13: Gästebad
+      - binary_sensor.window_b1_offnung #12: Bad
+      - binary_sensor.window_b2_offnung #13: Gästebad
       #fehlt: SZ, Dachfenster
   entrance_door:
     name: Eingangstür
     icon: mdi:door
     entities:
-      - binary_sensor.lumi_lumi_sensor_magnet_aq2_20a30a04_on_off #9 Eingangstür
+      - binary_sensor.door_eingang_offnung #9 Eingangstür
 
 ###############################################################################
 ##  Variables
@@ -198,7 +203,7 @@ script:
     fields:
       light_id:
         description: 'ID of the light entity to be flashed.'
-        example: 'light.<id> (no light domain)'
+        example: 'light.<id> (without light domain)'
       count:
         description: 'number of flashes'
         example: '8 (should be int)'

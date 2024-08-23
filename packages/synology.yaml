@@ -1,6 +1,7 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 25.06.2020
+#   @date         : 04.2024
+#   @created:     : 25.06.2020
 #   @package      : synology
 #   @description  : Sensors for Synology NAS
 #   @links        : https://www.home-assistant.io/integrations/synologydsm/
@@ -22,12 +23,8 @@ homeassistant:
       <<: *common
       friendly_name: Last Boot
       device_class: timestamp
-    sensor.hera_volume_1_max_disk_temp:
+    sensor.hera_max_disk_temp:
       <<: *common
-#    sensor.hera_dsm_avg_processes_5_min:
-#      <<: *common
-#    sensor.hera_dsm_avg_processes_15_min:
-#      <<: *common
   # automations
     automation.update_cert_expiry_on_reboot:
       <<: *common
@@ -66,12 +63,13 @@ sensor:
 ##  Sensors
 ###############################################################################
   - platform: min_max
-    name: hera_volume_1_max_disk_temp
+    name: hera_max_disk_temp
     type: max
     entity_ids:
       - sensor.hera_drive_1_temperature
       - sensor.hera_drive_2_temperature
       - sensor.hera_drive_3_temperature
+      - sensor.hera_drive_4_temperature
 
 ###############################################################################
 ##  Automations

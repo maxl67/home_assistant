@@ -25,12 +25,13 @@ anchors:
     control:
       hvac:
         _hide_when_off: true #hides control buttons when turned off.
-    style: |
-      ha-card {
-        --st-font-size-title: 20px;
-        --st-font-size-xl: 24px;
-        --st-font-size-m: 16px;
-        #--st-spacing: 4px;
+    card_mod:
+      style: |
+        ha-card {
+          --st-font-size-title: 20px;
+          --st-font-size-xl: 24px;
+          --st-font-size-m: 16px;
+          #--st-spacing: 4px;
 
   #https://github.com/kalkih/mini-graph-card
   graphs_range: &graphs_range
@@ -158,47 +159,51 @@ cards:
               name: Essen
               #type: attribute
               secondary_info: position
-              style: |
-                :host {
-                  {% if state_attr('cover.hmipw_drbl4_1_2_jalu3_ez','current_position')|int(default=100) <=95  %}
-                    --paper-item-icon-color: var(--paper-item-icon-active-color);
-                  {% else %}
-                    --paper-item-icon-color: var(--primary-text-color);
-                  {% endif %}
-                }
+              card_mod:
+                style: |
+                  :host {
+                    {% if state_attr('cover.hmipw_drbl4_1_2_jalu3_ez','current_position')|int(default=100) <=95  %}
+                      --paper-item-icon-color: var(--paper-item-icon-active-color);
+                    {% else %}
+                      --paper-item-icon-color: var(--primary-text-color);
+                    {% endif %}
+                  }
             - entity: cover.hmipw_drbl4_1_14_jalu4_wz_s
               name: Süd
               secondary_info: position
-              style: |
-                :host {
-                  {% if state_attr('cover.hmipw_drbl4_1_14_jalu4_wz_s','current_position')|int(default=100) <=95  %}
-                    --paper-item-icon-color: var(--paper-item-icon-active-color);
-                  {% else %}
-                    --paper-item-icon-color: var(--primary-text-color);
-                  {% endif %}
-                }
+              card_mod:
+                style: |
+                  :host {
+                    {% if state_attr('cover.hmipw_drbl4_1_14_jalu4_wz_s','current_position')|int(default=100) <=95  %}
+                      --paper-item-icon-color: var(--paper-item-icon-active-color);
+                    {% else %}
+                      --paper-item-icon-color: var(--primary-text-color);
+                    {% endif %}
+                  }
             - entity: cover.hmipw_drbl4_1_10_jalu5_wz_w
               name: West
               secondary_info: position
-              style: |
-                :host {
-                  {% if state_attr('cover.hmipw_drbl4_1_10_jalu5_wz_w','current_position')|int(default=100) <=95  %}
-                    --paper-item-icon-color: var(--paper-item-icon-active-color);
-                  {% else %}
-                    --paper-item-icon-color: var(--primary-text-color);
-                  {% endif %}
-                }
+              card_mod:
+                style: |
+                  :host {
+                    {% if state_attr('cover.hmipw_drbl4_1_10_jalu5_wz_w','current_position')|int(default=100) <=95  %}
+                      --paper-item-icon-color: var(--paper-item-icon-active-color);
+                    {% else %}
+                      --paper-item-icon-color: var(--primary-text-color);
+                    {% endif %}
+                  }
             - entity: cover.hmipw_drbl4_2_6_jalu6_wz_n
               name: Nord
               secondary_info: position
-              style: |
-                :host {
-                  {% if state_attr('cover.hmipw_drbl4_2_6_jalu6_wz_n','current_position')|int(default=100) <=95  %}
-                    --paper-item-icon-color: var(--paper-item-icon-active-color);
-                  {% else %}
-                    --paper-item-icon-color: var(--primary-text-color);
-                  {% endif %}
-                }
+              card_mod:
+                style: |
+                  :host {
+                    {% if state_attr('cover.hmipw_drbl4_2_6_jalu6_wz_n','current_position')|int(default=100) <=95  %}
+                      --paper-item-icon-color: var(--paper-item-icon-active-color);
+                    {% else %}
+                      --paper-item-icon-color: var(--primary-text-color);
+                    {% endif %}
+                  }
       - type: divider
       # temperature chart living room
       - type: custom:mini-graph-card
@@ -214,6 +219,7 @@ cards:
           - entity: sensor.hm_thermo_wz_actor_value_graph
             name: heizen
             <<: *dataset_heizen
+            #smoothing: false
           - entity: sensor.sunshine_elevation_ratio
             name: Sonne
             <<: *dataset_sonne
@@ -254,25 +260,27 @@ cards:
             - entity: cover.hmipw_drbl4_2_2_jalu1_buro
               name: Büro
               secondary_info: position
-              style: |
-                :host {
-                  {% if state_attr('cover.hmipw_drbl4_2_2_jalu1_buro','current_position')|int(default=100) <=95  %}
-                    --paper-item-icon-color: var(--paper-item-icon-active-color);
-                  {% else %}
-                    --paper-item-icon-color: var(--primary-text-color);
-                  {% endif %}
-                }
+              card_mod:
+                style: |
+                  :host {
+                    {% if state_attr('cover.hmipw_drbl4_2_2_jalu1_buro','current_position')|int(default=100) <=95  %}
+                      --paper-item-icon-color: var(--paper-item-icon-active-color);
+                    {% else %}
+                      --paper-item-icon-color: var(--primary-text-color);
+                    {% endif %}
+                  }
             - entity: cover.hmipw_drbl4_1_6_jalu2_ku
               name: Küche
               secondary_info: position
-              style: |
-                :host {
-                  {% if state_attr('cover.hmipw_drbl4_1_6_jalu2_ku','current_position')|int(default=100) <=95  %}
-                    --paper-item-icon-color: var(--paper-item-icon-active-color);
-                  {% else %}
-                    --paper-item-icon-color: var(--primary-text-color);
-                  {% endif %}
-                }
+              card_mod:
+                style: |
+                  :host {
+                    {% if state_attr('cover.hmipw_drbl4_1_6_jalu2_ku','current_position')|int(default=100) <=95  %}
+                      --paper-item-icon-color: var(--paper-item-icon-active-color);
+                    {% else %}
+                      --paper-item-icon-color: var(--primary-text-color);
+                    {% endif %}
+                  }
       - type: divider
       # temperature chart kitchen
       - type: custom:mini-graph-card
@@ -415,7 +423,7 @@ cards:
       - type: custom:mini-graph-card
         name: Luftfeuchte
         entities:
-          - entity: sensor.lumi_lumi_weather_95154a04_humidity
+          - entity: sensor.weathersensor01_luftfeuchtigkeit
             name: Bad (lumi)
             <<: *dataset_humidity_inside
           - entity: sensor.wandthermostat_wz_luftfeuchtigkeit
@@ -465,15 +473,15 @@ cards:
             open: false
             padding: false
             entities:
-            - entity: sensor.lumi_lumi_weather_95154a04_temperature
+            - entity: sensor.weathersensor01_temperatur
               type: custom:multiple-entity-row
               name: Bad (lumi)
               secondary_info: last-changed
               state_header: Temp
               entities:
-              - entity: sensor.lumi_lumi_weather_95154a04_pressure
+              - entity: sensor.weathersensor01_druck
                 name: Druck
-              - entity: sensor.lumi_lumi_weather_95154a04_humidity
+              - entity: sensor.weathersensor01_luftfeuchtigkeit
                 name: Feuchte
             - entity: sensor.wandthermostat_wz_temperatur
               type: custom:multiple-entity-row
@@ -483,68 +491,136 @@ cards:
               entities:
               - entity: sensor.wandthermostat_wz_luftfeuchtigkeit
                 name: Feuchte
-
+            - entity: sensor.fritz_dect_440_1_temperatur
+              type: custom:multiple-entity-row
+              name: Fritz-Button 1
+              secondary_info: last-changed
+              state_header: Temp
+              entities:
+              - entity: sensor.fritz_dect_440_1_luftfeuchtigkeit
+                name: Feuchte
 
   #------------------------------------------------
   # Themperatur - Chart
   #- !include ../cards/climate_chart_temp.yaml
+  - type: custom:vertical-stack-in-card #vertical-stack
+    cards:
+      - type: custom:mini-graph-card
+        name: Temperatur
+        entities:
+          - entity: sensor.heizungsthermostat_ku_temperatur
+            name: Kü #Küche (HmIP)
+            <<: *dataset_room_measurement
+            color: *orange
+          - entity: sensor.weathersensor01_temperatur
+            name: Bad #(LUMI)
+            <<: *dataset_room_measurement
+            color: *blue
+          - entity: sensor.wandthermostat_wz_temperatur
+            name: WZ #Wohnz (HmIP)
+            <<: *dataset_room_measurement
+            color: *green
+          - entity: sensor.heizungsthermostat_gz_temperatur
+            name: GZ #Gästez (HmIP)
+            <<: *dataset_room_measurement
+            color: *red
+          # - entity: sensor.fritz_dect_200_netz_temperature
+          #   name: IT #Netzwerk-Rack
+          #   <<: *dataset_room_measurement
+          #   color: *dark_yellow
+          # - entity: sensor.fritz_dect_200_gz_temperature
+          #   name: Desk #Schreibtisch M
+          #   <<: *dataset_room_measurement
+          #   color: *dark_blue
+          - entity: sensor.outside_temperature
+            name: aussen
+            y_axis: 'secondary'
+            show_state: true
+            color: *dark_gray #black
+            show_fill: true
+            show_points: false
+            smoothing: true
+        #range
+        <<: *graphs_range
+        points_per_hour: 12
+        #formatting
+        <<: *graphs_format
+        height: 180
+        lower_bound: ~17
+        upper_bound: ~23
+        show:
+          state: false
+          labels: true #or hover (y-axis)
+          labels_secondary: true #hover
+          icon_adaptive_color: true
+        color_thresholds_transition: hard
+        color_thresholds:
+          - value: 0
+            color: *blue
+          - value: 40
+            color: *green
+          - value: 60
+            color: *light_orange
+          - value: 70
+            color: *dark_orange
 
-
-  - type: custom:mini-graph-card
-    name: Temperatur
-    entities:
-      - entity: sensor.heizungsthermostat_ku_temperatur
-        name: Kü #Küche (HmIP)
-        <<: *dataset_room_measurement
-        color: *orange
-      - entity: sensor.lumi_lumi_weather_95154a04_temperature
-        name: Bad #(LUMI)
-        <<: *dataset_room_measurement
-        color: *blue
-      - entity: sensor.wandthermostat_wz_temperatur
-        name: WZ #Wohnz (HmIP)
-        <<: *dataset_room_measurement
-        color: *green
-      - entity: sensor.heizungsthermostat_gz_temperatur
-        name: GZ #Gästez (HmIP)
-        <<: *dataset_room_measurement
-        color: *red
-      # - entity: sensor.fritz_dect_200_netz_temperature
-      #   name: IT #Netzwerk-Rack
-      #   <<: *dataset_room_measurement
-      #   color: *dark_yellow
-      # - entity: sensor.fritz_dect_200_gz_temperature
-      #   name: Desk #Schreibtisch M
-      #   <<: *dataset_room_measurement
-      #   color: *dark_blue
-      - entity: sensor.outside_temperature
-        name: aussen
-        y_axis: 'secondary'
-        show_state: true
-        color: *dark_gray #black
-        show_fill: true
-        show_points: false
-        smoothing: true
-    #range
-    <<: *graphs_range
-    points_per_hour: 12
-    #formatting
-    <<: *graphs_format
-    height: 190
-    lower_bound: ~17
-    upper_bound: ~23
-    show:
-      state: false
-      labels: true #or hover (y-axis)
-      labels_secondary: true #hover
-      icon_adaptive_color: true
-    color_thresholds_transition: hard
-    color_thresholds:
-      - value: 0
-        color: *blue
-      - value: 40
-        color: *green
-      - value: 60
-        color: *light_orange
-      - value: 70
-        color: *dark_orange
+      # Temperatur von Gruppen von Sensoren
+      - type: entities
+        title: ' '
+        <<: *style_noheader
+        entities:
+          - type: custom:fold-entity-row
+            head:
+              type: section
+              label: Temperatur Sensoren
+            open: false
+            padding: false
+            entities:
+            - entity: sensor.zimmer_temperature
+              type: custom:multiple-entity-row
+              name: Raumsensoren
+              secondary_info: last-changed
+              state_header: avg.
+              entities:
+              - entity: sensor.zimmer_temperature
+                name: min.
+                attribute: min_value
+              - entity: sensor.zimmer_temperature
+                name: max.
+                attribute: max_value
+            - entity: sensor.tursensoren_temperature
+              type: custom:multiple-entity-row
+              name: Tür-/Fenstersensoren
+              secondary_info: last-changed
+              state_header: avg.
+              entities:
+              - entity: sensor.tursensoren_temperature
+                name: min.
+                attribute: min_value
+              - entity: sensor.tursensoren_temperature
+                name: max.
+                attribute: max_value
+            - entity: sensor.netzwerk_gerate_temperature
+              type: custom:multiple-entity-row
+              name: IT-Geräte
+              secondary_info: last-changed
+              state_header: avg.
+              entities:
+              - entity: sensor.netzwerk_gerate_temperature
+                name: min.
+                attribute: min_value
+              - entity: sensor.netzwerk_gerate_temperature
+                name: max.
+                attribute: max_value
+            - entity: sensor.hmipw_gerate_temperature
+              type: custom:multiple-entity-row
+              name: Steuerungskasten
+              secondary_info: last-changed
+              state_header: avg.
+              entities:
+              - entity: sensor.hmipw_gerate_temperature
+                name: min.
+                attribute: min_value
+              - entity: sensor.hmipw_gerate_temperature
+                name: max.
+                attribute: max_value                    

@@ -1,14 +1,4 @@
-anchors:
-  style_entitycard_header: &style_header
-    card_mod: 
-      style: |
-        .card-header {
-          font-size: 20px;
-          padding: 10px 16px;
-        }
-
 #==================================================
-#id: home
 title: Home
 icon: mdi:home
 #todo: does not work this way
@@ -19,15 +9,50 @@ icon: mdi:home
 #    mdi:home
 #  {% endif %}
 path: home
+badges:
+  - type: entity-filter
+    entities:
+      - entity: sensor.dwd_current_warn_count
+        state_filter:
+          - operator: ">"
+            value: 0
+        name: DWD-Warn.
+        display_type: complete
+        color: accent
+        tap_action:
+          action: navigate
+          navigation_path: /lovelace/weather
+      - entity: sensor.weathersensor01_luftfeuchtigkeit
+        state_filter:
+          - operator: ">"
+            value: 70
+        name: Bad
+        display_type: complete
+        color: blue
+        tap_action:
+          action: navigate
+          navigation_path: /lovelace/climate
+  - entity: weather.dwd_home
+    state_content: temperature
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace/weather
+
+
 cards:
   #------------------------------------------------
-  # show warnings & alarms
+  # Show warnings & alarms
   - type: custom:auto-entities
     show_empty: false
     card:
       type: entities
       title: Alarme und Warnungen
       show_header_toggle: false
+      card_mod:
+        style: |
+          ha-card {
+            border: 1px solid #FF7738;
+          }
     filter:
       include:
         - entity_id: switch.fritz_dect_210_solar
@@ -54,15 +79,15 @@ cards:
           state: 'on'
         - entity_id: binary_sensor.latest_version_update_available
           state: 'on'
-        # - entity_id: binary_sensor.bwk_sued_offline_alert
-        #   state: 'on'
-      template: |
-        {% if is_state('binary_sensor.bwk_sued_offline_alert','on') %}
-          {{ sensor.bkw_sued_power.entity_id }}
-        {% endif %}      
+        - entity_id: binary_sensor.bwk_sued_offline_alert
+          state: 'on'
+      # template: |
+      #   {% if is_state('binary_sensor.bwk_sued_offline_alert','on') %}
+      #     {{ sensor.bkw_sued_frequency.entity_id }}
+      #   {% endif %}      
 
   #------------------------------------------------
-  # only show open (or unavailable) door-/window sensors (if any...)
+  #  Show open (or unavailable) door-/window sensors (if any...)
   - type: custom:auto-entities
     show_empty: false
     card:
@@ -71,13 +96,13 @@ cards:
       show_header_toggle: false
     filter:
       include:
-        - entity_id: "binary_sensor.lumi_lumi_sensor_magnet_aq2*"
+        - entity_id: "binary_sensor.*_offnung"
           state: "on"
-        - entity_id: "binary_sensor.lumi_lumi_sensor_magnet_aq2*"
+        - entity_id: "binary_sensor.*offnung"
           state: "unavailable"
 
   #------------------------------------------------
-  # show low battery devices (if any...)
+  # Show low battery devices (if any...)
   - type: custom:auto-entities
     show_empty: false
     card:
@@ -93,9 +118,9 @@ cards:
         - entity_id: "plant.plant_*_battery" #old remains of battery notification package
         - entity_id: "sensor.oleander_battery" #old remains of battery notification package
       include:
-        - entity_id: "sensor.lumi_lumi_sensor_magnet_aq2*"
+        - entity_id: "sensor.*_batterie"
           state: "<= 10" #Door- & window sensors
-        - entity_id: "sensor.lumi_lumi_weather_*_power"
+        - entity_id: "sensor.weathersensor*_batterie"
           state: "<= 10" #Climate sensor
         - entity_id: "*battery*"
           state: "<= 15"
@@ -109,7 +134,7 @@ cards:
         #    battery_level: < 20
 
   #------------------------------------------------
-  # show persons and home status
+  # Persons and Home status
   - type: custom:vertical-stack-in-card
     cards:
       - type: glance
@@ -175,8 +200,8 @@ cards:
       entities:
         - type: custom:multiple-entity-row
           icon: mdi:transmission-tower-export
-          #entity: sensor.tasmotawe5_we5_power_cur
-          entity: sensor.strombezug_avg_2
+          entity: sensor.tasmotawe5_we5_power_cur
+          #entity: sensor.strombezug_avg
           name: Strom heute
           state_header: akt.
           entities:
@@ -208,7 +233,7 @@ cards:
   #------------------------------------------------
   # status of power switches 
   - type: entities
-    title: Power
+    title: Strom
     show_header_toggle: false
     state_color: true
     entities:

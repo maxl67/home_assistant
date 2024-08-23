@@ -37,7 +37,7 @@ yaxis:
       title:
         text: Aussen [°C]
 series:
-  - entity: sensor.lumi_lumi_weather_95154a04_temperature
+  - entity: sensor.weathersensor01_temperatur
     name: Bad #(LUMI)
     color: "#4F729A" #blue
     yaxis_id: primary

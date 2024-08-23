@@ -6,20 +6,3 @@
     input:
       vacuum: vacuum.xiaomi_vacuum_cleaner
       camera: camera.xiaomi_cloud_map_extractor
-- id: '1664910844248'
-  alias: TV Shortcut Button
-  description: turning Entertainmentrack on and off
-  use_blueprint:
-    path: mcflexus/zha-ikea-tradfri-shortcut-button-debounced.yaml
-    input:
-      shortcut_button: e2071f16a4db9e2119077f5afeaefe52
-      button_short:
-      - service: switch.turn_on
-        data: {}
-        target:
-          entity_id: switch.outlet_repeater_hifi_switch
-      button_long:
-      - service: switch.turn_off
-        data: {}
-        target:
-          entity_id: switch.outlet_repeater_hifi_switch

@@ -1,8 +1,7 @@
-#id: zha_table
 title: Zigbee
 path: zha_table
 icon: mdi:zigbee
-panel: true
+type: panel
 visible:
   - user: 69c32196d4d84d41b973eeec6dfe57ab #Max
   - user: 3eb1963b87414099aa2ad0edd96086d3 #Ing
@@ -30,9 +29,9 @@ cards:
         name: Last Seen
         align: center
       - attr: manufacturer
-        name: Manufacturer
+        name: Hersteller
       - attr: model
-        name: Model
+        name: Modell
 #      - attr: ieee
 #        name: IEEE
 #      - name: NWK

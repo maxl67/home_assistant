@@ -204,8 +204,14 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
     # router: Fritzbox
       - sensor.fritzbox
       - sensor.fritz_last_boot
-      #- sensor.fritz_dect_200_netz_total_energy
-      #- sensor.fritz_dect_200_gz_total_energy
+    # Fritz!SmartHome
+      - sensor.fritz_dect_200_gz_electric_current
+      - sensor.fritz_dect_200_gz_voltage
+      - sensor.fritz_dect_200_netz_electric_current
+      - sensor.fritz_dect_200_netz_voltage
+      - sensor.fritz_dect_210_solar_spannung
+      - sensor.fritz_dect_210_solar_stromstarke
+      - sensor.fritz_dect_210_solar_leistung
     # network devices
 #      - binary_sensor.router
       - binary_sensor.roborock
@@ -260,6 +266,10 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.bkw_sued_voltage
       - sensor.bkw_sued_current
       - sensor.bkw_sued_frequency #?
+      - sensor.bkw_sued_powerdc
+      - sensor.opendtu_uptime
+      - sensor.bkw_sued_temperature
+      - sensor.daily_solar_consumption_rate
     # Media Player
       - media_player.r_n803d_86ae28
       - binary_sensor.netreceiver_online
@@ -275,7 +285,11 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.vacuum_battery
       - sensor.osram_plug_01_a1bf020a_3_2820
       - script.flash_light
-      #- sensor.lumi_lumi_weather_95154a04_pressure
+      - sensor.avg_hmipw_temperature
+      - sensor.avg_hmipw_temperature
+      - sensor.avg_device_temperature
+      - sensor.avg_door_temperature
+      #- sensor.weathersensor01_druck
       - automation.update_requested_temp
       - sensor.geocoded_location
       - automation.personstatus_last_changed_date_and_time
@@ -302,11 +316,18 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.sun_duration_ak_stuttgart_2
       - sensor.precipitation_ak_stuttgart_2
       - sensor.temperature_ak_stuttgart_2
+    # OpenWeatherMap
+      - sensor.home_hourly_dew_point
+      - sensor.home_hourly_feels_like_temperature
+      - sensor.home_hourly_pressure
+      - sensor.home_hourly_uv_index
     # ADguard
-      - sensor.adguard_dns_queries
       - sensor.adguard_average_processing_speed
+      - sensor.adguard_dns_queries
+      - sensor.adguard_dns_queries_blocked      
       - sensor.adguard_dns_queries_blocked_ratio
       - sensor.adguard_parental_control_blocked
+      - sensor.adguard_rules_count
       - sensor.adguard_safe_browsing_blocked
       - sensor.adguard_safe_searches_enforced
 

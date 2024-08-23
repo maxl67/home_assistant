@@ -8,14 +8,14 @@ cards:
     entities:
       - entity: device_tracker.iphone8_max_wifi
         name: Max #[WiFi]
-      - entity: device_tracker.iphone8_max_bt
+      - entity: device_tracker.iphone_max_bt
         name: '[BT]'
         double_tap_action:
           action: call-service
           service: script.toogle_bt_device_status
           service_data:
-            my_device: iphone8_max_bt
-            my_entity: device_tracker.iphone8_max_bt
+            my_device: iphone_max_bt
+            my_entity: device_tracker.iphone_max_bt
           confirmation:
             text: Der BlueTooth-Status des Geräts wird gewechselt und damit der Status der Person und von 'Home' geändert. Da die Monitor.sh Konfidenzwerte nicht verändert werden, kann ein Arrival-/Depature-Scan diese Aktiion evtl. nicht korrigieren.
       - entity: sensor.max_present_w
@@ -30,14 +30,14 @@ cards:
         #icon: mdi:set-left-right
       - entity: device_tracker.iphone8_ing_wifi
         name: Ing #[WiFi]
-      - entity: device_tracker.iphone8_ing_bt
+      - entity: device_tracker.iphone_ing_bt
         name: '[BT]'
         double_tap_action:
           action: call-service
           service: script.toogle_bt_device_status
           service_data:
-            my_device: iphone8_ing_bt
-            my_entity: device_tracker.iphone8_ing_bt
+            my_device: iphone_ing_bt
+            my_entity: device_tracker.iphone_ing_bt
           confirmation:
             text: Der BlueTooth-Status des Geräts wird gewechselt und damit der Status der Person und von 'Home' geändert. Da die Monitor.sh Konfidenzwerte nicht verändert werden, kann ein Arrival-/Depature-Scan diese Aktiion evtl. nicht korrigieren.
       - entity: sensor.ing_present_w

@@ -4,25 +4,25 @@ cards:
     title: Türen & Fenster
     show_state: false
     entities:
-      - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_031b3225_1_6
+      - entity: binary_sensor.door_g1_offnung
         name: Gästez.
-      - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_03139f7b_1_6
+      - entity: binary_sensor.door_w1_offnung
         name: Wohn.-W
-      - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_9ac61c04_1_6
+      - entity: binary_sensor.door_w2_offnung
         name: Wohn.-S
-      - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_f2fd4604_1_6
+      - entity: binary_sensor.door_e1_offnung
         name: Essz.
-      - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6
+      - entity: binary_sensor.door_k1_offnung
         name: Küche
-      - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_0aa90a04_on_off
+      - entity: binary_sensor.door_a2_offnung
         name: Büro-S
-      - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_0ee51c04_1_6
+      - entity: binary_sensor.door_a1_offnung
         name: Büro-O
-      - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_032b77ce_1_6
+      - entity: binary_sensor.door_s1_offnung
         name: Schlafz.
-      - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_73c61c04_1_6
+      - entity: binary_sensor.window_b1_offnung
         name: Bad
-      - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_c2e41c04_1_6
+      - entity: binary_sensor.window_b1_offnung
         name: Gästebad
   - type: entities
     title: ' '
@@ -40,7 +40,7 @@ cards:
         open: false
         padding: 0 px
         entities:
-          - entity: binary_sensor.lumi_lumi_sensor_magnet_aq2_20a30a04_on_off
+          - entity: binary_sensor.door_eingang_offnung
             name: Eingang
           - entity: group.all_doors
             name: Balkontüren

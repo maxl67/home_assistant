@@ -11,69 +11,75 @@ cards:
       - entity: cover.hmipw_drbl4_2_2_jalu1_buro
         name: Büro
         secondary_info: position
-        style: |
-          :host {
-            {% if state_attr('cover.hmipw_drbl4_2_2_jalu1_buro','current_position')|int(default=100) <=95  %}
-              --paper-item-icon-color: var(--paper-item-icon-active-color);
-            {% else %}
-              --paper-item-icon-color: var(--primary-text-color);
-            {% endif %}
-          }
+        card_mod:
+          style: |
+            :host {
+              {% if state_attr('cover.hmipw_drbl4_2_2_jalu1_buro','current_position')|int(default=100) <=95  %}
+                --paper-item-icon-color: var(--paper-item-icon-active-color);
+              {% else %}
+                --paper-item-icon-color: var(--primary-text-color);
+              {% endif %}
+            }
       - entity: cover.hmipw_drbl4_1_6_jalu2_ku
         name: Küche
         secondary_info: position
-        style: |
-          :host {
-            {% if state_attr('cover.hmipw_drbl4_1_6_jalu2_ku','current_position')|int(default=100) <=95  %}
-              --paper-item-icon-color: var(--paper-item-icon-active-color);
-            {% else %}
-              --paper-item-icon-color: var(--primary-text-color);
-            {% endif %}
-          }
+        card_mod:
+          style: |
+            :host {
+              {% if state_attr('cover.hmipw_drbl4_1_6_jalu2_ku','current_position')|int(default=100) <=95  %}
+                --paper-item-icon-color: var(--paper-item-icon-active-color);
+              {% else %}
+                --paper-item-icon-color: var(--primary-text-color);
+              {% endif %}
+            }
       - entity: cover.hmipw_drbl4_1_2_jalu3_ez
         name: Esszimmer
         secondary_info: position
-        style: |
-          :host {
-            {% if state_attr('cover.hmipw_drbl4_1_2_jalu3_ez','current_position')|int(default=100) <=95  %}
-              --paper-item-icon-color: var(--paper-item-icon-active-color);
-            {% else %}
-              --paper-item-icon-color: var(--primary-text-color);
-            {% endif %}
-          }
+        card_mod:
+          style: |
+            :host {
+              {% if state_attr('cover.hmipw_drbl4_1_2_jalu3_ez','current_position')|int(default=100) <=95  %}
+                --paper-item-icon-color: var(--paper-item-icon-active-color);
+              {% else %}
+                --paper-item-icon-color: var(--primary-text-color);
+              {% endif %}
+            }
       - entity: cover.hmipw_drbl4_1_14_jalu4_wz_s
         name: Wohnen Süd
         secondary_info: position
-        style: |
-          :host {
-            {% if state_attr('cover.hmipw_drbl4_1_14_jalu4_wz_s','current_position')|int(default=100) <=95  %}
-              --paper-item-icon-color: var(--paper-item-icon-active-color);
-            {% else %}
-              --paper-item-icon-color: var(--primary-text-color);
-            {% endif %}
-          }
+        card_mod:
+          style: |
+            :host {
+              {% if state_attr('cover.hmipw_drbl4_1_14_jalu4_wz_s','current_position')|int(default=100) <=95  %}
+                --paper-item-icon-color: var(--paper-item-icon-active-color);
+              {% else %}
+                --paper-item-icon-color: var(--primary-text-color);
+              {% endif %}
+            }
       - entity: cover.hmipw_drbl4_1_10_jalu5_wz_w
         name: Wohnen West
         secondary_info: position
-        style: |
-          :host {
-            {% if state_attr('cover.hmipw_drbl4_1_10_jalu5_wz_w','current_position')|int(default=100) <=95  %}
-              --paper-item-icon-color: var(--paper-item-icon-active-color);
-            {% else %}
-              --paper-item-icon-color: var(--primary-text-color);
-            {% endif %}
-          }
+        card_mod:
+          style: |
+            :host {
+              {% if state_attr('cover.hmipw_drbl4_1_10_jalu5_wz_w','current_position')|int(default=100) <=95  %}
+                --paper-item-icon-color: var(--paper-item-icon-active-color);
+              {% else %}
+                --paper-item-icon-color: var(--primary-text-color);
+              {% endif %}
+            }
       - entity: cover.hmipw_drbl4_2_6_jalu6_wz_n
         name: Wohnen Nord
         secondary_info: position
-        style: |
-          :host {
-            {% if state_attr('cover.hmipw_drbl4_2_6_jalu6_wz_n','current_position')|int(default=100) <=95  %}
-              --paper-item-icon-color: var(--paper-item-icon-active-color);
-            {% else %}
-              --paper-item-icon-color: var(--primary-text-color);
-            {% endif %}
-          }
+        card_mod:
+          style: |
+            :host {
+              {% if state_attr('cover.hmipw_drbl4_2_6_jalu6_wz_n','current_position')|int(default=100) <=95  %}
+                --paper-item-icon-color: var(--paper-item-icon-active-color);
+              {% else %}
+                --paper-item-icon-color: var(--primary-text-color);
+              {% endif %}
+            }
       - type: divider
       - type: buttons
         entities:

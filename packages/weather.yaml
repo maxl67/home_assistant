@@ -1,8 +1,9 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 17.11.2021
+#   @date         : 29.06.2024
+#   @created      : 17.11.2021
 #   @package      : weather
-#   @description  : all kinds of weather information
+#   @description  : all kinds of weather information & senssors, sun und sunshine sensors
 #   @links        : 
 ## Satelitenbilder
 # https://www.qxm.de/digitalewelt/3014/animierte-satellitenbilder-in-home-assistant
@@ -63,7 +64,7 @@ homeassistant:
       <<: *common
     sensor.sun_elevation_noon:
       <<: *common
-      description: 'max. Höhe der Sonne in den letzten 25h. Im Sommer (21.6, 13:25 MESZ): 64,7°; im Winter (22.12 ,? MEZ): 18°?' 
+      description: 'max. Höhe der Sonne in den letzten 25h. Im Sommer (21.6, 13:25 MESZ): 64,7°; im Winter (22.12, 12:20 MEZ): 17,9°' 
     sensor.sunshine_hours_yesterday:
       <<: *common
     sensor.sunshine_hours_today:
@@ -103,27 +104,30 @@ input_boolean:
 ###############################################################################
 template:
 
-#todo: regen (mm) in den letzten 24/48h. für bewässerung
+#todo: regen (mm) in den letzten 24/48h für Bewässerung
 #siehe https://community.home-assistant.io/u/sciurius
 # mit sql-sensor?
 
   - sensor:
     ########## WETTTER ###########
-      # temp: from dwd_weather, should be a own sensor outside
     - unique_id: outside_temperature
       name: outside_temperature
-      state: "{{ min(states('sensor.fritz_dect_210_solar_temperature')|float(30), states('sensor.bkw_sued_temperature')|float(30)) }}"
+      state: >
+        {{ min(states('sensor.fritz_dect_210_solar_temperatur')|float(30), 
+               states('sensor.bkw_sued_temperature')|float(30), 
+               average(states('sensor.dwd_home_temperatur')|float, states('sensor.home_hourly_temperature')|float)
+              ) }}
       unit_of_measurement: '°C'
       attributes:
         friendly_name: Außentemperatur
-        description: 'gebildet aus min(FritzDect Steckdose und Wechselrichter).'
-    # - unique_id: outside_temperature
-    #   name: outside_temperature
-    #   state: "{{ state_attr('weather.dwd_home', 'temperature')|float(default=0) }}"
-    #   unit_of_measurement: '°C'
-    #   attributes:
-    #     friendly_name: Außentemperatur
-    #     description: 'gebildet aus Attribut [temperature] des weather-Sensor von DWD (Dt. WetterDienst).'
+        description: 'gebildet aus min(FritzDect Steckdose, Wechselrichter, avg(DWD-Temp, OWM-Temp) ).'
+      # - unique_id: outside_temperature
+      #   name: outside_temperature
+      #   state: "{{ state_attr('weather.dwd_home', 'temperature')|float(default=0) }}"
+      #   unit_of_measurement: '°C'
+      #   attributes:
+      #     friendly_name: Außentemperatur
+      #     description: 'gebildet aus Attribut [temperature] des weather-Sensor von DWD (Dt. WetterDienst).'
     - unique_id: outside_humidity
       name: outside_humidity
       state: "{{ state_attr('weather.dwd_home', 'humidity')|int(default=0) }}"
@@ -139,7 +143,7 @@ template:
       unit_of_measurement: '°'
       attributes:
         friendly_name: Sonnenrichtung
-        description: 'gebildet aus Attribut [azimuth] des [sun.sun] Sensors'
+        description: 'gebildet aus Attribut [azimuth] des [sun.sun] Sensors. Sommer: ?; Winter: 8:20-16:00 (127°-229°)'
     - unique_id: sun_elevation
       name: sun_elevation
       state: "{{ state_attr('sun.sun', 'elevation')|float(default=0)|round(1) }}"
@@ -149,7 +153,7 @@ template:
         description: 'gebildet aus Attribut [elevation] des [sun.sun] Sensors'
     - unique_id: sun_elevation_ratio
       name: sun_elevation_ratio
-       #Morning: sun arrisen at 2°, evening down an 5° --> we start with 0% at 2°, shift the values 2 down
+       #Morning: sun arrisen at 2°, evening down at 5° --> we start with 0% at 2°, shift the values 2 down
       state: >
         {% set sun_min_elevation = 2 if state_attr('sun.sun', 'rising') else 5 %}
         {% if state_attr('sun.sun', 'elevation')|float(default=0) >= sun_min_elevation %} 
@@ -163,7 +167,6 @@ template:
       attributes:
         friendly_name: relative Sonnenhöhe #[%]
         description: 'relat. Höhe der Sonne zum Tagesmaximum (morgens 2°=0%, Mittag=100%, abends 5°=0%)'
-
     - unique_id: sun_elevation_ratio_max
       name: sun_elevation_ratio_max
        #Morning: sun arrisen at 2°, evening down an 5° --> we start with 0% at 2°, shift the values 2 down
@@ -181,7 +184,6 @@ template:
         friendly_name: relative Sonnenhöhe zum Höchststand #[%]
         description: 'relat. Höhe der Sonne zum Höchststand im Sommer (morgens 2°=0%, Mittag 64,7°=100%, abends 5°=0%)'
 
-
     ########## SONNENSCHEIN ###########
     - unique_id: sunshine_probability
       name: sunshine_probability
@@ -191,23 +193,22 @@ template:
       #    Ausgleichsfaktor = (Sonnenrichtung zu 150°) <60° -> 1, in 60°..90° -> 1..2 
       #    alt: Ausgleichsfaktor = (Sonnenrichtung zu 150°) <45° -> 1, in 45°..90° -> 1..2 
       # sonst aus den Status der Wetter-Entitäten berechnen
-#        {%- set peak_solar_power_w = 250 -%}
-#        {%- set orientation_w = 240 -%}
-#        {%- set angle_compensation_factor_w = max((orientation_w - states('sensor.sun_direction')|float)|abs-compensation_start_angle,0)/(90-compensation_start_angle) + 1 -%}
-#        {% elif not is_state('switch.fritz_dect_210_solar', 'unavailable') and state_attr('sun.sun', 'azimuth')|float(default=360) > orientation_w-90 and state_attr('sun.sun', 'azimuth')|float(default=360) < orientation_w+90 -%}
-#          {{ 0 if states('sensor.sun_elevation_ratio')|int <= 5 else (min(states('sensor.fritz_dect_210_solar_power_consumption')|float / (peak_solar_power_w * states('sensor.sun_elevation_ratio')|int / 100) * angle_compensation_factor_w, 1) * 100) | int }}
-# bis 11/2023
-#         {{ 0 if states('sensor.sun_elevation_ratio')|int(default=0) <= 0 else (min(states('sensor.bkw_sued_power')|float(default=0) / (peak_solar_power_s * states('sensor.sun_elevation_ratio')|int(default=0) / 100) * angle_compensation_factor_s, 1) * 100) | int }}
- 
-
+      #  {%- set peak_solar_power_w = 250 -%}
+      #  {%- set orientation_w = 240 -%}
+      #  {%- set angle_compensation_factor_w = max((orientation_w - states('sensor.sun_direction')|float)|abs-compensation_start_angle,0)/(90-compensation_start_angle) + 1 -%}
+      #  {% elif not is_state('switch.fritz_dect_210_solar', 'unavailable') and state_attr('sun.sun', 'azimuth')|float(default=360) > orientation_w-90 and state_attr('sun.sun', 'azimuth')|float(default=360) < orientation_w+90 -%}
+      #    {{ 0 if states('sensor.sun_elevation_ratio')|int <= 5 else (min(states('sensor.fritz_dect_210_solar_power_consumption')|float / (peak_solar_power_w * states('sensor.sun_elevation_ratio')|int / 100) * angle_compensation_factor_w, 1) * 100) | int }}
+      # bis 11/2023
+        # {{ 0 if states('sensor.sun_elevation_ratio')|int(default=0) <= 0 else (min(states('sensor.bkw_sued_power')|float(default=0) / (peak_solar_power_s * states('sensor.sun_elevation_ratio')|int(default=0) / 100) * angle_compensation_factor_s, 1) * 100) | int }}
       state: >
         {%- set compensation_start_angle = 60 -%}
         {%- set peak_solar_power_s = 600 -%}
         {%- set orientation_s = 150 -%}
         {%- set angle_compensation_factor_s = max((orientation_s - states('sensor.sun_direction')|float(default=0))|abs-compensation_start_angle,0)/(90-compensation_start_angle) + 1 -%}
+        {%- set season_compensation_factor = max(1, 65 / states('sensor.sun_elevation_noon')|float(default=65) * 0.5) -%}
 
         {% if not is_state('sensor.bkw_sued_power', 'unavailable') and state_attr('sun.sun', 'azimuth')|float(default=360) > orientation_s-80 and state_attr('sun.sun', 'azimuth')|float(default=360) < orientation_s+90 -%}
-          {{ 0 if states('sensor.sun_elevation_ratio')|int(default=0) <= 0 else (min(states('sensor.bkw_sued_power')|float(default=0) / (peak_solar_power_s * states('sensor.sun_elevation_ratio')|int(default=0) / 100) * angle_compensation_factor_s, 1) * 100) | int }}
+          {{ 0 if states('sensor.sun_elevation_ratio')|int(default=0) <= 0 else (min(states('sensor.bkw_sued_power')|float(default=0) / (peak_solar_power_s * states('sensor.sun_elevation_ratio')|int(default=0) / 100) * angle_compensation_factor_s * season_compensation_factor, 1) * 100) | int }}
         {% elif states('sensor.sun_elevation_ratio')|float(0) > 0 %}
           {% if states('weather.dwd_home') == 'sunny' and states('weather.home_hourly') == 'sunny' %}
             95
@@ -281,6 +282,48 @@ template:
         friendly_name: Sonnenschein-Rate (West)
         description: Wenn Sonnenschein im Westen erkannt, dann relative Sonnenhöhe, sonst 0%
 
+    ########## Forecast für SONNENSCHEIN-STUNDEN ###########
+  - trigger:
+      - platform: time_pattern
+        hours: /1
+    action:
+      - service: weather.get_forecasts
+        data:
+          type: hourly
+        target:
+          entity_id: weather.home_hourly
+        response_variable: hourly
+    sensor:
+      - name: Sonnenstunden morgen
+        unique_id: forcast_sunshine_hours_tomorrow
+        unit_of_measurement: 'h'
+        state: >
+          {% set sunH = namespace(value=0) %}
+          {% set sunrise_tomorrow = today_at(as_datetime(state_attr('sun.sun', 'next_rising')).strftime('%H:%M')) + timedelta(days=1) %}
+          {% set sunset_tomorrow = today_at(as_datetime(state_attr('sun.sun', 'next_setting')).strftime('%H:%M')) + timedelta(days=1) %}
+          {% for h_forecast in hourly['weather.home_hourly'].forecast %}
+            {% if as_datetime(h_forecast.datetime) > sunrise_tomorrow and as_datetime(h_forecast.datetime) < sunset_tomorrow %}
+              {% if h_forecast.condition == 'sunny' %}
+                {% set sunH.value = sunH.value + 1 %}
+              {% elif h_forecast.condition == 'partlycloudy' %}
+                {% set sunH.value = sunH.value + 0.5 %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          {{ sunH.value }}
+      - name: restliche Sonnenstunden heute
+        unique_id: forcast_sunshine_hours_today
+        unit_of_measurement: 'h'
+        state: >
+          {% set sunH = namespace(value=0) %}
+          {% set sunset_today = today_at(as_datetime(state_attr('sun.sun', 'next_setting')).strftime('%H:%M')) %}
+          {% for h_forecast in hourly['weather.home_hourly'].forecast %}
+            {% if h_forecast.condition == 'sunny' and as_datetime(h_forecast.datetime) < sunset_today %}
+              {% set sunH.value = sunH.value + 1 %}
+            {% endif %}
+          {% endfor %}
+          {{ sunH.value }}
+
 sensor:
   # Statistik
     # max. sun elevation for calc of sunshine_elevation_ratio (because sun.sun does not contain next noon elevation)
@@ -317,36 +360,40 @@ sensor:
       {{ now().replace(hour=0, minute=0, second=0) }}
     end: >
       {{ now() }}
-  - platform: template
-    sensors:
-      forcast_sunshine_hours_today:
-        friendly_name: restliche Sonnenstunden heute 
-        value_template: >
-          {% set sunH = namespace(value=0) %}
-          {% set sunset_today = today_at(as_datetime(state_attr('sun.sun', 'next_setting')).strftime('%H:%M')) %}
-          {% for h_forecast in state_attr('weather.home_hourly', 'forecast') %}
-            {% if h_forecast.condition == 'sunny' and as_datetime(h_forecast.datetime) < sunset_today %}
-              {% set sunH.value = sunH.value + 1 %}
-            {% endif %}
-          {% endfor %}
-          {{ sunH.value }}
-        unit_of_measurement: 'h'
-      forcast_sunshine_hours_tomorrow:
-        friendly_name: Sonnenstunden morgen 
-        value_template: >
-          {% set sunH = namespace(value=0) %}
-          {% set sunrise_tomorrow = today_at(as_datetime(state_attr('sun.sun', 'next_rising')).strftime('%H:%M')) + timedelta(days=1) %}
-          {% set sunset_tomorrow = today_at(as_datetime(state_attr('sun.sun', 'next_setting')).strftime('%H:%M')) + timedelta(days=1) %}
-          {% for h_forecast in state_attr('weather.home_hourly', 'forecast') %}
-            {% if h_forecast.condition == 'sunny' and as_datetime(h_forecast.datetime) > sunrise_tomorrow and as_datetime(h_forecast.datetime) < sunset_tomorrow %}
-              {% set sunH.value = sunH.value + 1 %}
-            {% endif %}
-          {% endfor %}
-          {{ sunH.value }}
-        unit_of_measurement: 'h'
+  #- platform: template
+    # sensors:
+    #   forcast_sunshine_hours_today:
+    #     friendly_name: restliche Sonnenstunden heute 
+    #     value_template: >
+    #       {% set sunH = namespace(value=0) %}
+    #       {% set sunset_today = today_at(as_datetime(state_attr('sun.sun', 'next_setting')).strftime('%H:%M')) %}
+    #       {% for h_forecast in state_attr('weather.home_hourly', 'forecast') %}
+    #         {% if h_forecast.condition == 'sunny' and as_datetime(h_forecast.datetime) < sunset_today %}
+    #           {% set sunH.value = sunH.value + 1 %}
+    #         {% endif %}
+    #       {% endfor %}
+    #       {{ sunH.value }}
+    #     unit_of_measurement: 'h'
+      # forcast_sunshine_hours_tomorrow:
+      #   friendly_name: Sonnenstunden morgen 
+      #   value_template: >
+      #     {% set sunH = namespace(value=0) %}
+      #     {% set sunrise_tomorrow = today_at(as_datetime(state_attr('sun.sun', 'next_rising')).strftime('%H:%M')) + timedelta(days=1) %}
+      #     {% set sunset_tomorrow = today_at(as_datetime(state_attr('sun.sun', 'next_setting')).strftime('%H:%M')) + timedelta(days=1) %}
+      #     {% for h_forecast in state_attr('weather.home_hourly', 'forecast') %}
+      #       {% if h_forecast.condition == 'sunny' and as_datetime(h_forecast.datetime) > sunrise_tomorrow and as_datetime(h_forecast.datetime) < sunset_tomorrow %}
+      #         {% set sunH.value = sunH.value + 1 %}
+      #       {% endif %}
+      #     {% endfor %}
+      #     {{ sunH.value }}
+      #   unit_of_measurement: 'h'
+
+
 
   # - platform: dwd_weather_warnings
-  #   region_name: !secret dwd_region_name
+  #   v2024.07  sensor.dwd_weather_warnings_current_warning_level -> sensor.stadt_stuttgart_aktuelle_warnstufe
+  #             sensor.dwd_weather_warnings_advance_warning_level -> sensor.stadt_stuttgart_vorwarnstufe
+  #             entityIDs umbenannt auf alten Stand
     # https://www.home-assistant.io/integrations/dwd_weather_warnings/
     # https://www.dwd.de/DE/leistungen/opendata/help/warnungen/warning_codes_pdf.pdf?__blob=publicationFile&v=5
     # Typen der Warnungen
@@ -558,7 +605,6 @@ sensor:
           {%- endfor -%}
           {{ns.level}}          
         icon_template: mdi:weather-hail
-
 
 ###############################################################################
 ##  Automations

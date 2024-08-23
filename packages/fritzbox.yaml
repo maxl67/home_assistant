@@ -9,12 +9,20 @@
 ################################################
 ##  Customize
 ################################################
+
 homeassistant:
   customize:
   # definitions
     package.node_anchors:
       common: &common
         package: "fritzbox"
+  # constants 
+      # entity-id's
+      ambientelight_wz_entityid: &ambientelight_wz_entityid light.dimmschalter_wz_dimmaktor_wz 
+      light_az_entityid: &light_az_entityid light.dimmschalter_buro_dimmaktor_buro  
+      colorlight_ku_entityid: &colorlight_ku_entityid light.philips_lightstrip_ku
+      powerswitch_tv_entityid: &powerswitch_tv_entityid switch.outlet_repeater_hifi_switch
+      powerswitch_rpi_sued_entityid: &powerswitch_rpi_sued_entityid switch.outlet_repeater_wz_018780fe_on_off
   # sensors
     sensor.fritzbox_uptime:
       <<: *common
@@ -97,3 +105,129 @@ script:
       - service: fritz.reboot
         data:
           device_id: !secret fritzbox_device_id
+
+###############################################################################
+##  Automations
+###############################################################################
+automation:
+  #-------------------------------
+  # Fritz-DECT 440 Button
+  # Webhook Trigger für Licht (1)
+  - id: toggle_lights
+    alias: Button Lichter an/aus
+    description: ''
+    mode: single #Do not start a new run, if running already. 
+    trigger:
+      - id: 'toggle_licht_az'
+        platform: webhook
+        webhook_id: 'toggle_light_buero'
+        allowed_methods:
+          - POST
+        local_only: true #Definition des webkook mit https://<ip>:port>/api/webhook/<id>
+      - id: 'toggle_licht_wz'
+        platform: webhook
+        webhook_id: 'toggle_light_wz'
+        allowed_methods:
+          - POST
+        local_only: true #Definition des webkook mit https://<ip>:port>/api/webhook/<id>
+      - id: 'status_light_off'
+        platform: webhook
+        webhook_id: 'switch_off_ampel'
+        allowed_methods:
+          - POST
+        local_only: true #Definition des webkook mit https://<ip>:port>/api/webhook/<id>
+    variables:
+      device_map:
+        'toggle_licht_az': *light_az_entityid
+        'toggle_licht_wz': *ambientelight_wz_entityid
+        'status_light_off': *colorlight_ku_entityid
+      light_entity_id: >-
+        {{ device_map[trigger.id] }}        
+    action:
+      # - service: "light.turn_{{ 'on' if is_state(light_entity_id, 'off') else 'off' }}"
+      #   data_template: 
+      #     entity_id: "{{ light_entity_id }}"
+      - if:
+          - alias: light is off
+            condition: template
+            value_template: "{{ is_state(light_entity_id, 'off') and not trigger.id=='status_light_off' }}"
+        then:
+          - service: light.turn_on
+            data_template: 
+              entity_id: "{{ light_entity_id }}"
+              brightness_pct: 50
+        else:      
+          - service: light.turn_off
+            data_template:
+              entity_id: "{{ light_entity_id }}"
+
+  - id: dimm_lights
+    alias: Button Lichter dimmen
+    description: ''
+    mode: single #Do not start a new run, if running already. 
+    trigger:
+      - id: 'dimm_lights_darker'
+        platform: webhook
+        webhook_id: 'lights_dunkler'
+        allowed_methods:
+          - POST
+        local_only: true #Definition des webkook mit https://<ip>:port>/api/webhook/<id>
+      - id: 'dimm_lights_brighter'
+        platform: webhook
+        webhook_id: 'lights_heller'
+        allowed_methods:
+          - POST
+        local_only: true #Definition des webkook mit https://<ip>:port>/api/webhook/<id>
+    variables:
+      value_map:
+        'dimm_lights_darker': -10
+        'dimm_lights_brighter': 10
+      brightness_increment: >-
+        {{ value_map[trigger.id] }}        
+    action:
+      - if:
+          - alias: AZ light is on
+            condition: state
+            entity_id: *light_az_entityid
+            state: 'on'
+        then:
+          - service: light.turn_on
+            data_template: 
+              entity_id: *light_az_entityid
+              brightness_step_pct: "{{ brightness_increment }}"
+              transition: 1
+      - if:
+          - alias: WZ light is on
+            condition: state
+            entity_id: *ambientelight_wz_entityid
+            state: 'on'
+        then:
+          - service: light.turn_on
+            data_template: 
+              entity_id: *ambientelight_wz_entityid
+              brightness_step_pct: "{{ brightness_increment }}"
+              transition: 1
+
+ #-------------------------------
+  # Fritz-DECT 440 Button
+  # Webhook Trigger für Power (2)
+  - id: toggle_power
+    alias: Button Power an/aus
+    description: ''
+    mode: single #Do not start a new run, if running already. 
+    trigger:
+      - id: 'turn_on_tv'
+        platform: webhook
+        webhook_id: 'switch_on_tv'
+        allowed_methods:
+          - POST
+        local_only: true #Definition des webkook mit https://<ip>:port>/api/webhook/<id>
+    variables:
+      device_map:
+        'turn_on_tv': *powerswitch_tv_entityid
+      switch_entity_id: >-
+        {{ device_map[trigger.id] }}        
+    action:
+      - service: switch.turn_on
+        data_template: 
+          entity_id: "{{ switch_entity_id }}"

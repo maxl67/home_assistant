@@ -102,12 +102,12 @@ group:
 ###############################################################################
 ##  Sensors
 ###############################################################################
-binary_sensor:
-  - platform: ping
-    name: netreceiver_online
-    host: !secret yamaha_netreceiver
-    scan_interval: 30
-    count: 2
+# binary_sensor:
+#   - platform: ping
+#     name: netreceiver_online
+#     host: !secret yamaha_netreceiver
+#     scan_interval: 30
+#     count: 2
 
 sensor:
   - platform: template

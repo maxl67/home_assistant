@@ -1,6 +1,7 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 09.07.23 (29.01.2020)
+#   @date         : 09.07.2023
+#   @created      : 29.01.2020
 #   @package      : homematic
 #   @description  : 2023: Umstellung auf HomaticIP_Local Custom Integration
 #   @links        : https://github.com/danielperna84/custom_homematic
@@ -303,6 +304,7 @@ binary_sensor:
   - platform: template
     sensors:
       hm_homematic_up:
+        unique_id: hm_homematic_up
         friendly_name: "Homematic is sending updates"
         # Time based template: see https://www.home-assistant.io/integrations/binary_sensor.template/#working-without-entities
         # 'last_changed' is only accessible through states-object. see: https://community.home-assistant.io/t/last-updated-state-and-last-changed-in-lovelave/101701

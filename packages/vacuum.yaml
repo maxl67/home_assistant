@@ -1,6 +1,7 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 16.11.2021
+#   @date         : 29.06.2024
+#   @created      : 16.11.2021
 #   @package      : vacuum
 #   @description  : XIAOMI Roborock S6 automation
 #   @links        : 
@@ -122,14 +123,15 @@ switch:
   - platform: template
     switches: ## are needed in addition to input_booleans to get a dynamic icon
       enable_automatic_vacuum:
-        friendly_name: Automatische Reinigung 
+        friendly_name: Automatische Reinigung
+        unique_id: enable_automatic_vacuum
         value_template: "{% if states.input_boolean.disable_automatic_vacuum.state %}{{ is_state('input_boolean.disable_automatic_vacuum', 'off') }}{% endif %}"
         turn_on:
-          service: homeassistant.turn_off
+          action: homeassistant.turn_off
           data:
             entity_id: input_boolean.disable_automatic_vacuum
         turn_off:
-          service: homeassistant.turn_on
+          action: homeassistant.turn_on
           data:
             entity_id: input_boolean.disable_automatic_vacuum
         icon_template: >-
@@ -139,7 +141,8 @@ switch:
             mdi:timer-cog-outline
           {% endif %}
       automatic_vacuum_when_home:
-        friendly_name: Reinigung auch wenn anwesend 
+        friendly_name: Reinigung auch wenn anwesend
+        unique_id: automatic_vacuum_when_home
         value_template: "{{ is_state('input_boolean.automatic_vacuum_when_home', 'on') }}"
         turn_on:
           service: homeassistant.turn_on
@@ -156,7 +159,8 @@ switch:
             mdi:account-off-outline
           {% endif %}
       enable_dustbin_notification:
-        friendly_name: Staubbehälternachrichten  
+        friendly_name: Staubbehälternachrichten
+        unique_id: enable_dustbin_notification
         value_template: "{{ is_state('input_boolean.disable_dustbin_notification', 'off') }}"
         turn_on:
           service: homeassistant.turn_off
@@ -173,7 +177,8 @@ switch:
             mdi:cellphone-message
           {% endif %}
       alert_dustbin_full:
-        friendly_name: Staubbehälter leeren   #dustbin has to be cleaned  
+        friendly_name: Staubbehälter leeren   #dustbin has to be cleaned
+        unique_id: alert_dustbin_full
         value_template: "{{ is_state('input_boolean.alert_dustbin_full', 'on') }}"
         turn_on:
           service: homeassistant.turn_on
@@ -249,11 +254,14 @@ binary_sensor:
   - platform: template
     sensors:
       vacuum_paused:
+        unique_id: vacuum_paused
         value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','status') in ['Paused'] }}"    
       vacuum_started:
+        unique_id: vacuum_started
         value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','status') in ['Cleaning', 'Definition missing for state 18'] }}"    
 
       alert_vacuum_error:
+        unique_id: alert_vacuum_error
         friendly_name: Saug-E Störung
         icon_template: mdi:robot-confused-outline #alert-octagon
         value_template: "{{ is_state('vacuum.xiaomi_vacuum_cleaner','error') }}"
@@ -541,7 +549,7 @@ automation:
       # send notification
       - service: notify.family_main_devices
         data:
-          title: 'Automatisierung Dust-E'
+          title: 'Automatisierung Saug-E'
           message: "{{ messagetext }}"
           data:
             push:
@@ -634,7 +642,7 @@ automation:
           {% endif %}
         data: 
           title: 'Staubbehälter leeren' 
-          message: 'Nach dem automatischen Saugen den Staubbehälter von Dust-E leeren.'
+          message: 'Nach dem automatischen Saugen den Staubbehälter von Saug-E leeren.'
           data:
             push:
               thread-id: 'vacuum-notification-group'
@@ -662,9 +670,9 @@ automation:
       - service: notify.family_main_devices
         data:
           title: 'Smart Home Alerts'
-          message: 'Dust-E hat einen Fehlerstatus.'
+          message: 'Saug-E hat einen Fehlerstatus.'
           data:
-            subtitle: 'Dust-E Error!'
+            subtitle: 'Saug-E Error!'
             push:
               badge: "{{states.sensor.count_notification_alerts.state|int(default=0)}}"
               thread-id: 'vacuum-notification-group'
@@ -687,7 +695,7 @@ automation:
       - service: notify.family_main_devices
         data:
           title: 'Smart Home ...'
-          message: 'Dust-E Fehler behoben.'
+          message: 'Saug-E Fehler behoben.'
           data:
             push:
               badge: "{{states.sensor.count_notification_alerts.state|int(default=0)}}"

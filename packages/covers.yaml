@@ -206,7 +206,8 @@ template:
 script:
   position_jalousie:
     # Lowers via HmIPW-DRBL4 the blind <my_cover_id> to covering value <my_cover_position>. 
-    # The script will tilt the blinds at the final position to untangle the slats.
+    # The script will not tilt the blinds at the final position to untangle the slats,
+    #   because this is automaticly done by integration.
     alias: Jalousie auf Position fahren
     fields:
       my_cover_id:
@@ -214,7 +215,7 @@ script:
       my_cover_position:
         description: 'Neue Position (100=oben/drinnen, 0=unten/draussen).'
       my_tilt_position:
-        description: 'öffen der Jalousielamellen auf dieen Wert (100=offen, 0=geschlossen).'
+        description: '[inaktiv] Öffnen der Jalousielamellen auf diesen Wert (100=offen, 0=geschlossen).'
     mode: parallel
     sequence:
       - service: cover.set_cover_position
@@ -222,24 +223,6 @@ script:
           entity_id: "{{ my_cover_id }}"
         data:
           position: "{{ my_cover_position }}"
-    # ACHTUNG: Aufruf aus anderen Scripten geht nicht. Paralellisierung klappt nicht. 
-      # - alias: "Wait until cover is down"
-      #   wait_template: "{{ state_attr(my_cover_id, my_cover_position) }}"
-      #   timeout:
-      #     seconds: 30
-      #   continue_on_timeout: false
-      # - service: cover.set_cover_tilt_position
-      #   target:
-      #     entity_id: "{{ my_cover_id }}"
-      #   data: 
-      #     tilt_position: 100
-      # - delay:
-      #     seconds: 2
-      # - service: cover.set_cover_tilt_position
-      #   target:
-      #     entity_id: "{{ my_cover_id }}"
-      #   data: 
-      #     tilt_position: "{{ my_tilt_position }}"
 
   retract_cover:
     # Retracts (no shade) via HmIPW-DRBL4 the blind (up) or the awning (in) <my_cover_id> completely. 
@@ -318,7 +301,7 @@ script:
                       my_cover_id: "{{ repeat.item.cover_id }}"
 
   lower_all_covers_on_side:
-    # lowers via HmIPW-DRBL4 all blinds on side <in_south=true> and or <in_west=true> completely. 
+    # lowers via HmIPW-DRBL4 all blinds on side <in_south=true> and/or <in_west=true> completely. 
     # weitere Bedingungen?
       # cover not below 60% (manually lowered)
       # cover not moving
@@ -345,7 +328,7 @@ script:
                   door_closed: true
                   to_position: 9
                 - cover_id: *cover_entityid_wz_wn
-                  door_closed: "{{ not is_state('binary_sensor.lumi_lumi_sensor_magnet_aq2_03139f7b_1_6','on') }}"
+                  door_closed: "{{ not is_state('binary_sensor.door_w1_offnung','on') }}"
                   to_position: 0
               sequence:
                 - if: 
@@ -353,31 +336,6 @@ script:
                     condition: template
                     value_template:  "{{ repeat.item.door_closed }}"
                   then:
-                    # - service: cover.set_cover_tilt_position
-                    #   target:
-                    #     entity_id: "{{ repeat.item.cover_id }}"
-                    #   data: 
-                    #     tilt_position: 100
-                    # - service: cover.set_cover_position
-                    #   target:
-                    #     entity_id: "{{ repeat.item.cover_id }}"
-                    #   data:
-                    #     position: "{{ repeat.item.to_position }}"
-                    # - alias: "Wait until cover is down"
-                    #   wait_template: "{{ state_attr(repeat.item.cover_id, repeat.item.to_position) }}"
-                    #   timeout:
-                    #     seconds: 75
-                    #   continue_on_timeout: false
-                    # - service: cover.set_cover_tilt_position
-                    #   target:
-                    #     entity_id: "{{ repeat.item.cover_id }}"
-                    #   data: 
-                    #     tilt_position: 20
-                    # - service: cover.set_cover_position
-                    #   target:
-                    #     entity_id: "{{ repeat.item.cover_id }}"
-                    #   data:
-                    #     position: "{{ repeat.item.to_position }}"
                     #TEST: geht nicht. Parallelisierung geht nicht
                     - service: script.position_jalousie
                       data:
@@ -394,17 +352,17 @@ script:
           - repeat:
               for_each:
                 - cover_id: *cover_entityid_az_s
-                  door_closed: "{{ not is_state('binary_sensor.lumi_lumi_sensor_magnet_aq2_0aa90a04_on_off','on') }}"
+                  door_closed: "{{ not is_state('binary_sensor.door_a2_offnung','on') }}"
                   to_position: 0
                 - cover_id: *cover_entityid_ku
-                  door_closed: "{{ not is_state('binary_sensor.lumi_lumi_sensor_magnet_aq2_4cc61c04_1_6','on') }}"
+                  door_closed: "{{ not is_state('binary_sensor.door_k1_offnung','on') }}"
                   to_position: 15
                 - cover_id: *cover_entityid_ez
-                  door_closed: "{{ not is_state('binary_sensor.lumi_lumi_sensor_magnet_aq2_f2fd4604_1_6','on') }}"
+                  door_closed: "{{ not is_state('binary_sensor.door_e1_offnung','on') }}"
                   to_position: 0
                 - cover_id: *cover_entityid_wz_s
-                  door_closed: "{{ not is_state('binary_sensor.lumi_lumi_sensor_magnet_aq2_9ac61c04_1_6','on') }}"
-                  to_position: 23
+                  door_closed: "{{ not is_state('binary_sensor.door_w2_offnung','on') }}"
+                  to_position: 25  # min: 23
               sequence:
                 - if: 
                   - alias: Door is closed

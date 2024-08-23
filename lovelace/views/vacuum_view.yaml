@@ -1,35 +1,36 @@
-anchors:
-  style_entitycard_header: &style_header
-    card_mod:
-      style: |
-        .card-header {
-          font-size: 20px;
-          padding: 10px 16px;
-        }
+# exported to single style files and added by !include
+# anchors:
+#   style_entitycard_header: &style_header
+#     card_mod:
+#       style: |
+#         .card-header {
+#           font-size: 20px;
+#           padding: 10px 16px;
+#         }
 
 #---------------------------------
-#id: vacuum
 title: Dust-E
 path: vacuum
 icon: mdi:robot-vacuum
 cards:
   #------------------------------------------------------------
-  # vacuum card and room selection
+  # Vacuum card and room selection
   - type: custom:vertical-stack-in-card
     cards:
       - type: 'custom:vacuum-card'
         entity: vacuum.xiaomi_vacuum_cleaner
         compact_view: true
-        style: |
-          {% if is_state('binary_sensor.alert_vacuum_error','on') %}
-            ha-card .preview {
-              background-color: #FF7738; 
-            }
-          {% elif is_state('input_boolean.alert_dustbin_full','on') %}
-            ha-card .preview {
-              background-color: var(--paper-item-icon-active-color);
-            }
-          {% endif %}
+        card_mod:
+          style: |
+            {% if is_state('binary_sensor.alert_vacuum_error','on') %}
+              ha-card .preview {
+                background-color: #FF7738; 
+              }
+            {% elif is_state('input_boolean.alert_dustbin_full','on') %}
+              ha-card .preview {
+                background-color: var(--paper-item-icon-active-color);
+              }
+            {% endif %}
         stats:
           default:
             #todo: sollte eigentlich die originalen Sensoren sein, mit konvertierung der Einheiten
@@ -90,14 +91,14 @@ cards:
             service_data:
               my_roomname: Esszimmer
             icon: 'mdi:silverware-fork-knife'
-          - name: Schlafzimmer
+          - name: Gästezimmer
             service: script.vacuum_room
             service_data:
-              my_roomname: Schlafzimmer
-            icon: 'mdi:bed-empty'
+              my_roomname: Gästezimmer #Schlafzimmer
+            icon: 'mdi:desk' #'mdi:bed-empty'
 
       #------------------------------------------------------------
-      # room cleaning and options for automation (always displayed)
+      # Room cleaning and options for automation (always displayed)
       - type: entities
         state_color: true
         entities:
@@ -113,9 +114,9 @@ cards:
         entities:
           - entity: switch.enable_automatic_vacuum
             toggle: true
-            name: Automatisches Saugen #enable Daily Cleanup
+            name: Automatisches Saugen # enable Daily Cleanup
 
-    # options for automatic cleanup (only if activated)
+    # Options for automatic cleanup (only if activated)
       - type: conditional
         conditions:
           - entity: input_boolean.disable_automatic_vacuum
@@ -131,11 +132,11 @@ cards:
                 padding: 0px;
                 display: unset;
           entities:
-            # configuration
+            # Configuration
             - type: custom:fold-entity-row
               head:
                 type: section
-                label: Steuerung  # configuration
+                label: Steuerung  # Configuration
               padding: 0 px
               open: false
               entities:
@@ -144,7 +145,7 @@ cards:
                   toggle: true
                   state_color: true
                 - entity: switch.enable_dustbin_notification
-                  name: Staubbehälter-Mitteilungen #enable notifications
+                  name: Staubbehälter-Mitteilungen # Enable notifications
                   state_color: true
                 - type: custom:fold-entity-row
                   head:
@@ -174,13 +175,13 @@ cards:
                       Ist die Option 'Staubbehälter-Mitteilungen' aktiv, wird der ersten Person, die im Zeitraum 7:30-23:00 nach Hause kommt, eine Nachricht an das Telefon gesendet.
                       
 
-            # status & notifications
+            # Status & notifications
             - type: custom:fold-entity-row
               head:
                 type: section
-                label: Mitteilungen & Status  # notifications & status
+                label: Mitteilungen & Status  # Notifications & status
               padding: 0 px
-              open: true
+              open: false
               entities:
                 - entity: switch.alert_dustbin_full
                   name: Staubbehälter leeren
@@ -195,13 +196,14 @@ cards:
                   - entity: vacuum.xiaomi_vacuum_cleaner
                     name: Status
                   #secondary_info: last-changed
-                  style: |
-                    :host {
-                      {% if is_state('binary_sensor.alert_vacuum_error','on') %}
-                        color: var(--paper-item-icon-active-color);
-                        --paper-item-icon-color: #FF7738;
-                      {% endif %}
-                    }
+                  card_mod:
+                    style: |
+                      :host {
+                        {% if is_state('binary_sensor.alert_vacuum_error','on') %}
+                          color: var(--paper-item-icon-active-color);
+                          --paper-item-icon-color: #FF7738;
+                        {% endif %}
+                      }
                 - entity: input_boolean.automatic_vacuum_first_run
                   name: heute schon gereinigt?
                   type: custom:multiple-entity-row
@@ -250,7 +252,7 @@ cards:
       type: custom:vertical-stack-in-card
       cards:
       - type: entities
-        <<: *style_header
+        card_mod: !include ../templates/styles/style_entitycard_header.yaml
         title: Debug      
         show_header_toggle: false
         entities:

@@ -1,6 +1,7 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : v1 20.11.23, v0 08.10.2020
+#   @date         : 20.11.2023
+#   @created:     : 08.10.2020
 #   @package      : power
 #   @description  : light/power consumtion and regulation
 #   @links        : 
@@ -154,9 +155,12 @@ sensor:
 #todo: oben zufügen
       strompreis_abgaben:
         friendly_name: 'Abgaben und Steuern auf Börsenstrompreis'
+        #unit_of_measurement: 'ct/kWh'
         value_template: >
-          {{ 0.357 + 0.417 + 0.591 + 2.39 + 2.05 }}
-
+          {{ 1.33 + 0.244 + 2.15 + 11.59 + 2.05 }}
+        #Umlagen, Konzessionsabgabe (regional), weitere Beschaffungskosten (Tibber), Nutzungsentgelt (regional), Stromsteuer
+        #netto, zzgl. MwSt auf Abgaben + Strompreis
+#todo: nur test, dieser sensor kann wieder weg.
   # # Berechnet zwar den Mittelwert der gelieferten Energie (macht keinen Sinn), 
   # # stellt aber auch die min(max Werte aus dem verarbeiteten Intervall) als Appribute bereit.
   # # Der min-Wert vor 30 Sec ist das, was wir brauchen
@@ -168,18 +172,19 @@ sensor:
   #     seconds: 25    
   #   precision: 3
   #   entities:
-  #     - sensor.tasmotawe5_we5_total_in
+  #     - sensor.tasmotawe5_we5_power_cur
 
   # berechnet den Durchschnitt über die letzten 4 Messwerte des Stromflusses am Zähler
-  - platform: statistics
-    unique_id: average_current_power_delivery
-    name: strombezug_avg #todo: entity noch umbenennen (hat *_2)
-    entity_id: sensor.tasmotawe5_we5_power_cur #is updated every 10sec
-    state_characteristic: mean
-    max_age:
-      minutes: 0
-      seconds: 25
-    precision: 0
+  #   06/2024: deaktiviert, da es sehr viele History Einträge erzeugt, Wurde nur in Home-View benutzt
+  # - platform: statistics
+  #   unique_id: average_current_power_delivery
+  #   name: strombezug_avg
+  #   entity_id: sensor.tasmotawe5_we5_power_cur #is updated every 10sec
+  #   state_characteristic: mean
+  #   max_age:
+  #     minutes: 0
+  #     seconds: 25
+  #   precision: 0
 
 # Hier Utility Meter Integration (in Core)
 # Berechnet das tägliche Wachstum
@@ -241,7 +246,7 @@ template:
     # berechnet die Eigenverbrauchsquote für den aktuellen Tag
     - unique_id: daily_solar_consumption_rate
       name: daily_solar_consumption_rate
-      state: "{{ (1 - (states('sensor.einspeisung_heute')|float(0)*1000/states('sensor.daily_bkw_sued_yield')|float(1)))*100 }}"
+      state: "{{ ((1 - (states('sensor.einspeisung_heute')|float(0)*1000/states('sensor.daily_bkw_sued_yield')|float(1)))*100) if states('sensor.daily_bkw_sued_yield')|float(0) != 0 else 0 }}"
       unit_of_measurement: '%'
       attributes:
         friendly_name: heutiger Eigenverbrauch
@@ -538,7 +543,8 @@ automation:
     variables:
       # wer wird informiert
       notification_service: >
-        {{ 'notify.family_main_devices' if is_state('sensor.ing_status', 'Home') else 'notify.max' }}
+        {{ 'notify.max' }}
+      # {{ 'notify.family_main_devices' if is_state('sensor.ing_status', 'Home') else 'notify.max' }}
       # in welcher Variable wird die versendete Benachrichtigung gespeichert
       notification_entity_id: >
          {{ 'input_boolean.powermeter_offline_notification' if trigger.id == 'powermeter_offline' else 'input_boolean.bwk_sued_offline_notification' }}
@@ -557,9 +563,8 @@ automation:
               badge: "{{states('sensor.count_notification_alerts')|int(default=0)}}"
               sound:
                 name: default 
-                #name: "US-EN-Daisy-Back-Door-Open.wav" 
-                critical: 1
-                volume: 1.0
+                #critical: 1
+                volume: 0.5
               thread-id: 'power-notification-group'
             apns_headers:
               'apns-collapse-id': 'power-sensor-offline'
@@ -593,7 +598,7 @@ automation:
             state: 'on'
           - alias: Alert BKW offline went to off 
             condition: state
-            entity_id: input_boolean.bwk_sued_offline_alert
+            entity_id: binary_sensor.bwk_sued_offline_alert
             state: 'off'
         - and:
           - alias: Notification powermeter sensor offline was sent
@@ -602,14 +607,14 @@ automation:
             state: 'on'
           - alias: Alert powermeter offline went to off 
             condition: state
-            entity_id: input_boolean.powermeter_offline_alert
+            entity_id: binary_sensor.powermeter_offline_alert
             state: 'off'
     action:
       - service: input_boolean.turn_off
         entity_id: input_boolean.powermeter_offline_notification
       - service: input_boolean.turn_off
         entity_id: input_boolean.bwk_sued_offline_notification
-      - service: notify.family_main_devices
+      - service: notify.max #notify.family_main_devices
         data:
           title: 'Smart Home ...'
           message: 'Power-Sensoren wieder online.'
