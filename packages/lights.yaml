@@ -1,6 +1,7 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 08.01.2021
+#   @changed      : 16.10.2024
+#   @created      : 08.01.2021
 #   @package      : lights
 #   @description  : light control
 #   @links        : 
@@ -91,11 +92,11 @@ switch:
         friendly_name: Automatische Lichtschaltung #   
         value_template: "{% if not states('input_boolean.disable_light_automation')=='unknown' %}{{ is_state('input_boolean.disable_light_automation', 'off') }}{% endif %}"
         turn_on:
-          service: homeassistant.turn_off
+          action: homeassistant.turn_off
           data:
             entity_id: input_boolean.disable_light_automation
         turn_off:
-          service: homeassistant.turn_on
+          action: homeassistant.turn_on
           data:
             entity_id: input_boolean.disable_light_automation
         icon_template: >-
@@ -116,14 +117,14 @@ automation:
   - id: random_lights_during_vacation
     alias: zufälliges Urlaubslicht
     description: 'Schaltet abends das Wohnzimmerlicht zufällig an, wenn wir länger weg sind.'
-    trigger:
+    triggers:
       - id: 'sunset'
-        platform: sun
+        trigger: sun
         event: sunset
       - id: 'bedtime'
-        platform: time
+        trigger: time
         at: '23:00:00'
-    condition:
+    conditions:
       - and:
         - condition: state
           entity_id: input_boolean.disable_light_automation
@@ -131,13 +132,13 @@ automation:
         - condition: state
           entity_id: sensor.home_status
           state: 'Extended Away'
-    action:
+    actions:
       - delay:
           minutes: "{{ range(5, 25 if trigger.platform == 'sun' else 90) | random }}"
-      - service: "light.turn_{{ 'on' if trigger.platform == 'sun' else 'off' }}"
+      - action: "light.turn_{{ 'on' if trigger.platform == 'sun' else 'off' }}"
         entity_id: *ambientelight_wz_entityid
 #  or with groups like that: 
-#      - service: "homeassistant.turn_{{ 'on' if trigger.platform == 'sun' else 'off' }}"
+#      - action: "homeassistant.turn_{{ 'on' if trigger.platform == 'sun' else 'off' }}"
 #        entity_id: group.holiday_lights
     
   #----------------------------------------------------------------------------------
@@ -146,20 +147,20 @@ automation:
   - id: switch_on_lights
     alias: switch on welcome lights
     description: 'Schaltet abends das Wohnzimmerlicht zufällig an, wenn wir länger weg sind.'
-    trigger:
+    triggers:
       - id: 'returned_home'
-        platform: state
+        trigger: state
         entity_id: sensor.home_status
         to: 'Home'
       - id: 'sunset'
-        platform: sun
+        trigger: sun
         event: sunset
         offset: '+00:15:00' # Optional time offset. 
       - id: 'config_changed'
-        platform: state
+        trigger: state
         entity_id: input_boolean.disable_light_automation
         to: 'off'
-    condition:
+    conditions:
       # 'light_automation' aktiv UND Home status 'Home' UND Sonne untergegangen
       - and:
         - condition: state
@@ -173,8 +174,8 @@ automation:
           state: 'below_horizon'
       # und nicht nach systemstart
       # todo
-    action:
-      - service: scene.turn_on
+    actions:
+      - action: scene.turn_on
         data:
           entity_id: scene.welcome
           transition: 2 #[sec] langsamer Übergang
@@ -183,28 +184,28 @@ automation:
   #   und morgens beim Sonnenaufgang
   - id: switch_off_lights
     alias: alle Lichter aus
-    trigger: 
+    triggers: 
       - id: 'nobody_home'
-        platform: state
+        trigger: state
         entity_id: sensor.home_status
         from: 'Home'
         to: 'Away'
         for:
           minutes: 2
       - id: 'bedtime'
-        platform: time 
+        trigger: time 
         at: '00:01:00'
       - id: 'sunrise'
-        platform: sun
+        trigger: sun
         event: sunrise
       - id: 'config_changed'
-        platform: state
+        trigger: state
         entity_id: input_boolean.disable_light_automation
         to: 'off'
       - id: 'ha_started'
-        platform: homeassistant
+        trigger: homeassistant
         event: start      
-    condition:
+    conditions:
       # 'light_automation' aktiv UND (Home status away ODER nach 0:00)
       - and:
         - condition: state
@@ -217,8 +218,8 @@ automation:
           - condition: time
             after: '00:00:00'
             before: '06:00:00'
-    action:
-      - service: light.turn_off
+    actions:
+      - action: light.turn_off
         entity_id: 
           - *ambientelight_wz_entityid
           - *colorlight_ku_entityid
@@ -231,21 +232,21 @@ automation:
   # Die Lichtleiste soll nach dem Versorgen mit Strom wieder ausgeschaltet werden.
   - id: switch_off_signal_after_poweron
     alias: Lichtleiste aus nach Stromzufuhr
-    trigger: 
+    triggers: 
       #falls die Leiste nicht erreichbar war (was leider nur nach langen Aus-Phasen passiert)
-      - platform: state
+      - trigger: state
         entity_id: light.philips_lightstrip_ku
         from: 'unavailable'
         to: 'on'
         for:
           seconds: 10
       #wenn schnell wieder eingeschaltet
-      - platform: state
+      - trigger: state
         entity_id: light.philips_lightstrip_ku
         to: 'on'
         for:
           minutes: 1
-    condition:
+    conditions:
       - and:
         - condition: state
           entity_id: light.philips_lightstrip_ku
@@ -260,8 +261,8 @@ automation:
         - condition: template
           value_template: >
             {{ state_attr('light.philips_lightstrip_ku','hs_color')[0]==28.327 and state_attr('light.philips_lightstrip_ku','hs_color')[1]==64.71}}
-    action:
-      - service: light.turn_off #just turn off light
+    actions:
+      - action: light.turn_off #just turn off light
         entity_id: light.philips_lightstrip_ku
 
   #----------------------------------------------------------------------------------
@@ -269,8 +270,8 @@ automation:
   - id: switch_off_ambientlight_from_sz
     alias: 'Ambientelicht aus (von SZ)'
     description: ''
-    trigger:
-      platform: device
+    triggers:
+      trigger: device
       domain: homematicip_local
       device_id: 248828199b3f92a327f134b7e831fd1f
       event_type: homematic.keypress
@@ -278,15 +279,15 @@ automation:
       device_type: HmIP-BRC2
       interface_id: piVCCU-HmIP-RF
       type: press_short
-      subtype: 1
-    action:
-      service: light.turn_off
+      subtype: 2 #oben
+    actions:
+      action: light.turn_off
       entity_id: *ambientelight_wz_entityid
   - id: switch_off_lights_from_sz
     alias: 'alle Licher aus (von SZ)'
     description: ''
-    trigger:
-      platform: device
+    triggers:
+      trigger: device
       domain: homematicip_local
       device_id: 248828199b3f92a327f134b7e831fd1f
       event_type: homematic.keypress
@@ -294,20 +295,20 @@ automation:
       device_type: HmIP-BRC2
       interface_id: piVCCU-HmIP-RF
       type: press_long_start
-      subtype: 1
-    action:
-      - service: light.turn_off
+      subtype: 2 #oben
+    actions:
+      - action: light.turn_off
         entity_id: *ambientelight_wz_entityid
-      - service: light.turn_off
+      - action: light.turn_off
         entity_id: *colorlight_ku_entityid
-      - service: light.turn_off
+      - action: light.turn_off
         entity_id: *light_az_entityid
   
   - id: switch_on_ambientlight_from_sz
     alias: 'Ambientelicht an (von SZ)'
     description: ''
-    trigger:
-      platform: device
+    triggers:
+      trigger: device
       domain: homematicip_local
       device_id: 248828199b3f92a327f134b7e831fd1f
       event_type: homematic.keypress
@@ -315,15 +316,15 @@ automation:
       device_type: HmIP-BRC2
       interface_id: piVCCU-HmIP-RF
       type: press_short
-      subtype: 2
-    action:
-      service: light.turn_on
+      subtype: 1 #unten
+    actions:
+      action: light.turn_on
       entity_id: *ambientelight_wz_entityid
   - id: switch_on_lights_from_sz
     alias: 'Licher an (von SZ)'
     description: ''
-    trigger:
-      platform: device
+    triggers:
+      trigger: device
       domain: homematicip_local
       device_id: 248828199b3f92a327f134b7e831fd1f
       event_type: homematic.keypress
@@ -331,11 +332,11 @@ automation:
       device_type: HmIP-BRC2
       interface_id: piVCCU-HmIP-RF
       type: press_long_start #press', 'press_cont', 'press_long', 'press_long_release', 'press_long_start', 'press_short'
-      subtype: 2
-    action:
-      - service: light.turn_on
+      subtype: 1 #unten
+    actions:
+      - action: light.turn_on
         entity_id: *ambientelight_wz_entityid
-      - service: light.turn_on
+      - action: light.turn_on
         data:
           brightness_pct: 10
         target:

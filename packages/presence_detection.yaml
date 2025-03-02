@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 20.06.2024
+#   @changed      : 20.06.2024
 #   @created:     : 08.08.2020
 #   @package      : presence_detection
 #   @description  : Presence Detection with different states based of bluetooth monitor script.
@@ -464,13 +464,13 @@ script:
           conditions: >
             {{ is_state(my_entity,'home') }}
           sequence:
-            - service: device_tracker.see
+            - action: device_tracker.see
               data:
                 dev_id: "{{ my_device }}"
                 location_name: not_home
                 source_type: bluetooth
         default:
-            - service: device_tracker.see
+            - action: device_tracker.see
               data:
                 dev_id: "{{ my_device }}"
                 location_name: home
@@ -481,7 +481,7 @@ script:
     alias: Restart monitor scripts on Raspi's
     mode: restart
     sequence:
-      - service: mqtt.publish
+      - action: mqtt.publish
         data:
           topic: monitor/scan/restart
 
@@ -500,9 +500,9 @@ automation:
   - alias: reconnect monitors
     id: reconnect_monitor_sensors 
     mode: queued
-    trigger: 
+    triggers: 
       - id: mon_w_missing
-        platform: state
+        trigger: state
         entity_id:
           - sensor.max_present_w
           - sensor.ing_present_w
@@ -510,7 +510,7 @@ automation:
         for:
           seconds: 5
       - id: mon_o_missing
-        platform: state
+        trigger: state
         entity_id:
           - sensor.max_present_o
           - sensor.ing_present_o
@@ -518,7 +518,7 @@ automation:
         for:
           seconds: 5
       - id: mon_s_missing
-        platform: state
+        trigger: state
         entity_id:
           - sensor.max_present_s
           - sensor.ing_present_s
@@ -526,14 +526,14 @@ automation:
         for:
           seconds: 5
       - id: raspi_back_online
-        platform: state
+        trigger: state
         entity_id:
           - binary_sensor.rpi_west
           - binary_sensor.rpi_ost
           - binary_sensor.rpi_sued
         from: 'off'
         to: 'on'        
-    condition:
+    conditions:
       - or:
         - and:
           - condition: trigger
@@ -555,8 +555,8 @@ automation:
             state: 'on'
         - condition: trigger
           id: raspi_back_online
-    action:
-      - service: script.restart_monitor
+    actions:
+      - action: script.restart_monitor
 
   # Update bluetooth device_tracker states from the confidence values derived from BlueTooth monitor.sh 
   # We stick to the device_tracker sensors because they were already in use...input_boolean would be fine too...
@@ -566,8 +566,8 @@ automation:
     id: change_person_occupancy
     description: 'Changes the BT device tracker status for a person when the home confidence value drops or raises above threshold.'
     mode: queued # oder: parallel ?
-    trigger:
-      - platform: numeric_state
+    triggers:
+      - trigger: numeric_state
         <<: &sensor_home_confidence_list
           entity_id: 
             - sensor.max_home_confidence # Person 1
@@ -576,7 +576,7 @@ automation:
             - sensor.home_confidence_winfried
         above: *int_confidence_threshold_home
         id: turn_occupany_on
-      - platform: numeric_state
+      - trigger: numeric_state
         <<: *sensor_home_confidence_list
         below: *int_confidence_threshold_home
         id: turn_occupany_off
@@ -589,8 +589,8 @@ automation:
           sensor.home_confidence_winfried: iphone_winfried_bt # Gast2
       device_tracker_entity: >
         {{ device_map[trigger.entity_id] }}
-    action:
-      - service: device_tracker.see
+    actions:
+      - action: device_tracker.see
         data:
           dev_id: "{{ device_tracker_entity }}"
           location_name: >
@@ -603,8 +603,8 @@ automation:
   - alias: Start BT Arrival Scan Area
     id: start_bt_arrival_scan_area
     mode: queued
-    trigger:
-      - platform: numeric_state
+    triggers:
+      - trigger: numeric_state
         <<: &sensor_presence_w_list
           entity_id: 
             - sensor.max_present_w
@@ -613,7 +613,7 @@ automation:
             - sensor.winfried_present_w
         below: *int_confidence_threshold_area_arrival_scan
         id: device_leaving_west
-      - platform: numeric_state
+      - trigger: numeric_state
         <<: &sensor_presence_o_list
           entity_id: 
             - sensor.max_present_o
@@ -622,7 +622,7 @@ automation:
             - sensor.winfried_present_o
         below: *int_confidence_threshold_area_arrival_scan
         id: device_leaving_east
-      - platform: numeric_state
+      - trigger: numeric_state
         <<: &sensor_presence_s_list
           entity_id: 
             - sensor.max_present_s
@@ -637,8 +637,8 @@ automation:
           device_leaving_south: "{'data' : 'south'}"  #this monitor publisher will NOT respond!
       payload: >
         {{ id_payload_map[trigger.id] }}
-    action:
-      - service: mqtt.publish
+    actions:
+      - action: mqtt.publish
         data:
           topic: 'monitor/scan/arrive' 
           payload: "{{ payload }}" #this monitor publisher will NOT respond!
@@ -648,14 +648,14 @@ automation:
   - alias: Start BT Departure Scan Area
     id: start_bt_departure_scan_area
     mode: parallel 
-    trigger:
-      - platform: numeric_state
+    triggers:
+      - trigger: numeric_state
         <<: *sensor_presence_w_list
         below: *int_confidence_threshold_area_departure_scan
         for:
           seconds: *int_seconds_delay_before_area_departure_scan
         id: device_leaving_west
-      - platform: numeric_state
+      - trigger: numeric_state
         <<: *sensor_presence_o_list
         below: *int_confidence_threshold_area_departure_scan
         for:
@@ -665,8 +665,8 @@ automation:
       <<: *id_payload_map
       payload: >
         {{ id_payload_map[trigger.id] }}
-    action:
-      - service: mqtt.publish
+    actions:
+      - action: mqtt.publish
         data:
           topic: 'monitor/scan/depart' 
           payload: "{{ payload }}"  #this monitor publisher will NOT respond!
@@ -675,22 +675,21 @@ automation:
   #    If frontdoor opens (and stays open for some time) too.
   - alias: Start BT Arrival Scan
     id: start_bt_arrival_scan
-    trigger: 
-      - platform: state
+    triggers: 
+      - trigger: state
         <<: &device_tracker_wifi_list
           entity_id: 
             - device_tracker.iphonemax13_wifi
             - device_tracker.iphone8_ing_wifi
         from: 'not_home'
         to: 'home'
-      - platform: state
+      - trigger: state
         entity_id: group.entrance_door 
         to: 'on' #=open
         for:
           seconds: 1
-    condition: []
-    action:
-      - service: mqtt.publish
+    actions:
+      - action: mqtt.publish
         data:
           topic: 'monitor/scan/arrive'
           payload: ''
@@ -700,32 +699,33 @@ automation:
   #    We do a depart scan 20secs, 1min and 2 min after frontdoor is closed.
   - alias: Start BT Departure Scan
     id: start_bt_departure_scan
-    trigger: 
-      - platform: state
+    triggers: 
+      - trigger: state
         <<: *device_tracker_wifi_list
         from: 'home'
         to: 'not_home'
         id: 'wifi'
-      - platform: state
+      - trigger: state
         entity_id: group.entrance_door 
         to: 'off' #closed
         for:
           seconds: 20
         id: 'door'
     # prevent a scan from being triggered at night when the network and raspi1 was shut down
-    condition: "{{ trigger.id == 'door' or (trigger.id == 'wifi' and is_state('switch.fritz_dect_200_netz','on')) }}"
-    action:
-      - service: mqtt.publish
+    conditions: 
+      - "{{ trigger.id == 'door' or (trigger.id == 'wifi' and is_state('switch.fritz_dect_200_netz','on')) }}"
+    actions:
+      - action: mqtt.publish
         data:
           topic: 'monitor/scan/depart'
           payload: ''
       - delay: '00:00:40'
-      - service: mqtt.publish
+      - action: mqtt.publish
         data:
           topic: 'monitor/scan/depart'
           payload: ''
       - delay: '00:01:00'
-      - service: mqtt.publish
+      - action: mqtt.publish
         data:
           topic: 'monitor/scan/depart'
           payload: ''
@@ -734,15 +734,15 @@ automation:
   #   We need that time to trigger status changes (e.g 'extended_away').
   - alias: Save last time person status changed
     id: personstatus_last_changed_date_and_time #Person-Status and home-status last changed date and time
-    trigger:
-      platform: state
+    triggers:
+      trigger: state
       entity_id: 
         - input_select.max_status_dropdown
         - input_select.ing_status_dropdown
         - input_select.home_status_dropdown
     mode: queued
-    action:
-      - service: input_datetime.set_datetime
+    actions:
+      - action: input_datetime.set_datetime
         data:
           entity_id: input_datetime.{{ trigger.entity_id[13:] }}_last_changed
           time: "{{ (as_timestamp(now()) | timestamp_custom('%H:%M:%S', true)) }}"
@@ -753,33 +753,34 @@ automation:
 # Becasue *.last_changed value is reset at boot time, we use a persistent variable 'input_datetime.*_status_dropdown_last_changed'.
   - alias: Person- and Home-Status correction
     id: person_and_homestatus_correction
-    trigger: 
-      - platform: homeassistant
+    triggers: 
+      - trigger: homeassistant
         event: start
-      - platform: time
+      - trigger: time
         at: '00:30:00'
-      - platform: time
+      - trigger: time
         at: '06:10:00'
-    condition: "{{ states('sensor.raspi1_last_message') != 'unavailable' and states('sensor.raspi2_last_message') != 'unavailable' }}"
+    conditions: 
+      - "{{ states('sensor.raspi1_last_message') != 'unavailable' and states('sensor.raspi2_last_message') != 'unavailable' }}"
       # only, if both Raspis are online (because of BT-Monitor script)
-    action:
+    actions:
       # first update device status from MQTT (BlueTooth monitor.sh) 
-      - service: mqtt.publish
+      - action: mqtt.publish
         data:
           topic: 'monitor/scan/restart'
           payload: ''
       - delay: '00:00:30'
-      - service: mqtt.publish
+      - action: mqtt.publish
         data:
           topic: 'monitor/ost/KNOWN DEVICE STATES'
           payload: 'on'
-      - service: mqtt.publish
+      - action: mqtt.publish
         data:
           topic: 'monitor/west/KNOWN DEVICE STATES'
           payload: 'on'
       - delay: '00:00:10'
       # correct person 1
-      - service: input_select.select_option
+      - action: input_select.select_option
         data:
           entity_id: input_select.max_status_dropdown
           option: >
@@ -806,7 +807,7 @@ automation:
               {% endif %}
             {% endif %}
       # correct person 2
-      - service: input_select.select_option
+      - action: input_select.select_option
         data:
           entity_id: input_select.ing_status_dropdown
           option: >
@@ -835,7 +836,7 @@ automation:
       # correct home status
       # todo: dies verursacht den Log-Eintrag 'WARNING (MainThread) [homeassistant.components.input_select] Invalid option: (possible options: Home, Away, Extended Away)'
       #       05/2022: 2*else-Zweig ergänzt. Problem behoben.
-      - service: input_select.select_option
+      - action: input_select.select_option
         data:
           entity_id: input_select.home_status_dropdown
           option: >
@@ -867,8 +868,8 @@ automation:
   - alias: Set person status to just arrived
     id: mark_person_as_just_arrived
     mode: queued
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         <<: &person_phone_groups_list
           entity_id: 
             - group.phone_max 
@@ -876,7 +877,7 @@ automation:
         from: 'not_home'
         to: 'home'
       # we need this too, because states of groups containing device_trackers changed back and force in v2024.05/.06
-      - platform: state
+      - trigger: state
         <<: *person_phone_groups_list
         from: 'off' #'not_home'
         to: 'on' #'home'
@@ -890,8 +891,8 @@ automation:
       state_map:
         Home: Home
         Just Left: Home
-    action:
-      - service: input_select.select_option
+    actions:
+      - action: input_select.select_option
         data:
           entity_id: >
             {{ input_select_entity }}
@@ -901,12 +902,12 @@ automation:
   - alias: Set person status to just left
     id: mark_person_as_just_left
     mode: queued
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         <<: *person_phone_groups_list
         from: 'home'
         to: 'not_home'
-      - platform: state
+      - trigger: state
         <<: *person_phone_groups_list
         from: 'on' #'home'
         to: 'off' #'not_home'
@@ -914,8 +915,8 @@ automation:
       <<: *device_person_map
       input_select_entity: >
         {{ device_map[trigger.entity_id] }}
-    action:
-      - service: input_select.select_option
+    actions:
+      - action: input_select.select_option
         data:
           entity_id: >
             {{ input_select_entity }}
@@ -924,8 +925,8 @@ automation:
   - alias: Set person status to home #('Just Arrived' vor 10min) oder ('Just Arrived' nach 'Just Left')
     id: mark_person_as_home
     mode: queued
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         <<: &person_status_dropdowns_list
           entity_id: 
             - input_select.max_status_dropdown
@@ -933,12 +934,12 @@ automation:
         to: 'Just Arrived'
         for:
           minutes: *int_minutes_after_being_home # default:10
-      - platform: state
+      - trigger: state
         <<: *person_status_dropdowns_list
         from: 'Just Left'
         to: 'Just Arrived'
-    action:
-      - service: input_select.select_option
+    actions:
+      - action: input_select.select_option
         data:
           entity_id: "{{ trigger.entity_id }}"
           option: Home
@@ -946,14 +947,14 @@ automation:
   - alias: Set person status to away  #('Just Left' vor 10min)
     id: mark_person_as_away
     mode: queued
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         <<: *person_status_dropdowns_list
         to: 'Just Left'
         for:
           minutes: *int_minutes_after_being_away # default: 10
-    action:
-      - service: input_select.select_option
+    actions:
+      - action: input_select.select_option
         data:
           entity_id: "{{ trigger.entity_id }}"
           option: Away
@@ -961,15 +962,15 @@ automation:
   - alias: Set person status to extended away  #('Away' für 24h)
     id: mark_person_as_extended_away
     mode: queued
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         <<: *person_status_dropdowns_list
         to: 'Away'
         for:
           hours: *int_hours_after_being_extendedaway # default: 24
           minutes: *int_minutes_after_being_extendedaway #for testing. Default: 0
-    action:
-      - service: input_select.select_option
+    actions:
+      - action: input_select.select_option
         data:
           entity_id: "{{ trigger.entity_id }}"
           option: Extended Away
@@ -988,43 +989,44 @@ automation:
 #
   - alias: Home Status - Leaving # (n_people_home <=0) UND (Home-Status='Home')
     id: set_home_status_leaving
-    trigger: 
-      platform: numeric_state
+    triggers: 
+      trigger: numeric_state
       entity_id: sensor.n_people_home
       below: 1
-    condition:
+    conditions:
       condition: state
       entity_id: input_select.home_status_dropdown
       state: Home
-    action:
-      service: input_select.select_option
+    actions:
+      action: input_select.select_option
       entity_id: input_select.home_status_dropdown
       data:
         option: Away
 
   - alias: Home Status - Arriving #n_people_home 
     id: set_home_status_arriving
-    trigger:
-      platform: state
+    triggers:
+      trigger: state
       entity_id: sensor.n_people_home
-    condition: "{{ trigger.to_state.state|int(default=0) > trigger.from_state.state|int(default=0) }}"
-    action:
-      service: input_select.select_option
+    conditions: 
+      - "{{ trigger.to_state.state|int(default=0) > trigger.from_state.state|int(default=0) }}"
+    actions:
+      action: input_select.select_option
       entity_id: input_select.home_status_dropdown
       data:
         option: Home
 
   - alias: Home Status - Vacation  #('Away' für 24h) 
     id: set_home_status_vacation
-    trigger:
-      platform: state
+    triggers:
+      trigger: state
       entity_id: input_select.home_status_dropdown
       to: 'Away'
       for:
         hours: *int_hours_after_being_extendedaway # default: 24
         minutes: *int_minutes_after_being_extendedaway #for testing. Default: 0
-    action:
-      service: input_select.select_option
+    actions:
+      action: input_select.select_option
       entity_id: input_select.home_status_dropdown
       data:
         option: Extended Away

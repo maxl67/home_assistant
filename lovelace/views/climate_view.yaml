@@ -25,6 +25,9 @@ anchors:
     control:
       hvac:
         _hide_when_off: true #hides control buttons when turned off.
+        _name: Aktion
+      #preset:
+      #  _name: Voeinstellung
     card_mod:
       style: |
         ha-card {

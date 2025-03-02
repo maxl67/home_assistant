@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 20.11.2023
+#   @changed      : 20.11.2023
 #   @created:     : 08.10.2020
 #   @package      : power
 #   @description  : light/power consumtion and regulation
@@ -123,11 +123,11 @@ switch:
         friendly_name: Automatische Stromabschaltung #   
         value_template: "{% if not states('input_boolean.disable_power_automation')=='unknown' %}{{ is_state('input_boolean.disable_power_automation', 'off') }}{% endif %}"
         turn_on:
-          service: homeassistant.turn_off
+          action: homeassistant.turn_off
           data:
             entity_id: input_boolean.disable_power_automation
         turn_off:
-          service: homeassistant.turn_on
+          action: homeassistant.turn_on
           data:
             entity_id: input_boolean.disable_power_automation
         icon_template: >-
@@ -238,7 +238,8 @@ template:
       name: solar_power_continious
       state: "{{ (0 if is_state('sensor.bkw_sued_power','unavailable') else states('sensor.bkw_sued_power'))|int(0) }}"
       unit_of_measurement: 'W'
-      #state_class: measurement
+      state_class: measurement
+      device_class: energy
       icon: mdi:transmission-tower-import
       attributes:
         friendly_name: aktuelle Solarstromproduktion
@@ -262,22 +263,22 @@ automation:
   - id: power_down_mediarack
     alias: switch off media rack
     description: 'Schaltet TV/Hifi und Raspi3 aus, wenn niemand für 20 min zuhause.'
-    trigger: 
+    triggers: 
       - id: 'nobody_home'
-        platform: state
+        trigger: state
         entity_id: sensor.home_status
         from: 'Home'
         to: 'Away'
         for:
           minutes: *int_minutes_away_for_power_down
       - id: 'config_changed'
-        platform: state
+        trigger: state
         entity_id: input_boolean.disable_power_automation
         to: 'off'
       # - id: 'ha_started'
-      #   platform: homeassistant
+      #   trigger: homeassistant
       #   event: start
-    condition:
+    conditions:
       # 'power_automation' aktiv UND Home status 'Away'
       - and:
         - condition: state
@@ -286,19 +287,19 @@ automation:
         - condition: state
           entity_id: input_boolean.disable_power_automation
           state: 'off'
-    action:
-      - service: switch.turn_off
+    actions:
+      - action: switch.turn_off
         entity_id: *powerswitch_tv_entityid
-      # - service: script.kill_raspi3
+      # - action: script.kill_raspi3
       # - wait_for_trigger:
-      #     - platform: state
+      #     - trigger: state
       #       entity_id: binary_sensor.rpi_sued
       #       to: 'off'
       #   timeout:
       #     minutes: 1
       #   continue_on_timeout: true  
       # # switch off power outlet EZ (RPI Sued)
-      # - service: switch.turn_off
+      # - action: switch.turn_off
       #   entity_id: *powerswitch_rpi_sued_entityid
 
   # Einschalten des Media Racks, wenn wir nach Hause kommen
@@ -307,18 +308,18 @@ automation:
   - id: power_up_mediarack
     alias: switch on media rack
     description: 'Schaltet TV/Hifi und Raspi3 an, wenn wir wieder für 3 min zuhause sind.'
-    trigger:
+    triggers:
       - id: 'returned_home'
-        platform: state
+        trigger: state
         entity_id: sensor.home_status
         to: 'Home'
         for: 
           minutes: *int_minutes_home_for_power_up
       - id: 'config_changed'
-        platform: state
+        trigger: state
         entity_id: input_boolean.disable_power_automation
         to: 'off'
-    condition:
+    conditions:
       # 'power_automation' aktiv UND Home status 'Home'
       - and:
         - condition: state
@@ -327,34 +328,34 @@ automation:
         - condition: state
           entity_id: sensor.home_status
           state: 'Home'
-    action:
-      - service: switch.turn_on
+    actions:
+      - action: switch.turn_on
         entity_id: *powerswitch_tv_entityid
       # # switch on power outlet EZ (RPI Sued)
-      # - service: switch.turn_on
+      # - action: switch.turn_on
       #   entity_id: *powerswitch_rpi_sued_entityid
 
   #----------------------------------------------------------------------------------
 #todo: Log error: 'Unable to find referenced entities'
-# - service: automation.turn_off, entity_id: automation.switch_off_network
+# - action: automation.turn_off, entity_id: automation.switch_off_network
     # FritzDect1 schaltet WLAN, Unify-Switch und Raspi aus.
   - id: switch_off_network
     alias: switch off network #components
     mode: restart
     description: 'Schaltet Netzkomponenten (nicht wenn SaugE aktiv) und Raspi3 aus, 20 min nach dem Verlassen oder nach Mitternacht.'
-    trigger: 
+    triggers: 
       - id: 'nobody_home'
-        platform: state
+        trigger: state
         entity_id: sensor.home_status
         from: 'Home'
         to: 'Away'
         for:
           minutes: *int_minutes_away_for_power_down
       - id: 'past_midnight'
-        platform: time
+        trigger: time
         at: '00:45:00'
       - id: 'duste_docked'
-        platform: state
+        trigger: state
         entity_id: vacuum.xiaomi_vacuum_cleaner
         to: 'docked'
         from: 
@@ -362,7 +363,7 @@ automation:
           - 'returning'
         for:
           minutes: 5
-    condition:
+    conditions:
       # 'power_automation' aktiv (und Saug-E nicht aktiv für Netzwerk) 
       - condition: state
         entity_id: input_boolean.disable_power_automation
@@ -382,14 +383,14 @@ automation:
           - condition: trigger
             id: duste_docked
 
-    action:
+    actions:
       # stop switching on the network
-      - service: automation.turn_off
+      - action: automation.turn_off
         entity_id: automation.switch_on_network
-      - service: automation.turn_on
+      - action: automation.turn_on
         entity_id: automation.switch_on_network
       # power down Desk and wait a bit (because Fritz integration does not send 2 consecutive commands)
-      - service: switch.turn_off
+      - action: switch.turn_off
         entity_id: *powerswitch_gz_entityid
       - delay: '00:00:05'
       - choose:
@@ -403,9 +404,9 @@ automation:
                 - 'unavailable'
           sequence:
             # shut down Raspi1, and wait for it being offline
-            - service: script.kill_raspi1
+            - action: script.kill_raspi1
             - wait_for_trigger:
-                - platform: state
+                - trigger: state
                   entity_id: binary_sensor.rpi_ost
                   to: 'off'
               timeout:
@@ -415,22 +416,22 @@ automation:
             - choose:
               - conditions: "{{ states('sensor.raspi3_last_message') != 'unavailable' }}"
                 sequence:
-                  #- service: script.kill_raspi3
-                  - service: script.turn_on #https://www.home-assistant.io/integrations/script/#waiting-for-script-to-complete
+                  #- action: script.kill_raspi3
+                  - action: script.turn_on #https://www.home-assistant.io/integrations/script/#waiting-for-script-to-complete
                     target:
                       entity_id: script.kill_raspi3
                   - wait_for_trigger:
-                      - platform: state
+                      - trigger: state
                         entity_id: binary_sensor.rpi_sued
                         to: 'off'
                     timeout:
                       minutes: 1
                     continue_on_timeout: true  
             # switch off power outlet EZ (RPI Sued)
-            - service: switch.turn_off
+            - action: switch.turn_off
               entity_id: *powerswitch_rpi_sued_entityid
             # power down Unifi components 
-            - service: switch.turn_off
+            - action: switch.turn_off
               entity_id: *powerswitch_rack_entityid
 
   - id: switch_on_network
@@ -439,21 +440,21 @@ automation:
     description: 'Schaltet Netzkomponenten und Raspi3 wieder an - bei Rückkehr nach Hause, wenn die Eingangstür aufgeht und morgens um 6:00'
     trigger: 
       - id: 'returned_home'
-        platform: state
+        trigger: state
         entity_id: sensor.home_status
         to: 'Home'
       - id: 'door_opened'
-        platform: state
+        trigger: state
         entity_id: group.entrance_door
         to: 'on' 
       - id: 'in_the_morning'
-        platform: time
+        trigger: time
         at: '06:00:00'
       - id: 'config_changed'
-        platform: state
+        trigger: state
         entity_id: input_boolean.disable_power_automation
         to: 'off'
-    condition:
+    conditions:
       - and:
         - alias: Automation is turned on
           condition: state
@@ -466,27 +467,27 @@ automation:
             entity_id: sensor.home_status
             state: 'Home'
           - "{{ trigger.entity_id == 'group.entrance_door' }}"
-    action:
+    actions:
       # stop 'switching off the network' (if running)
-      - service: automation.turn_off
+      - action: automation.turn_off
         entity_id: automation.switch_off_network
-      - service: automation.turn_on
+      - action: automation.turn_on
         entity_id: automation.switch_off_network
       # power up Unifi components and wait for them to initialize
-      - service: switch.turn_on
+      - action: switch.turn_on
         entity_id: *powerswitch_rack_entityid
       # meanwhile trigger arrival scan for Raspi1. monitor.sh service will be started on Raspi1 with a delay of approx. 20secs.
       - delay: '00:00:30'
-      - service: mqtt.publish
+      - action: mqtt.publish
         data:
           topic: 'monitor/scan/arrive' 
           payload: "{'data' : 'west'}" #this monitor publisher will NOT respond!
       - delay: '00:01:30'
       # power up Desk ...
-      - service: switch.turn_on
+      - action: switch.turn_on
         entity_id: *powerswitch_gz_entityid
       # ...and switch on power outlet EZ (RPI Sued)...
-      - service: switch.turn_on
+      - action: switch.turn_on
         entity_id: *powerswitch_rpi_sued_entityid
       # ...and wait a bit
       - delay: '00:00:30'
@@ -494,26 +495,26 @@ automation:
       - choose:
         - conditions: "{{ states('sensor.raspi1_last_message') == 'unavailable' }}"
           sequence:
-            - service: script.reboot_raspi1
+            - action: script.reboot_raspi1
 
       - delay: '00:01:00' 
       # switch of and on power for Raspi1. Necessary after longer power off periods
       - choose:
         - conditions: "{{ states('binary_sensor.rpi_ost') != 'on'  or  states('sensor.raspi1_last_message') == 'unavailable' }}"
           sequence:
-            - service: switch.turn_off
+            - action: switch.turn_off
               entity_id: *powerswitch_rack_entityid
             - delay: '00:00:03' 
-            - service: switch.turn_on
+            - action: switch.turn_on
               entity_id: *powerswitch_rack_entityid
       # switch of and on power for Raspi3. Necessary after longer power off periods
       - choose:
         - conditions: "{{ states('binary_sensor.rpi_sued') != 'on'  or  states('sensor.raspi3_last_message') == 'unavailable' }}"
           sequence:
-            - service: switch.turn_off
+            - action: switch.turn_off
               entity_id: *powerswitch_rpi_sued_entityid
             - delay: '00:00:05' 
-            - service: switch.turn_on
+            - action: switch.turn_on
               entity_id: *powerswitch_rpi_sued_entityid
 
       - delay: '00:00:45' 
@@ -521,21 +522,21 @@ automation:
       - choose:
         - conditions: "{{ states('sensor.raspi3_last_message') == 'unavailable' }}"
           sequence:
-            - service: script.reboot_raspi3
+            - action: script.reboot_raspi3
 
   - alias: Notify - Powersensor offline
     id: send_notification_powersensor_offline_2
-    trigger:
+    triggers:
       # Stromzähler Sensor ist offline
       - id: 'powermeter_offline'
-        platform: state
+        trigger: state
         entity_id: binary_sensor.powermeter_offline_alert
         to: 'on'
         for:
           seconds: *int_seconds_alert_send_delay
       # BWK Süd Wechselrichter ist offline
       - id: 'solarpanel_offline'
-        platform: state
+        trigger: state
         entity_id: binary_sensor.bwk_sued_offline_alert
         to: 'on'
         for:
@@ -548,11 +549,11 @@ automation:
       # in welcher Variable wird die versendete Benachrichtigung gespeichert
       notification_entity_id: >
          {{ 'input_boolean.powermeter_offline_notification' if trigger.id == 'powermeter_offline' else 'input_boolean.bwk_sued_offline_notification' }}
-    action:
-      - service: input_boolean.turn_on
+    actions:
+      - action: input_boolean.turn_on
         data_template:
           entity_id: "{{ notification_entity_id }}"
-      - service: "{{ notification_service }}"
+      - action: "{{ notification_service }}"
         data:
           title: 'Smart Home Alarm'
           message: >
@@ -572,24 +573,24 @@ automation:
   
   - alias: Reset alert - Powersensor offline
     id: reset_notification_powersensor_offline
-    trigger:
+    triggers:
       # beide Alert-Sensoren aus
       - id: 'all_sensors_online'
-        platform: template
+        trigger: template
         value_template: >
           {{ is_state('binary_sensor.powermeter_offline_alert', 'off') 
               and is_state('binary_sensor.bwk_sued_offline_alert', 'off') }}
         for:
           seconds: *int_seconds_alert_reset_delay
       # - id: 'sensor_online'
-      #   platform: state
+      #   trigger: state
       #   entity_id: 
       #     - binary_sensor.bwk_sued_offline_alert
       #     - binary_sensor.powermeter_offline_alert
       #   to: 'off'
       #   for:
       #     seconds: *int_seconds_alert_send_delay
-    condition:
+    conditions:
       - or:
         - and:
           - alias: Notification BKW offline was sent
@@ -609,12 +610,12 @@ automation:
             condition: state
             entity_id: binary_sensor.powermeter_offline_alert
             state: 'off'
-    action:
-      - service: input_boolean.turn_off
+    actions:
+      - action: input_boolean.turn_off
         entity_id: input_boolean.powermeter_offline_notification
-      - service: input_boolean.turn_off
+      - action: input_boolean.turn_off
         entity_id: input_boolean.bwk_sued_offline_notification
-      - service: notify.max #notify.family_main_devices
+      - action: notify.max #notify.family_main_devices
         data:
           title: 'Smart Home ...'
           message: 'Power-Sensoren wieder online.'
@@ -635,7 +636,7 @@ script:
     alias: shutdown Raspi1 (Ost)
     mode: single
     sequence:
-    - service: shell_command.shutdown_raspi
+    - action: shell_command.shutdown_raspi
       data_template: 
         ip_address: !secret raspi1_ost_ip
         user: !secret raspi_user
@@ -643,7 +644,7 @@ script:
     alias: shutdown Raspi3 (Süd)
     mode: single
     sequence:
-    - service: shell_command.shutdown_raspi
+    - action: shell_command.shutdown_raspi
       data_template: 
         ip_address: !secret raspi3_sued_ip
         user: !secret raspi_user
@@ -651,7 +652,7 @@ script:
     alias: reboot Raspi1 (Ost)
     mode: single
     sequence:
-    - service: shell_command.reboot_raspi
+    - action: shell_command.reboot_raspi
       data_template: 
         ip_address: !secret raspi1_ost_ip
         user: !secret raspi_user
@@ -659,7 +660,7 @@ script:
     alias: reboot Raspi2 (West)
     mode: single
     sequence:
-    - service: shell_command.reboot_raspi
+    - action: shell_command.reboot_raspi
       data_template: 
         ip_address: !secret raspi2_west_ip
         user: !secret raspi_user
@@ -667,7 +668,7 @@ script:
     alias: reboot Raspi3 (Süd)
     mode: single
     sequence:
-    - service: shell_command.reboot_raspi
+    - action: shell_command.reboot_raspi
       data_template: 
         ip_address: !secret raspi3_sued_ip
         user: !secret raspi_user

@@ -1,6 +1,7 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 04.2024
+#   @changed      : 16.10.2024
+#   @created      : 04.2024
 #   @created:     : 25.06.2020
 #   @package      : synology
 #   @description  : Sensors for Synology NAS
@@ -54,10 +55,10 @@ homeassistant:
 #    #- volume_disk_temp_avg # does not work.
 
 sensor:
-  # Let's Encryt Certificate
-  - platform: cert_expiry
-    host: !secret ssl_cert_name
-    port: 443
+  # # Let's Encryt Certificate
+  # - platform: cert_expiry
+  #   host: !secret ssl_cert_name
+  #   port: 443
 
 ###############################################################################
 ##  Sensors
@@ -77,10 +78,10 @@ sensor:
 automation:
   - id: update_cert_expiry_on_reboot
     alias: update_cert_expiry_on_reboot
-    trigger:
-      - platform: homeassistant
+    triggers:
+      - trigger: homeassistant
         event: start
-    action:
+    actions:
       - delay: "0:00:50"
-      - service: homeassistant.update_entity
+      - action: homeassistant.update_entity
         entity_id: sensor.cert_expiry_timestamp_hera

@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 23.06.2024
+#   @changed      : 16.10.2024
 #   @created:     : 29.04.2022
 #   @package      : doors_windows
 #   @description  : Notifications of status of open doors and windows
@@ -50,9 +50,11 @@ homeassistant:
       <<: *door
     binary_sensor.door_a1_offnung:
       friendly_name: Arbeitszimmer O
+      battery last changed: 11.11.2024
       <<: *door
     binary_sensor.door_s1_offnung:
       friendly_name: Schlafzimmer
+      battery last changed: 21.01.2025
       <<: *door
     binary_sensor.door_eingang_offnung:
       friendly_name: Eingang
@@ -63,6 +65,7 @@ homeassistant:
       <<: *window
     binary_sensor.window_b2_offnung:
       friendly_name: Gästebad
+      battery last changed: 18.10.2024
       <<: *window
   # groups, variables
     group.all_doors:
@@ -163,11 +166,11 @@ switch:
         friendly_name: Automatische Ampel #   
         value_template: "{% if not states('input_boolean.disable_signal_automation')=='unknown' %}{{ is_state('input_boolean.disable_signal_automation', 'off') }}{% endif %}"
         turn_on:
-          service: homeassistant.turn_off
+          action: homeassistant.turn_off
           data:
             entity_id: input_boolean.disable_signal_automation
         turn_off:
-          service: homeassistant.turn_on
+          action: homeassistant.turn_on
           data:
             entity_id: input_boolean.disable_signal_automation
         icon_template: >-
@@ -180,11 +183,11 @@ switch:
         friendly_name: Ampel anzeigen   
         value_template: "{% if not states('input_boolean.show_signal')=='unknown' %}{{ is_state('input_boolean.show_signal', 'on') }}{% endif %}"
         turn_on:
-          service: homeassistant.turn_on
+          action: homeassistant.turn_on
           data:
             entity_id: input_boolean.show_signal
         turn_off:
-          service: homeassistant.turn_off
+          action: homeassistant.turn_off
           data:
             entity_id: input_boolean.show_signal
         icon_template: >-
@@ -208,7 +211,7 @@ script:
         description: 'number of flashes'
         example: '8 (should be int)'
     sequence:
-      - service: light.turn_on
+      - action: light.turn_on
         target:
           entity_id: "light.{{ light_id }}"
       - alias: "Cycle light 'count' times"
@@ -216,7 +219,7 @@ script:
           count: "{{ count|int * 2 - 1 }}"
           sequence:
             - delay: 2
-            - service: light.toggle
+            - action: light.toggle
               target:
                 entity_id: "light.{{ light_id }}"
 
@@ -231,24 +234,24 @@ automation:
     alias: Lichtband zeigt Status
     mode: single #Do not start a new run, if already running.
     #mode: restart #Start a new run, after stopping the previous run.
-    trigger: 
+    triggers: 
       #wenn Eingangstür geöffnet wird oder sich der Status von Türen/Fenstern ändert.
-      - platform: state
+      - trigger: state
         entity_id: group.entrance_door 
         to: 'on' #=open
-      - platform: state
+      - trigger: state
         entity_id: 
           - group.all_doors
           - group.all_windows
       #Automatisierung wird angeschaltet
-      - platform: state
+      - trigger: state
         entity_id: input_boolean.disable_signal_automation
         to: 'off'
       #Statusampel soll dauerhaft angezeigt werden (z.B. zum Debuggen)
-      - platform: state
+      - trigger: state
         entity_id: input_boolean.show_signal
         to: 'on'
-    condition:
+    conditions:
       # 'signal_automation' aktiv UND Home status 'Home' UND (Eingangtür offen ODER Ampel dauerhaft anzeigen)
       - and:
         - condition: state
@@ -264,11 +267,11 @@ automation:
           - condition: state
             entity_id: input_boolean.show_signal
             state: 'on'
-    action:
+    actions:
       # merken, dass wir die Ampel eingeschaltet haben
-      - service: input_boolean.turn_on
+      - action: input_boolean.turn_on
         entity_id: input_boolean.ll_signals_doorstatus
-      - service: python_script.light_store
+      - action: python_script.light_store
         data:
           store_name: dw_signal_store
           entity_id:
@@ -282,7 +285,7 @@ automation:
             entity_id: group.all_doors
             state: 'on'
           sequence:
-            service: light.turn_on
+            action: light.turn_on
             data:
               entity_id: light.philips_lightstrip_ku
               brightness: 255
@@ -293,14 +296,14 @@ automation:
             entity_id: group.all_windows
             state: 'on'
           sequence:
-            service: light.turn_on
+            action: light.turn_on
             data:
               entity_id: light.philips_lightstrip_ku
               brightness: 255
               rgb_color:  [255, 255, 0] #gelb
               transition: 0.2
         default: # ...Türen und Fenster sind zu.
-          service: light.turn_on
+          action: light.turn_on
           data:
             entity_id: light.philips_lightstrip_ku
             brightness: 255
@@ -310,16 +313,16 @@ automation:
   - id: clear_doorstatus_signal_light
     alias: Lichtband Status löschen
     mode: single #Do not start a new run, if running already. 
-    trigger: 
+    triggers: 
       #Eingangstür wird geschlossen
-      - platform: state
+      - trigger: state
         entity_id: group.entrance_door 
         to: 'off' #=closed
       #Statusampel soll nicht mehr dauerhaft angezeigt werden
-      - platform: state
+      - trigger: state
         entity_id: input_boolean.show_signal
         to: 'off'
-    condition:
+    conditions:
       # 'signal_automation' aktiv UND Ampel-Merker an UND Eingangtür zu UND Ampel nicht dauerhaft anzeigen
       - and:
         #Ampel aus, auch wenn Automatisierungen in der zwischenzeit deaktiviert wurden
@@ -335,21 +338,21 @@ automation:
         - condition: state
           entity_id: input_boolean.show_signal
           state: 'off'
-    action:
-      - service: input_boolean.turn_off
+    actions:
+      - action: input_boolean.turn_off
         entity_id: input_boolean.ll_signals_doorstatus
       - wait_template: "{{ not states('dw_signal_store.light_philips_lightstrip_ku') == 'unknown' }}"
         timeout: '00:00:03'
       - choose:
         - conditions: "{{ wait.completed }}" #wait condition was met = entity exists
           sequence:
-            - service: python_script.light_store
+            - action: python_script.light_store
               data:
                 store_name: dw_signal_store
                 operation: restore
                 all_attribs: true  #restores old color and brightness, even if state='off'
         default: #wait condition not met = entity does not exist
-          - service: light.turn_off #just turn off light
+          - action: light.turn_off #just turn off light
             entity_id: light.philips_lightstrip_ku
             
   #----------------------------------------------------------------------------------
@@ -357,9 +360,9 @@ automation:
   # Notifications and alarm
   - alias: Notify all - Open Doors
     id: send_notification_open_doors
-    trigger:
+    triggers:
       # niemand zuhause und mindestens eine Tür offen 
-      platform: template
+      trigger: template
       value_template: >
         {{ states('sensor.home_status') in ['Away', 'Extended Away']  
            and is_state('group.all_doors', 'on') }}
@@ -368,10 +371,10 @@ automation:
     variables:
       notification_service: >
         {{ 'notify.family_main_devices' if is_state('sensor.ing_status', 'Just Left') else 'notify.max' }}
-    action:
-      - service: input_boolean.turn_on
+    actions:
+      - action: input_boolean.turn_on
         entity_id: input_boolean.open_backdoor_alert
-      - service: "{{ notification_service }}"
+      - action: "{{ notification_service }}"
         data:
           title: "Smart Home Alarm"
           message: >
@@ -391,9 +394,9 @@ automation:
             clickAction: '/lovelace/home'
   - alias: Notify all - Open Windows
     id: send_notification_open_windows
-    trigger:
+    triggers:
       # niemand zuhause und mindestens ein Fenster offen (und keine Tür offen)
-      platform: template
+      trigger: template
       value_template: >
         {{ states('sensor.home_status') in ['Away', 'Extended Away']  
            and is_state('group.all_windows', 'on') 
@@ -403,10 +406,10 @@ automation:
     variables:
       notification_service: >
         {{ 'notify.family_main_devices' if is_state('sensor.ing_status', 'Just Left') else 'notify.max' }}
-    action:
-      - service: input_boolean.turn_on
+    actions:
+      - action: input_boolean.turn_on
         entity_id: input_boolean.open_window_alert
-      - service: "{{ notification_service }}"
+      - action: "{{ notification_service }}"
         data:
           title: "Smart Home Alarm"
           message: >
@@ -427,19 +430,19 @@ automation:
   
   - alias: Reset alert - Open Doors
     id: reset_notification_open_doors
-    trigger:
+    triggers:
       # jemand zuhause oder alle Türen zu 
-      platform: template
+      trigger: template
       value_template: >
         {{ (is_state('sensor.home_status', 'Home')  
               or is_state('group.all_doors', 'off'))
             and is_state('input_boolean.open_backdoor_alert', 'on') }}
       for:
         seconds: *int_seconds_alert_reset_delay
-    action:
-      - service: input_boolean.turn_off
+    actions:
+      - action: input_boolean.turn_off
         entity_id: input_boolean.open_backdoor_alert
-      - service: notify.family_main_devices
+      - action: notify.family_main_devices
         data:
           title: "Smart Home ..."
           message: "Türen Alarm aufgehoben."
@@ -452,19 +455,19 @@ automation:
             clickAction: '/lovelace/home'
   - alias: Reset alert - Open Windows
     id: reset_notification_open_windows
-    trigger:
+    triggers:
       # jemand zuhause oder alle Fenster zu 
-      platform: template
+      trigger: template
       value_template: >
         {{ (is_state('sensor.home_status', 'Home') 
               or is_state('group.all_windows', 'off'))
             and is_state('input_boolean.open_window_alert', 'on') }}
       for:
         seconds: *int_seconds_alert_reset_delay
-    action:
-      - service: input_boolean.turn_off
+    actions:
+      - action: input_boolean.turn_off
         entity_id: input_boolean.open_window_alert
-      - service: notify.family_main_devices
+      - action: notify.family_main_devices
         data:
           title: "Smart Home ..."
           message: "Fenster Alarm aufgehoben."
@@ -481,20 +484,18 @@ automation:
 #Test
   - alias: Test Zone Notify
     id: send_notification_zone_test
-    trigger:
-      - platform: zone
+    triggers:
+      - trigger: zone
         entity_id: person.max #group.phone_max
         zone: zone.tik #zone.home
         event: "leave" # Event is either enter or leave
-      - platform: zone
+      - trigger: zone
         entity_id: person.max #group.phone_max
         zone: zone.tik
         event: "enter" # Event is either enter or leave
-    condition:
-      condition: and
-      conditions:
-        - condition: or
-          conditions:
+    conditions:
+      - and:
+        - or:
           - condition: state
             entity_id: group.all_doors
             state: 'on'
@@ -502,8 +503,8 @@ automation:
             entity_id: group.all_windows
             state: 'on'
         - "{{ states('sensor.ing_status') not in ['home', 'Just Arrived'] }}"
-    action:
-      - service: notify.max
+    actions:
+      - action: notify.max
         data:
           title: "Smart Home Alerts (Zone-test)"
           message: "Mindestens eine Balkontür/Fenster ist offen."

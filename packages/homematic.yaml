@@ -321,11 +321,11 @@ binary_sensor:
 #   # Reconnect to CCU, if sensor has not been updated for over 1 hour or ccu rebooted
 #   - alias: Homematic Reconnect
 #     id: reconnect_homematic
-#     trigger:
-#       - platform: state
+#     triggers:
+#       - trigger: state
 #         entity_id: binary_sensor.hm_homematic_up
 #         to: "off"
-#       - platform: state
+#       - trigger: state
 #         entity_id: sensor.hm_ccu_last_reboot
-#     action:
-#       service: homematic.reconnect
+#     actions:
+#       action: homematic.reconnect

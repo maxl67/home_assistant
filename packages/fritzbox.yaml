@@ -1,6 +1,7 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 12.11.2019
+#   @changed      : 16.10.2024
+#   @created      : 12.11.2019
 #   @package      : fritzbox
 #   @description  : Monitoring of FritzBox router and Fritz smart home components
 #   @links        : https://git.truenoobs.de/darthsandmann/homeassistant/src/branch/master/disabled/packages/fritzbox.yaml
@@ -95,14 +96,14 @@ script:
   fritzbox_reconnect:
     alias: "Reconnect Fritz!Box"
     sequence:
-      - service: fritz.reconnect
+      - action: fritz.reconnect
         data:
           device_id: !secret fritzbox_device_id
 
   fritzbox_reboot:
     alias: "Reboot Fritz!Box"
     sequence:
-      - service: fritz.reboot
+      - action: fritz.reboot
         data:
           device_id: !secret fritzbox_device_id
 
@@ -117,21 +118,21 @@ automation:
     alias: Button Lichter an/aus
     description: ''
     mode: single #Do not start a new run, if running already. 
-    trigger:
+    triggers:
       - id: 'toggle_licht_az'
-        platform: webhook
+        trigger: webhook
         webhook_id: 'toggle_light_buero'
         allowed_methods:
           - POST
         local_only: true #Definition des webkook mit https://<ip>:port>/api/webhook/<id>
       - id: 'toggle_licht_wz'
-        platform: webhook
+        trigger: webhook
         webhook_id: 'toggle_light_wz'
         allowed_methods:
           - POST
         local_only: true #Definition des webkook mit https://<ip>:port>/api/webhook/<id>
       - id: 'status_light_off'
-        platform: webhook
+        trigger: webhook
         webhook_id: 'switch_off_ampel'
         allowed_methods:
           - POST
@@ -143,8 +144,8 @@ automation:
         'status_light_off': *colorlight_ku_entityid
       light_entity_id: >-
         {{ device_map[trigger.id] }}        
-    action:
-      # - service: "light.turn_{{ 'on' if is_state(light_entity_id, 'off') else 'off' }}"
+    actions:
+      # - action: "light.turn_{{ 'on' if is_state(light_entity_id, 'off') else 'off' }}"
       #   data_template: 
       #     entity_id: "{{ light_entity_id }}"
       - if:
@@ -152,12 +153,12 @@ automation:
             condition: template
             value_template: "{{ is_state(light_entity_id, 'off') and not trigger.id=='status_light_off' }}"
         then:
-          - service: light.turn_on
+          - action: light.turn_on
             data_template: 
               entity_id: "{{ light_entity_id }}"
               brightness_pct: 50
         else:      
-          - service: light.turn_off
+          - action: light.turn_off
             data_template:
               entity_id: "{{ light_entity_id }}"
 
@@ -165,15 +166,15 @@ automation:
     alias: Button Lichter dimmen
     description: ''
     mode: single #Do not start a new run, if running already. 
-    trigger:
+    triggers:
       - id: 'dimm_lights_darker'
-        platform: webhook
+        trigger: webhook
         webhook_id: 'lights_dunkler'
         allowed_methods:
           - POST
         local_only: true #Definition des webkook mit https://<ip>:port>/api/webhook/<id>
       - id: 'dimm_lights_brighter'
-        platform: webhook
+        trigger: webhook
         webhook_id: 'lights_heller'
         allowed_methods:
           - POST
@@ -184,14 +185,14 @@ automation:
         'dimm_lights_brighter': 10
       brightness_increment: >-
         {{ value_map[trigger.id] }}        
-    action:
+    actions:
       - if:
           - alias: AZ light is on
             condition: state
             entity_id: *light_az_entityid
             state: 'on'
         then:
-          - service: light.turn_on
+          - action: light.turn_on
             data_template: 
               entity_id: *light_az_entityid
               brightness_step_pct: "{{ brightness_increment }}"
@@ -202,7 +203,7 @@ automation:
             entity_id: *ambientelight_wz_entityid
             state: 'on'
         then:
-          - service: light.turn_on
+          - action: light.turn_on
             data_template: 
               entity_id: *ambientelight_wz_entityid
               brightness_step_pct: "{{ brightness_increment }}"
@@ -215,9 +216,9 @@ automation:
     alias: Button Power an/aus
     description: ''
     mode: single #Do not start a new run, if running already. 
-    trigger:
+    triggers:
       - id: 'turn_on_tv'
-        platform: webhook
+        trigger: webhook
         webhook_id: 'switch_on_tv'
         allowed_methods:
           - POST
@@ -227,7 +228,7 @@ automation:
         'turn_on_tv': *powerswitch_tv_entityid
       switch_entity_id: >-
         {{ device_map[trigger.id] }}        
-    action:
-      - service: switch.turn_on
+    actions:
+      - action: switch.turn_on
         data_template: 
           entity_id: "{{ switch_entity_id }}"

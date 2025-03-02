@@ -1,6 +1,7 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 08.10.2020
+#   @changed      : 16.10.2024
+#   @created      : 2020
 #   @package      : climate
 #   @description  : heating, temperature, humidity
 #   @links        : https://github.com/thomasloven/hass-config/wiki/Misc-tricks#cardelemententity-row-triality
@@ -117,11 +118,11 @@ switch:
         friendly_name: Heizperiode aktiv #   
         value_template: "{% if not states('input_boolean.heating_period')=='unknown' %}{{ is_state('input_boolean.heating_period', 'on') }}{% endif %}"
         turn_on:
-          service: homeassistant.turn_on
+          action: homeassistant.turn_on
           data:
             entity_id: input_boolean.heating_period
         turn_off:
-          service: homeassistant.turn_off
+          action: homeassistant.turn_off
           data:
             entity_id: input_boolean.heating_period
         icon_template: >-
@@ -135,11 +136,11 @@ switch:
         friendly_name: Automatische Heizsteuerung #   
         value_template: "{% if not states('input_boolean.automate_heating')=='unknown' %}{{ is_state('input_boolean.automate_heating', 'on') }}{% endif %}"
         turn_on:
-          service: homeassistant.turn_on
+          action: homeassistant.turn_on
           data:
             entity_id: input_boolean.automate_heating
         turn_off:
-          service: homeassistant.turn_off
+          action: homeassistant.turn_off
           data:
             entity_id: input_boolean.automate_heating
         icon_template: >-
@@ -241,19 +242,19 @@ script:
         example: '20.5. Default: -'
     sequence:
       # Wohnzimmer
-      - service: climate.set_temperature
+      - action: climate.set_temperature
         data:
           entity_id: *thermostat_entityid_wz
           temperature: "{{ my_temperature }}"
           hvac_mode: heat
       # Küche
-      - service: climate.set_temperature
+      - action: climate.set_temperature
         data:
           entity_id: *thermostat_entityid_ku
           temperature: "{{ my_temperature }}"
           hvac_mode: heat
       # Gästezimmer
-      - service: climate.set_temperature
+      - action: climate.set_temperature
         data:
           entity_id: *thermostat_entityid_gz
           temperature: "{{ my_temperature }}"
@@ -268,17 +269,17 @@ script:
         example: '{auto|heat} "off" does not work. Default: -'
     sequence:
       # Wohnzimmer
-      - service: climate.set_hvac_mode
+      - action: climate.set_hvac_mode
         data:
           entity_id: *thermostat_entityid_wz
           hvac_mode: "{{ my_hvac_mode }}"
       # Küche
-      - service: climate.set_hvac_mode
+      - action: climate.set_hvac_mode
         data:
           entity_id: *thermostat_entityid_ku
           hvac_mode: "{{ my_hvac_mode }}"
       # Gästezimmer
-      - service: climate.set_hvac_mode
+      - action: climate.set_hvac_mode
         data:
           entity_id: *thermostat_entityid_gz
           hvac_mode: "{{ my_hvac_mode }}"
@@ -292,17 +293,17 @@ script:
         example: '{1|2|3} (has to be int)'
     sequence:
       # Wohnzimmer
-      - service: script.set_profile_thermostat
+      - action: script.set_profile_thermostat
         data:
           my_thermostat_id: *thermostat_id_wz
           my_profile_no: "{{ my_profile_no }}"
       # Küche
-      - service: script.set_profile_thermostat
+      - action: script.set_profile_thermostat
         data:
           my_thermostat_id: *thermostat_id_ku
           my_profile_no: "{{ my_profile_no }}"
       # Gästezimmer
-      - service: script.set_profile_thermostat
+      - action: script.set_profile_thermostat
         data:
           my_thermostat_id: *thermostat_id_gz
           my_profile_no: "{{ my_profile_no }}"
@@ -319,7 +320,7 @@ script:
         description: 'new heating profile to be set.'
         example: '{1|2|3} (has to be int)'
     sequence:
-      - service: homematicip_local.set_device_value
+      - action: homematicip_local.set_device_value
         data:
           device_id: "{{ my_thermostat_id }}" 
           value: "{{ my_profile_no }}"
@@ -340,7 +341,7 @@ script:
         description: 'new window state'
         example: '{0|1} (has to be int)'
     sequence:
-      - service: homematicip_local.set_device_value
+      - action: homematicip_local.set_device_value
         data:
           device_id: "{{ my_thermostat_id }}" 
           value: "{{ my_window_state }}"
@@ -358,10 +359,10 @@ automation:
   - id: warning_door_open_in_winter
     alias: Lichtband Status Tür in Winter schliessen
     mode: single #Do not start a new run, if already running. 
-    trigger: 
-      - platform: time_pattern
+    triggers: 
+      - trigger: time_pattern
         minutes: '/3'
-    condition:
+    conditions:
       # wenn in der Heizperiode eine Tür offen ist und es draussen kalt istz
       - and:
         - alias:  Heizperiode ist an
@@ -386,9 +387,9 @@ automation:
           condition: state
           entity_id: input_boolean.ll_signals_doorstatus
           state: 'off'
-    action:
+    actions:
       # speichern des aktuellen Licht-Zustands...
-      - service: python_script.light_store
+      - action: python_script.light_store
         data:
           store_name: dw_signal_store
           entity_id:
@@ -396,14 +397,14 @@ automation:
           overwrite: false
           all_attribs: true  #saves last color and brightness, even if state='off'. turn light on shortly
       # Licht in blau blinken lassen
-      - service: light.turn_on
+      - action: light.turn_on
         data:
           entity_id: light.philips_lightstrip_ku
           brightness: 255
           rgb_color:  [0, 0, 255] #blau
           transition: 0.1
       - alias: Lichtleiste blinken lassen
-        service: script.flash_light
+        action: script.flash_light
         data:
           light_id: philips_lightstrip_ku #hier ohne domain 'light.'
           count: 8
@@ -412,21 +413,21 @@ automation:
       - choose:
         - conditions: "{{ wait.completed }}" #wait condition was met = entity existes
           sequence:
-            - service: python_script.light_store
+            - action: python_script.light_store
               data:
                 store_name: dw_signal_store
                 operation: restore
                 all_attribs: true  #restores old color and brightness, even if state='off'
         default: #wait condition not met = entity does not exist
-          - service: light.turn_off #just turn off light
+          - action: light.turn_off #just turn off light
             entity_id: light.philips_lightstrip_ku
 
   #-------------------------------
   # Homeoffice - Profil 2 statt 1 oder zurück
   - id: switch_to_homeofficeprofile
     alias: Heizprofil Home-Office
-    trigger:
-      - platform: time
+    triggers:
+      - trigger: time
         at: 
           - '08:30:00'
           - '09:00:00'
@@ -442,10 +443,10 @@ automation:
           - '15:30:00'
           - '16:00:00'
           - '16:30:00'
-      - platform: state
+      - trigger: state
         entity_id: sensor.home_status
         to: 'Home'
-    condition:
+    conditions:
       - and:
         # nur bei aktiver Heizperiode UND aktiver Automatisierung
         - condition: state
@@ -462,7 +463,7 @@ automation:
         # - condition: state
         #   entity_id: binary_sensor.workday_sensor
         #   state: 'on'
-    action:
+    actions:
       # Max-Arbeitszimmer
       - choose:
         - conditions:
@@ -473,13 +474,13 @@ automation:
                 - 'Just Arrived'
           sequence:
             # Wochenprofil 2
-            - service: script.set_profile_thermostat
+            - action: script.set_profile_thermostat
               data:
                 my_thermostat_id: *thermostat_id_gz
                 my_profile_no: *home_profile
         default: 
           # Wochenprofil 1
-          - service: script.set_profile_thermostat
+          - action: script.set_profile_thermostat
             data:
               my_thermostat_id: *thermostat_id_gz
               my_profile_no: *default_profile
@@ -493,13 +494,13 @@ automation:
                 - 'Just Arrived'
           sequence:
             # Wochenprofil 2
-            - service: script.set_profile_thermostat
+            - action: script.set_profile_thermostat
               data:
                 my_thermostat_id: *thermostat_id_ku
                 my_profile_no: *home_profile
         default: 
           # Wochenprofil 1
-          - service: script.set_profile_thermostat
+          - action: script.set_profile_thermostat
             data:
               my_thermostat_id: *thermostat_id_ku
               my_profile_no: *default_profile
@@ -512,13 +513,13 @@ automation:
                 - 'Home'
           sequence:
             # Wochenprofil 2
-            - service: script.set_profile_thermostat
+            - action: script.set_profile_thermostat
               data:
                 my_thermostat_id: *thermostat_id_wz
                 my_profile_no: *home_profile
         default: 
           # Wochenprofil 1
-          - service: script.set_profile_thermostat
+          - action: script.set_profile_thermostat
             data:
               my_thermostat_id: *thermostat_id_wz
               my_profile_no: *default_profile
@@ -527,14 +528,14 @@ automation:
   # anderes Heizprofil für Gäste
   - id: activate_guest_heating
     alias: Change to guest heating profile
-    trigger:
-      - platform: numeric_state
+    triggers:
+      - trigger: numeric_state
         entity_id: sensor.n_guests_home
         above: 0
       # - platform: state
       #   entity_id: input_boolean.guests
       #   to: "on"
-    condition:
+    conditions:
       # nur bei aktiver Heizperiode UND aktiver Automatisierung
       - and:
         - condition: state
@@ -543,26 +544,26 @@ automation:
         - condition: state
           entity_id: input_boolean.automate_heating
           state: 'on'
-    action:
+    actions:
       # Automatik-Modus
-      - service: script.set_mode_all
+      - action: script.set_mode_all
         data:
           my_hvac_mode: auto
       # Wochenprofil 3
-      - service: script.set_profile_all
+      - action: script.set_profile_all
         data:
           my_profile_no: *guest_profile
   # normales Heizprofil für uns (ohne Gäste)
   - id: restore_family_heating
     alias: Change to normal heating profile
-    trigger:
-      - platform: numeric_state
+    triggers:
+      - trigger: numeric_state
         entity_id: sensor.n_guests_home
         below: 1
-      # - platform: state
+      # - trigger: state
       #   entity_id: input_boolean.guests
       #   to: "off"
-    condition:
+    conditions:
       # nur bei aktiver Heizperiode und aktiver Automatisierung
       - and:
         - condition: state
@@ -571,9 +572,9 @@ automation:
         - condition: state
           entity_id: input_boolean.automate_heating
           state: 'on'
-    action:
+    actions:
       # Wochenprofil 1
-      - service: script.set_profile_all
+      - action: script.set_profile_all
         data:
           my_profile_no: *default_profile
 
@@ -583,14 +584,14 @@ automation:
   - id: thermo_set_window_open
     alias: Set thermostat window state 'open'
     mode: queued
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id: 
           - group.doors_wz
           - group.doors_kitchen_office
           - group.doors_gz
         to: 'on'
-    condition:
+    conditions:
       # nur bei aktiver Heizperiode und aktiver Automatisierung
       - and:
         - condition: state
@@ -599,26 +600,26 @@ automation:
         - condition: state
           entity_id: input_boolean.automate_heating
           state: 'on'
-    action:
+    actions:
       - choose:
         # WOHNZIMMER
         - conditions: "{{ trigger.entity_id == 'group.doors_wz' }}"
           sequence:
-          - service: script.set_windowstate_thermostat
+          - action: script.set_windowstate_thermostat
             data:
               my_thermostat_id: *thermostat_id_wz 
               my_window_state: 1 # =offen
         # Küche/Büro
         - conditions: "{{ trigger.entity_id == 'group.doors_kitchen_office' }}"
           sequence:
-          - service: script.set_windowstate_thermostat
+          - action: script.set_windowstate_thermostat
             data:
               my_thermostat_id: *thermostat_id_ku 
               my_window_state: 1 # =offen
         # GÄSTEZIMMER
         - conditions: "{{ trigger.entity_id == 'group.doors_gz' }}"
           sequence:
-          - service: script.set_windowstate_thermostat
+          - action: script.set_windowstate_thermostat
             data:
               my_thermostat_id: *thermostat_id_gz  
               my_window_state: 1 # =offen 
@@ -628,8 +629,8 @@ automation:
   - id: thermo_set_window_closed
     alias: Set thermostat window state 'closed'
     mode: queued
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id: 
           - group.doors_wz
           - group.doors_kitchen_office
@@ -637,9 +638,9 @@ automation:
         to: 'off'
         id: 'door_closed'
       # regelmässig prüfen, weil gelegentlich ein Event verpasst wird
-      - platform: time_pattern
+      - trigger: time_pattern
         minutes: '/10'
-    condition:
+    conditions:
       # nur bei aktiver Heizperiode (Fenster-Status wieder 'zu' auch ohne aktive Automatisierung)
       - condition: state
         entity_id: input_boolean.heating_period
@@ -660,26 +661,26 @@ automation:
           - condition: state
             entity_id: sensor.pivccu_v_fensteroffen_ku
             state: '1' 
-    action:
+    actions:
       - choose:
         # WOHNZIMMER
         - conditions: "{{ trigger.entity_id == 'group.doors_wz' or (is_state('group.doors_wz','off') and is_state('sensor.pivccu_v_fensteroffen_wz','1')) }}"
           sequence:
-          - service: script.set_windowstate_thermostat
+          - action: script.set_windowstate_thermostat
             data:
               my_thermostat_id: *thermostat_id_wz 
               my_window_state: 0 # =geschlossen
         # Küche/Büro
         - conditions: "{{ trigger.entity_id == 'group.doors_kitchen_office' or (is_state('group.doors_kitchen_office','off') and is_state('sensor.pivccu_v_fensteroffen_ku','1')) }}"
           sequence:
-          - service: script.set_windowstate_thermostat
+          - action: script.set_windowstate_thermostat
             data:
               my_thermostat_id: *thermostat_id_ku 
               my_window_state: 0 # =geschlossen
         # GÄSTEZIMMER
         - conditions: "{{ trigger.entity_id == 'group.doors_gz' or (is_state('group.doors_gz','off') and is_state('sensor.pivccu_v_fensteroffen_gz','1')) }}"
           sequence:
-          - service: script.set_windowstate_thermostat
+          - action: script.set_windowstate_thermostat
             data:
               my_thermostat_id: *thermostat_id_gz  
               my_window_state: 0 # =geschlossen
@@ -688,14 +689,14 @@ automation:
   # pause & resume heating when leaving and returning home
   - id: pause_heating_when_leaving
     alias: Pause heating when leaving
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id: sensor.home_status
         from: 'Home'
         to: 'Away'
         for:
           minutes: 5
-    condition:
+    conditions:
       - and:
         # nur bei aktiver Heizperiode und aktiver Automatisierung
         - condition: state
@@ -704,20 +705,20 @@ automation:
         - condition: state
           entity_id: input_boolean.automate_heating
           state: 'on'
-    action:
+    actions:
       # Manuell-Modus
-      - service: script.set_mode_all
+      - action: script.set_mode_all
         data:
           my_hvac_mode: heat
       # Ziel-Temperatur auf Energiespar-Wert
-      - service: script.set_temperature_all
+      - action: script.set_temperature_all
         data:
           my_temperature: *energy_saving_temp
 
   - id: resume_heating_when_arriving
     alias: Resume heating when arriving
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id: sensor.home_status
         to: 'Home'
     condition:
@@ -729,9 +730,9 @@ automation:
         - condition: state
           entity_id: input_boolean.automate_heating
           state: 'on'
-    action:
+    actions:
       # Automatik-Modus
-      - service: script.set_mode_all
+      - action: script.set_mode_all
         data:
           my_hvac_mode: auto
 
@@ -741,77 +742,77 @@ automation:
   #   end:   set manuell mode to temp=4.5°C
   - id: stop_heating
     alias: Ende der Heizperiode 
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id: input_boolean.heating_period
         to: 'off'
-    action:
+    actions:
       # stop 'start_heating'
-      - service: automation.turn_off
+      - action: automation.turn_off
         entity_id: automation.start_heating
-      - service: automation.turn_on
+      - action: automation.turn_on
         entity_id: automation.start_heating
       # Manuell-Modus ('Aus' geht nicht) und...
-      - service: script.set_mode_all
+      - action: script.set_mode_all
         data:
           my_hvac_mode: heat
       # ...Ziel-Temperatur 'sehr gering'
-      - service: script.set_temperature_all
+      - action: script.set_temperature_all
         data:
           my_temperature: *heating_off_temp
           
       # Fussbodenheizung zentral aus
-      - service: switch.turn_off
+      - action: switch.turn_off
         entity_id: switch.hmipw_drs8_ch14 #Kanal 14 = Schalter 4: Fussbodenheizung Küche
-      - service: switch.turn_off
+      - action: switch.turn_off
         entity_id: switch.hmipw_drs8_ch18 #Kanal 18 = Schalter 5: Fussbodenheizung Bad
 
   - id: start_heating
     alias: Start der Heizperiode
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id: input_boolean.heating_period
         to: 'on'
-    action:
+    actions:
       # stop 'stop_heating'
-      - service: automation.turn_off
+      - action: automation.turn_off
         entity_id: automation.stop_heating
-      - service: automation.turn_on
+      - action: automation.turn_on
         entity_id: automation.stop_heating
       # Voreinstellung für 'heat'-Modus
-      - service: script.set_temperature_all
+      - action: script.set_temperature_all
         data:
           my_temperature: 20
       - delay: '00:00:02'
       # Automatik-Modus
-      - service: script.set_mode_all
+      - action: script.set_mode_all
         data:
           my_hvac_mode: auto
       - delay: '00:00:02'
       # Wochenprofil 1
-      - service: script.set_profile_all
+      - action: script.set_profile_all
         data:
           my_profile_no: *default_profile
       - delay: '00:00:02'
       # Fensterstatus auf 'zu' setzen (falls noch offen)
       # Wohnzimmer
-      - service: script.set_windowstate_thermostat
+      - action: script.set_windowstate_thermostat
         data:
           my_thermostat_id: *thermostat_id_wz  
           my_window_state: "{{ 1 if is_state('group.doors_wz', 'on') else 0 }}" #0=geschlossen, 1=offen
       # Küche
-      - service: script.set_windowstate_thermostat
+      - action: script.set_windowstate_thermostat
         data:
           my_thermostat_id: *thermostat_id_ku  
           my_window_state: "{{ 1 if is_state('group.doors_kitchen_office', 'on') else 0 }}" #0=geschlossen, 1=offen
       # Gästezimmer
-      - service: script.set_windowstate_thermostat
+      - action: script.set_windowstate_thermostat
         data:
           my_thermostat_id: *thermostat_id_gz  
           my_window_state: "{{ 1 if is_state('group.doors_gz', 'on') else 0 }}" #0=geschlossen, 1=offen
 
       # Fussbodenheizung zentral an
-      # - service: switch.turn_on
+      # - action: switch.turn_on
       #   entity_id: switch.hmipw_drs8_ch14 #Kanal 14 = Schalter 4: Fussbodenheizung Küche
-      # - service: switch.turn_on
+      # - action: switch.turn_on
       #   entity_id: switch.hmipw_drs8_ch18 #Kanal 18 = Schalter 5: Fussbodenheizung Bad

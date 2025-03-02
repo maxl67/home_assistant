@@ -1,6 +1,7 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 08.11.2019
+#   @changed      : 16.10.2024
+#   @created      : 08.11.2019
 #   @package      : network
 #   @description  : various sensors for network devices, services and performance
 #   @links        : 
@@ -174,16 +175,15 @@ automation:
   - id: reload_speedtest
     alias: Re-Load Speedtest integration
     description: 'Perform a manual speed test when sensors goes unavailable'
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id: sensor.speedtest_download
         to: unavailable
         for: 
           minutes: 15
-    condition: []
-    action:
-#      - service: speedtestdotnet.speedtest
-      - service: homeassistant.update_entity
+    actions:
+#      - action: speedtestdotnet.speedtest
+      - action: homeassistant.update_entity
         target:
           entity_id: sensor.speedtest_download
     mode: single

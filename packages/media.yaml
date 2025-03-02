@@ -1,6 +1,7 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 01.12.2020
+#   @changed      : 16.10.2024
+#   @created      : 01.12.2020
 #   @package      : media
 #   @description  : media devices and player
 #   @links        : 
@@ -156,34 +157,34 @@ script:
     alias: Blue-Ray anschauen
     sequence:
       # TV und Receiver einschalten
-      - service: media_player.turn_on
+      - action: media_player.turn_on
         data:
           entity_id: *tv_entityid
-      - service: media_player.turn_on
+      - action: media_player.turn_on
         data:
           entity_id: *receiver_entityid
       - delay: '00:00:03'
       # Lautstärke TV ausschalten
-      - service: media_player.volume_set
+      - action: media_player.volume_set
         data:
           volume_level: 0
         target:
           entity_id: *tv_entityid
       # Quelle: HDMI1=BlueRay-Player
-      - service: media_player.play_media
+      - action: media_player.play_media
         data:
           entity_id: *tv_entityid
           media_content_id: KEY_HDMI
           media_content_type: "send_key"
       # Verstärker
-      - service: media_player.select_source
+      - action: media_player.select_source
         target:
           entity_id: *receiver_entityid
         data:
           source: optical1
       #- delay: '00:00:05'
       # BlueRay-Player: Netzwerk > Hera > Video auswählen
-      #- service: media_player.play_media
+      #- action: media_player.play_media
       #  data:
       #    entity_id: *tv_entityid
 #todo: das klappt noch nicht
@@ -194,30 +195,30 @@ script:
     alias: TV anschauen
     sequence:
       # TV einschalten
-      - service: media_player.turn_on
+      - action: media_player.turn_on
         data:
           entity_id: media_player.samsungtv
       - delay: '00:00:03'
       # Lautstärke TV auf 20 einstellen
-      - service: media_player.volume_set
+      - action: media_player.volume_set
         data:
           volume_level: 0.2
         target:
           entity_id: media_player.samsungtv
       # Quelle: TV (todo: geht noch nicht)
-      - service: media_player.play_media
+      - action: media_player.play_media
         data:
           entity_id: media_player.samsungtv
           media_content_id: KEY_TV
           media_content_type: "send_key"
       # Verstärker ausschalten
-      - service: media_player.select_source
+      - action: media_player.select_source
         target:
           entity_id: *receiver_entityid
         data:
           source: tuner
       - delay: '00:00:02'
-      - service: media_player.turn_off
+      - action: media_player.turn_off
         data:
           entity_id: *receiver_entityid
 
@@ -225,15 +226,15 @@ script:
     alias: Radio hören
     sequence:
       # Receeiver ein- & TV ausschalten 
-      - service: media_player.turn_off
+      - action: media_player.turn_off
         data:
           entity_id: media_player.samsungtv
-      - service: media_player.turn_on
+      - action: media_player.turn_on
         data:
           entity_id: *receiver_entityid
       - delay: '00:00:03'
       # Verstärker umstellen auf Radio
-      - service: media_player.select_source
+      - action: media_player.select_source
         target:
           entity_id: *receiver_entityid
         data:
@@ -243,15 +244,15 @@ script:
     alias: CD hören
     sequence:
       # Receeiver ein- & TV ausschalten 
-      - service: media_player.turn_off
+      - action: media_player.turn_off
         data:
           entity_id: media_player.samsungtv
-      - service: media_player.turn_on
+      - action: media_player.turn_on
         data:
           entity_id: *receiver_entityid
       - delay: '00:00:03'
       # Verstärker umstellen auf CD
-      - service: media_player.select_source
+      - action: media_player.select_source
         target:
           entity_id: *receiver_entityid
         data:
@@ -267,12 +268,12 @@ script:
       # IF receiver is 'on' 
       - conditions: "{{ not is_state('media_player.r_n803d_86ae28', 'off') }}"
         sequence:
-          service: media_player.turn_off
+          action: media_player.turn_off
           data:
             entity_id: *receiver_entityid
       # ELSE TV
       default:
-      - service: script.tv_send_key
+      - action: script.tv_send_key
         data:
           my_key_code: KEY_POWER #KEY_POWERON, KEY_POWEROFF
   rc_source_tv:
@@ -282,13 +283,13 @@ script:
       # IF receiver is 'on' 
       - conditions: "{{ not is_state('media_player.r_n803d_86ae28', 'off') }}"
         sequence:
-          service: media_player.select_source
+          action: media_player.select_source
           data:
             entity_id: *receiver_entityid
             source: optical1
       # ELSE TV
       default:
-      - service: script.tv_send_key
+      - action: script.tv_send_key
         data:
           my_key_code: KEY_TV #KEY_DTV oder KEY_ANTENA
   rc_source_disc:
@@ -298,23 +299,23 @@ script:
       # IF receiver is 'on' 
       - conditions: "{{ not is_state('media_player.r_n803d_86ae28', 'off') }}"
         sequence:
-          service: media_player.select_source
+          action: media_player.select_source
           data:
             entity_id: *receiver_entityid
             source: coaxial1
       # ELSE TV
       default:
-      - service: script.tv_send_key
+      - action: script.tv_send_key
         data:
           my_key_code: KEY_HDMI
   rc_volume_mute:
     alias: mute volume
     sequence:
-    - service: media_player.volume_mute
+    - action: media_player.volume_mute
       data:
         entity_id: *receiver_entityid
         is_volume_muted: "{{ not state_attr('media_player.r_n803d_86ae28','is_volume_muted') }}"
-    - service: script.tv_send_key
+    - action: script.tv_send_key
       data:
         my_key_code: KEY_MUTE
   rc_volume_down:
@@ -325,12 +326,12 @@ script:
         - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and (state_attr('media_player.r_n803d_86ae28','source') == 'optical1' or is_state('media_player.samsungtv', 'off')) }}"
           sequence:
           #todo: besser in kleineren schritten
-            service: media_player.volume_down
+            action: media_player.volume_down
             data:
               entity_id: *receiver_entityid
         # ELSE TV
         default:
-          - service: script.tv_send_key
+          - action: script.tv_send_key
             data:
               my_key_code: KEY_VOLDOWN
   rc_volume_up:
@@ -341,12 +342,12 @@ script:
         - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and (state_attr('media_player.r_n803d_86ae28','source') == 'optical1' or is_state('media_player.samsungtv', 'off')) }}"
           sequence:
           #todo: besser in kleineren schritten
-            service: media_player.volume_up
+            action: media_player.volume_up
             data:
               entity_id: *receiver_entityid
         # ELSE TV
         default:
-          - service: script.tv_send_key
+          - action: script.tv_send_key
             data:
               my_key_code: KEY_VOLUP
   #todo Channel: wenn blueRay-Player an, deaktivieren.
@@ -358,12 +359,12 @@ script:
         - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and state_attr('media_player.r_n803d_86ae28','source') == 'tuner' }}"
           sequence:
           #todo: besser in kleineren schritten
-            service: media_player.media_previous_track
+            action: media_player.media_previous_track
             data:
               entity_id: *receiver_entityid
         # ELSE TV
         default:
-          - service: script.tv_send_key
+          - action: script.tv_send_key
             data:
               my_key_code: KEY_CHDOWN
   rc_channel_up:
@@ -374,79 +375,79 @@ script:
         - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and state_attr('media_player.r_n803d_86ae28','source') == 'tuner' }}"
           sequence:
           #todo: besser in kleineren schritten
-            service: media_player.media_next_track
+            action: media_player.media_next_track
             data:
               entity_id: *receiver_entityid
         # ELSE TV
         default:
-          - service: script.tv_send_key
+          - action: script.tv_send_key
             data:
               my_key_code: KEY_CHUP
   rc_key_blue:
     alias: key blue
     sequence:
-    - service: script.tv_send_key
+    - action: script.tv_send_key
       data:
         my_key_code: KEY_CYAN
   rc_key_green:
     alias: kex green
     sequence:
-    - service: script.tv_send_key
+    - action: script.tv_send_key
       data:
         my_key_code: KEY_GREEN
   rc_key_yellow:
     alias: key yellow
     sequence:
-    - service: script.tv_send_key
+    - action: script.tv_send_key
       data:
         my_key_code: KEY_YELLOW
   rc_key_red:
     alias: key red
     sequence:
-    - service: script.tv_send_key
+    - action: script.tv_send_key
       data:
         my_key_code: KEY_RED
   rc_key_up:
     alias: navigation up
     sequence:
-    - service: script.tv_send_key
+    - action: script.tv_send_key
       data:
         my_key_code: KEY_UP
   rc_key_down:
     alias: navigation up
     sequence:
-    - service: script.tv_send_key
+    - action: script.tv_send_key
       data:
         my_key_code: KEY_DOWN
   rc_key_left:
     alias: navigation left
     sequence:
-    - service: script.tv_send_key
+    - action: script.tv_send_key
       data:
         my_key_code: KEY_LEFT
   rc_key_right:
     alias: navigation right
     sequence:
-    - service: script.tv_send_key
+    - action: script.tv_send_key
       data:
         my_key_code: KEY_RIGHT
   rc_key_back:
     alias: navigation back
     sequence:
-    - service: script.tv_send_key
+    - action: script.tv_send_key
       data:
         my_key_code: KEY_RETURN
   rc_key_enter:
     alias: navigation enter
     sequence:
-    - service: script.tv_send_key
+    - action: script.tv_send_key
       data:
         my_key_code: KEY_ENTER
   rc_key_home:
     alias: navigation home
   #todo: wenn BR an, dann home an BR-player 
     sequence:
-    - service: script.tv_send_key
+    - action: script.tv_send_key
       data:
         my_key_code: KEY_HOME
 
@@ -458,12 +459,12 @@ script:
         - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and state_attr('media_player.r_n803d_86ae28','source') == 'server' }}"
           sequence:
           #todo: besser in kleineren schritten
-            service: media_player.media_previous_track
+            action: media_player.media_previous_track
             data:
               entity_id: *receiver_entityid
         # ELSE TV
         default:
-          - service: script.tv_send_key
+          - action: script.tv_send_key
             data:
               my_key_code: KEY_REWIND
   rc_key_forward:
@@ -474,12 +475,12 @@ script:
         - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and state_attr('media_player.r_n803d_86ae28','source') == 'server' }}"
           sequence:
           #todo: besser in kleineren schritten
-            service: media_player.media_next_track
+            action: media_player.media_next_track
             data:
               entity_id: *receiver_entityid
         # ELSE TV
         default:
-          - service: script.tv_send_key
+          - action: script.tv_send_key
             data:
               my_key_code: KEY_FF
   rc_key_play:
@@ -490,12 +491,12 @@ script:
         - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and state_attr('media_player.r_n803d_86ae28','source') == 'server' }}"
           sequence:
           #todo: besser in kleineren schritten
-            service: media_player.media_play
+            action: media_player.media_play
             data:
               entity_id: *receiver_entityid
         # ELSE TV
         default:
-        - service: script.tv_send_key
+        - action: script.tv_send_key
           data:
             my_key_code: KEY_PLAY
   rc_key_stop:
@@ -506,12 +507,12 @@ script:
         - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and state_attr('media_player.r_n803d_86ae28','source') == 'server' }}"
           sequence:
           #todo: besser in kleineren schritten
-            service: media_player.media_stop
+            action: media_player.media_stop
             data:
               entity_id: *receiver_entityid
         # ELSE TV
         default:
-        - service: script.tv_send_key
+        - action: script.tv_send_key
           data:
             my_key_code: KEY_STOP
   rc_key_pause:
@@ -522,25 +523,25 @@ script:
         - conditions: "{{ states('media_player.r_n803d_86ae28') in ['idle','playing'] and state_attr('media_player.r_n803d_86ae28','source') == 'server' }}"
           sequence:
           #todo: besser in kleineren schritten
-            service: media_player.media_pause
+            action: media_player.media_pause
             data:
               entity_id: *receiver_entityid
         # ELSE TV
         default:
-        - service: script.tv_send_key
+        - action: script.tv_send_key
           data:
             my_key_code: KEY_PAUSE
   rc_key_record:
     alias: media record
     sequence:
-    - service: script.tv_send_key
+    - action: script.tv_send_key
       data:
         my_key_code: KEY_REC
 
   tv_send_key:
     alias: send key to TV
     sequence:
-    - service: media_player.play_media
+    - action: media_player.play_media
       data:
         entity_id: media_player.samsungtv
         media_content_id: "{{ my_key_code }}"
@@ -558,21 +559,21 @@ automation:
   # Ausschalten des Medien-Racks nachts, wenn es nicht mehr benutzt ist
   - id: power_off_unused_mediarack
     alias: switch off unused media rack at night
-    trigger: 
+    triggers: 
       - id: 'past_midnight'
-        platform: time
+        trigger: time
         at: '00:10:00'
       - id: 'devices_unused'
-        platform: state
+        trigger: state
         entity_id: group.mediadevices_in_use
         to: 'off'
         for:
           minutes: 15
       - id: 'config_changed'
-        platform: state
+        trigger: state
         entity_id: input_boolean.disable_power_automation
         to: 'off'
-    condition:
+    conditions:
       # 'power_automation' aktiv UND Home status 'Away'
       - and:
         - or:
@@ -586,25 +587,25 @@ automation:
         - condition: state
           entity_id: input_boolean.disable_power_automation
           state: 'off'
-    action:
-      - service: switch.turn_off
+    actions:
+      - action: switch.turn_off
         entity_id: *powerswitch_tv_entityid
 
   # Einschalten des Media Racks nachmittags, wenn wir zuhause sind
   - id: power_on_mediarack_for_use
     alias: switch on media rack for use
-    trigger:
+    triggers:
       - id: 'afternoon'
-        platform: time
+        trigger: time
         at: '17:00:00'
       - id: 'morning'
-        platform: time
+        trigger: time
         at: '07:00:00'
       - id: 'config_changed'
-        platform: state
+        trigger: state
         entity_id: input_boolean.disable_power_automation
         to: 'off'
-    condition:
+    conditions:
       # 'power_automation' aktiv UND Home status 'Home' UND WLAN ist an
       - and:
         - condition: state
@@ -626,28 +627,28 @@ automation:
             - condition: state
               entity_id: 'binary_sensor.workday_sensor'
               state: 'off'
-    action:
-      - service: switch.turn_on
+    actions:
+      - action: switch.turn_on
         entity_id: *powerswitch_tv_entityid
 
   #----------------------------------------------------------------------------------
   # Licht-Szene für Fernsehen
   - id: set_scene_movies
     alias: Scene 'Movies' 
-    trigger:
+    triggers:
       - id: 'tv_playing'
-        platform: state
+        trigger: state
         entity_id: media_player.samsungtv 
         to: 'on'
       - id: 'tv_online'
-        platform: state
+        trigger: state
         entity_id: binary_sensor.smarttv #in addition to media_player, until that one will work correctly
         to: 'on'
       - id: 'lights_on'
-        platform: state
+        trigger: state
         entity_id: *ambientelicht_wz_entityid
         to: 'on'
-    condition:
+    conditions:
       - and:
         - or:
           - condition: state
@@ -662,16 +663,16 @@ automation:
         - condition: state
           entity_id: input_boolean.disable_power_automation
           state: 'off'
-    action:
+    actions:
       # speichern des aktuellen Licht-Zustands...
-      - service: python_script.light_store
+      - action: python_script.light_store
         data:
           store_name: dw_signal_store
           entity_id:
             - *ambientelicht_wz_entityid
           overwrite: true
           all_attribs: true  #saves last color and brightness, even if state='off'. turn light on shortly
-      - service: scene.turn_on
+      - action: scene.turn_on
         data:
           entity_id: scene.movies
           transition: 2 #[sec] langsamer Übergang

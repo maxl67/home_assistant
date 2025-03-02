@@ -1,6 +1,7 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 20.12.2019
+#   @changed      : 16.10.2024
+#   @created      : 20.12.2019
 #   @package      : notification
 #   @description  : Notifications and alert values 
 #   @links        : 
@@ -17,6 +18,8 @@ homeassistant:
         package: "notification"
   # sensors
     sensor.count_notification_alerts:
+      <<: *common
+    sensor.count_hacs_updates:
       <<: *common
 
 ################################################
@@ -89,3 +92,15 @@ sensor:
           }}
         # numeric would be like that: + (0 if is_state('sensor.dwd_current_warn_count', '0') else 1) 
         icon_template: mdi:comment-alert
+
+      count_hacs_updates:
+        friendly_name: 'count HACS updates'
+        value_template: >
+          {{- integration_entities('hacs')
+          | select('match', '^update\.')
+          | expand
+          | selectattr('state','eq', 'on')
+          | list 
+          | count
+          -}}
+        icon_template: mdi:hacs

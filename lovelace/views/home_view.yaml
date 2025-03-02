@@ -22,6 +22,16 @@ badges:
         tap_action:
           action: navigate
           navigation_path: /lovelace/weather
+      - entity: sensor.count_hacs_updates
+        state_filter:
+          - operator: ">"
+            value: 0
+        name: HACS
+        display_type: complete
+        color: accent
+        tap_action:
+          action: navigate
+          navigation_path: /lovelace/network
       - entity: sensor.weathersensor01_luftfeuchtigkeit
         state_filter:
           - operator: ">"
@@ -37,7 +47,29 @@ badges:
     tap_action:
       action: navigate
       navigation_path: /lovelace/weather
-
+  - entity: sensor.bkw_sued_power
+    type: entity
+    name: Sol.Power
+    show_name: false
+    icon: mdi:solar-power-variant-outline
+    color: >
+      {% if states('sensor.bkw_sued_power') | float(0) < 5 %} accent
+      {% else %} '#d35400'
+      {% endif %}
+    tap_action:
+      action: navigate
+      navigation_path: /lovelace-analyse/strom_analyse
+  # - entity: sensor.tasmotawe5_we5_power_cur
+  #   type: entity
+  #   name: Power Deliv.
+  #   show_name: false
+  #   icon: | 
+  #     {% if states('sensor.tasmotawe5_we5_power_cur') | float(0) < 0 %} mdi:home-export-outline
+  #     {% else %} mdi:home-import-outline
+  #     {% endif %}
+  #   tap_action:
+  #     action: navigate
+  #     navigation_path: /lovelace-analyse/strom_analyse
 
 cards:
   #------------------------------------------------

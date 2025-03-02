@@ -158,8 +158,9 @@ cards:
         tap_action: 
           action: url
           url_path: https://www.home-assistant.io/blog/categories/release-notes/
-      - entity: sensor.hacs
+      - entity: sensor.count_hacs_updates
         name: HACS updates
+        icon: mdi:update
         card_mod:
           style: |
             :host {

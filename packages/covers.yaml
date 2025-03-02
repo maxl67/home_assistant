@@ -1,6 +1,7 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 09.2022
+#   @changed      : 16.10.2024
+#   @created      : 09.2022
 #   @package      : jalousie
 #   @description  : covers operated by Homematic IP wired (HmIPw) 
 #   @links        : https://www.home-assistant.io/integrations/cover/
@@ -121,11 +122,11 @@ switch:
         friendly_name: Automatische Jalousiesteuerung  
         value_template: "{{ is_state('input_boolean.automate_jalousie', 'on') }}"
         turn_on:
-          service: homeassistant.turn_on
+          action: homeassistant.turn_on
           data:
             entity_id: input_boolean.automate_jalousie
         turn_off:
-          service: homeassistant.turn_off
+          action: homeassistant.turn_off
           data:
             entity_id: input_boolean.automate_jalousie
         icon_template: >-
@@ -139,11 +140,11 @@ switch:
         friendly_name: verdunkeln nur bei Sonne 
         value_template: "{{ is_state('input_boolean.cover_wo_sun', 'off') }}"
         turn_on:
-          service: homeassistant.turn_off
+          action: homeassistant.turn_off
           data:
             entity_id: input_boolean.cover_wo_sun
         turn_off:
-          service: homeassistant.turn_on
+          action: homeassistant.turn_on
           data:
             entity_id: input_boolean.cover_wo_sun
         icon_template: >-
@@ -157,11 +158,11 @@ switch:
         friendly_name: Auto-Beschattung wenn zuhause 
         value_template: "{{ is_state('input_boolean.auto_shade_when_home', 'on') }}"
         turn_on:
-          service: homeassistant.turn_on
+          action: homeassistant.turn_on
           data:
             entity_id: input_boolean.auto_shade_when_home
         turn_off:
-          service: homeassistant.turn_off
+          action: homeassistant.turn_off
           data:
             entity_id: input_boolean.auto_shade_when_home
         icon_template: >-
@@ -218,7 +219,7 @@ script:
         description: '[inaktiv] Öffnen der Jalousielamellen auf diesen Wert (100=offen, 0=geschlossen).'
     mode: parallel
     sequence:
-      - service: cover.set_cover_position
+      - action: cover.set_cover_position
         target:
           entity_id: "{{ my_cover_id }}"
         data:
@@ -233,7 +234,7 @@ script:
         example: 'my_cover_id: <cover.____>'
     mode: parallel
     sequence:
-      - service: cover.open_cover
+      - action: cover.open_cover
         target:
           entity_id: "{{ my_cover_id }}"
   
@@ -266,7 +267,7 @@ script:
                   - cover_id: *cover_entityid_ez
                   - cover_id: *cover_entityid_wz_s
                 sequence:
-                  - service: script.retract_cover
+                  - action: script.retract_cover
                     data:
                       my_cover_id: "{{ repeat.item.cover_id }}"
       - if:
@@ -281,7 +282,7 @@ script:
                   - cover_id: *cover_entityid_wz_ws
                   - cover_id: *cover_entityid_wz_wn
                 sequence:
-                  - service: script.retract_cover
+                  - action: script.retract_cover
                     data:
                       my_cover_id: "{{ repeat.item.cover_id }}"
       - if:
@@ -296,7 +297,7 @@ script:
                   - cover_id: *awning_entityid_w
                   - cover_id: *awning_entityid_o
                 sequence:
-                  - service: script.retract_cover
+                  - action: script.retract_cover
                     data:
                       my_cover_id: "{{ repeat.item.cover_id }}"
 
@@ -337,7 +338,7 @@ script:
                     value_template:  "{{ repeat.item.door_closed }}"
                   then:
                     #TEST: geht nicht. Parallelisierung geht nicht
-                    - service: script.position_jalousie
+                    - action: script.position_jalousie
                       data:
                         my_cover_id: "{{ repeat.item.cover_id }}"
                         my_cover_position: "{{ repeat.item.to_position }}"
@@ -369,7 +370,7 @@ script:
                     condition: template
                     value_template:  "{{ repeat.item.door_closed }}"
                   then:
-                    - service: cover.set_cover_position
+                    - action: cover.set_cover_position
                       target:
                         entity_id: "{{ repeat.item.cover_id }}"
                       data:
@@ -404,7 +405,7 @@ script:
                   - cover_id: *cover_entityid_ez
                   - cover_id: *cover_entityid_wz_s
                 sequence:
-                  - service: cover.stop_cover
+                  - action: cover.stop_cover
                     data:
                       entity_id: "{{ repeat.item.cover_id }}"
       - if:
@@ -419,7 +420,7 @@ script:
                   - cover_id: *cover_entityid_wz_ws
                   - cover_id: *cover_entityid_wz_wn
                 sequence:
-                  - service: cover.stop_cover
+                  - action: cover.stop_cover
                     data:
                       entity_id: "{{ repeat.item.cover_id }}"
       - if:
@@ -434,7 +435,7 @@ script:
                   - cover_id: *awning_entityid_w
                   - cover_id: *awning_entityid_o
                 sequence:
-                  - service: cover.stop_cover
+                  - action: cover.stop_cover
                     data:
                       entity_id: "{{ repeat.item.cover_id }}"
 
@@ -449,16 +450,16 @@ automation:
     alias: Jalousien fuer Sonnenschutz runter
     description: ''
     mode: single #Do not start a new run, if running already. 
-    trigger:
+    triggers:
       - id: 'nobody_home'
-        platform: state
+        trigger: state
         entity_id: sensor.home_status
         from: 'Home'
         to: 'Away'
         for:
           minutes: 1
       - id: 'sun_shining'
-        platform: state
+        trigger: state
         entity_id: 
           - sensor.sunshine_west
           - sensor.sunshine_south
@@ -466,20 +467,20 @@ automation:
         for:
           minutes: 10
       - id: 'config_changed'
-        platform: state
+        trigger: state
         entity_id: 
           - input_boolean.automate_jalousie
           - input_boolean.auto_shade_when_home
           - input_boolean.cover_wo_sun
         to: 'on'
       - id: 'morning_over'
-        platform: time
+        trigger: time
         at: '09:00:10'
       - id: 'sunrise'
-        platform: numeric_state
+        trigger: numeric_state
         entity_id: sensor.sun_elevation_ratio
         above: 0
-    condition:
+    conditions:
       # Beachte: Änderungen an den Bedingungen auch in der Info der Jalousien-Card dokumentieren.
       - and:
         - alias: Automation is turned on
@@ -526,8 +527,8 @@ automation:
               condition: state
               entity_id: sun.sun
               state: 'above_horizon'
-    action:
-      - service: script.lower_all_covers_on_side
+    actions:
+      - action: script.lower_all_covers_on_side
         data:
           in_south: "{{ is_state('sensor.sunshine_south','True') or is_state('input_boolean.cover_wo_sun','on') }}"
           in_west:  "{{ is_state('sensor.sunshine_west','True') or is_state('input_boolean.cover_wo_sun','on') }}"
@@ -536,16 +537,15 @@ automation:
     alias: alle Jalousien/Markisen rein bei starkem Wind
     description: ''
     mode: single #Do not start a new run, if running already. 
-    trigger:
-      - platform: numeric_state
+    triggers:
+      - trigger: numeric_state
         entity_id: sensor.max_wind_warn_level
         above: 1
-      - platform: numeric_state
+      - trigger: numeric_state
         entity_id: sensor.max_wind_speed
         above: 20 # [m/s]
-    condition: []
-    action:
-      - service: script.retract_covers_on_side
+    actions:
+      - action: script.retract_covers_on_side
         data:
           in_south:   true
           in_west:    true
@@ -555,18 +555,17 @@ automation:
     alias: alle Markisen rein bei Regen oder Wind
     description: ''
     mode: single #Do not start a new run, if running already. 
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id: 
           - weather.dwd_home
           - weather.home_hourly
         to: 'rainy'
-      - platform: numeric_state
+      - trigger: numeric_state
         entity_id: sensor.max_wind_speed
         above: 10 # [m/s]
-    condition: []
-    action:
-      - service: script.retract_covers_on_side
+    actions:
+      - action: script.retract_covers_on_side
         data:
           in_south:   false
           in_west:    false
@@ -576,32 +575,32 @@ automation:
     alias: alle Jalousien/Markisen ohne Sonne wieder rein 
     description: ''
     mode: single #Do not start a new run, if running already. 
-    trigger:
+    triggers:
       - id: 'sun_down'
-        platform: numeric_state
+        trigger: numeric_state
         entity_id: sensor.sun_elevation_ratio
         below: 0.01
         for:
           minutes: 5
       - id: 'sunset'
-        platform: state
+        trigger: state
         entity_id: sun.sun
         to: 'below_horizon'
         for:
           seconds: 5
       - id: 'south_wo_sun'
-        platform: template
+        trigger: template
         value_template: "{{ state_attr('sun.sun','azimuth') | int(default=0) > 240 }}"
       - id: 'west_wo_sun'
-        platform: template
+        trigger: template
         value_template: "{{ state_attr('sun.sun','azimuth') | int(default=0) > 330 }}"
-    condition: 
+    conditions: 
       - alias: Automation is turned on
         condition: state
         entity_id: input_boolean.automate_jalousie
         state: 'on'
-    action:
-      - service: script.retract_covers_on_side
+    actions:
+      - action: script.retract_covers_on_side
         data:
           in_south:   "{{ state_attr('sun.sun', 'azimuth')>=240 or states('sensor.sun_elevation_ratio')|int(0)<=0 }}"
           in_west:    "{{ state_attr('sun.sun', 'azimuth')>=330 or states('sensor.sun_elevation_ratio')|int(0)<=0 }}"

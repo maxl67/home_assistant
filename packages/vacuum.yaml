@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 29.06.2024
+#   @changed      : 16.10.2024
 #   @created      : 16.11.2021
 #   @package      : vacuum
 #   @description  : XIAOMI Roborock S6 automation
@@ -145,11 +145,11 @@ switch:
         unique_id: automatic_vacuum_when_home
         value_template: "{{ is_state('input_boolean.automatic_vacuum_when_home', 'on') }}"
         turn_on:
-          service: homeassistant.turn_on
+          action: homeassistant.turn_on
           data:
             entity_id: input_boolean.automatic_vacuum_when_home
         turn_off:
-          service: homeassistant.turn_off
+          action: homeassistant.turn_off
           data:
             entity_id: input_boolean.automatic_vacuum_when_home
         icon_template: >-
@@ -163,11 +163,11 @@ switch:
         unique_id: enable_dustbin_notification
         value_template: "{{ is_state('input_boolean.disable_dustbin_notification', 'off') }}"
         turn_on:
-          service: homeassistant.turn_off
+          action: homeassistant.turn_off
           data:
             entity_id: input_boolean.disable_dustbin_notification
         turn_off:
-          service: homeassistant.turn_on
+          action: homeassistant.turn_on
           data:
             entity_id: input_boolean.disable_dustbin_notification
         icon_template: >-
@@ -181,11 +181,11 @@ switch:
         unique_id: alert_dustbin_full
         value_template: "{{ is_state('input_boolean.alert_dustbin_full', 'on') }}"
         turn_on:
-          service: homeassistant.turn_on
+          action: homeassistant.turn_on
           data:
             entity_id: input_boolean.alert_dustbin_full
         turn_off:
-          service: homeassistant.turn_off
+          action: homeassistant.turn_off
           data:
             entity_id: input_boolean.alert_dustbin_full
         icon_template: >-
@@ -338,11 +338,11 @@ script:
 #  ## would like to have one script for that. todo: check conditions and new interface
 #  vacuum_resume:
 #    sequence:
-#      - service: vacuum.start  #todo: this is not the resume like in the xiaomi app (lower right corner button). will not resume after pausing a room cleaning!
+#      - action: vacuum.start  #todo: this is not the resume like in the xiaomi app (lower right corner button). will not resume after pausing a room cleaning!
 #        entity_id: vacuum.xiaomi_vacuum_cleaner
 #  vacuum_pause:
 #    sequence:
-#      - service: vacuum.pause
+#      - action: vacuum.pause
 #        entity_id: vacuum.xiaomi_vacuum_cleaner
 
   ## start a complete cleanup
@@ -350,14 +350,14 @@ script:
     alias: 'Start vacuum the appartment'
     sequence:
       # when a cleanup was started manually, we do not want to start an additional automatic run the same day.
-      - service: homeassistant.turn_on
+      - action: homeassistant.turn_on
         entity_id: input_boolean.automatic_vacuum_first_run
-      - service: vacuum.start
+      - action: vacuum.start
         entity_id: vacuum.xiaomi_vacuum_cleaner
       # store the last cleaned area
       - delay:
           seconds: 1
-      - service: input_select.select_option
+      - action: input_select.select_option
         data:
           entity_id: input_select.vacuum_last_cleaned_room
           option: 'alles (auto)'
@@ -368,7 +368,7 @@ script:
     alias: 'Start room cleaning'
     sequence:
       # get room-id
-      - service: script.vacuum_selected_rooms
+      - action: script.vacuum_selected_rooms
         data: 
           my_roomid: >
             {{ {
@@ -387,14 +387,14 @@ script:
       # store the last cleaned room
       - delay:
           seconds: 1
-      - service: input_select.select_option
+      - action: input_select.select_option
         data_template:
           entity_id: input_select.vacuum_last_cleaned_room
           option: "{{ my_roomname }}"
       # reset selection in input box
       - delay:
           seconds: 4
-      - service: input_select.select_option
+      - action: input_select.select_option
         data:
           entity_id: input_select.vacuum_room
           option: *no_selection_text
@@ -403,7 +403,7 @@ script:
   vacuum_selected_rooms:
     alias: 'Clean rooms'
     sequence:
-      - service: vacuum.send_command
+      - action: vacuum.send_command
         data:
           entity_id: vacuum.xiaomi_vacuum_cleaner
           command: app_segment_clean
@@ -412,10 +412,10 @@ script:
 
   vacuum_update_map:
     sequence:
-      - service: camera.turn_on
+      - action: camera.turn_on
         data:
           entity_id: camera.xiaomi_cloud_map_extractor
-      - service: camera.turn_off
+      - action: camera.turn_off
         data:
           entity_id: camera.xiaomi_cloud_map_extractor
 
@@ -427,12 +427,12 @@ automation:
   ## Start cleaning a room when 'input_select.vacuum_room' is changed
   - id: vacuum_start_roomcleaning
     alias: Start cleaning room
-    trigger:
-    - platform: state
-      entity_id: input_select.vacuum_room
-      from: *no_selection_text
-    action:
-      - service: script.vacuum_room
+    triggers:
+      - trigger: state
+        entity_id: input_select.vacuum_room
+        from: *no_selection_text
+    actions:
+      - action: script.vacuum_room
         data:
           my_roomname: "{{ states.input_select.vacuum_room.state }}"
    
@@ -443,31 +443,31 @@ automation:
   - id: vacuum_start_cleanup
     alias: Start automatic cleanup
     mode: single
-    trigger:
+    triggers:
       # last person left (gone for 2 min)
-      - platform: state
+      - trigger: state
         entity_id: sensor.home_status
         from: 'Home'
         to: 'Away'
         for:
           minutes: *int_minutes_delay_AutoCleanup_after_departure
       # at 8:02, if everybody already has left earlier 
-      - platform: time
+      - trigger: time
         at: '08:02:00'
       # change in options variables
-      - platform: state
+      - trigger: state
         entity_id: input_boolean.disable_automatic_vacuum
         to: 'off'
-      - platform: state
+      - trigger: state
         entity_id: input_boolean.automatic_vacuum_when_home
         to: 'on'
         for:
           seconds: 5
       # vacuum device becomes available
-      - platform: state
+      - trigger: state
         entity_id: vacuum.xiaomi_vacuum_cleaner
         from: 'unavailable'
-    condition:
+    conditions:
       - and:
         # vacuum device becomes available (WLAN not turned off)
         - not:
@@ -508,7 +508,7 @@ automation:
         {{ 'wöchentliches Saugen der gesamten Wohnung wurde gestartet.' if (cleanup_area=='full') 
            else 'wöchentliches Saugen von Küche, Schlafzimmer und Bad wurde gestartet.'}}
       cleanup_duration: "{{ '01:50:00' if (cleanup_area=='full') else '00:45:00'}}"
-    action:
+    actions:
       # wait a moment and then 
       - delay: '00:00:05'
       # choose what to clean
@@ -520,7 +520,7 @@ automation:
               - mon
               - tue
           sequence:
-            - service: script.vacuum_all
+            - action: script.vacuum_all
             #does not work here (v2020.12.0)
             #- variables:
             #    messagetext: 'wöchentliches Saugen der gesamten Wohnung wurde gestartet.'
@@ -532,7 +532,7 @@ automation:
               - thu
               - fri
           sequence:
-            - service: script.vacuum_room
+            - action: script.vacuum_room
               data:
                 my_roomname: 'Kü,Sz,B (auto)'
             #does not work here (v2020.12.0)
@@ -544,10 +544,10 @@ automation:
       # wait until robot has left the bay
       - delay: '00:00:10'
       # remember, that we have already done the cleaning today
-      - service: homeassistant.turn_on
+      - action: homeassistant.turn_on
         entity_id: input_boolean.automatic_vacuum_first_run
       # send notification
-      - service: notify.family_main_devices
+      - action: notify.family_main_devices
         data:
           title: 'Automatisierung Saug-E'
           message: "{{ messagetext }}"
@@ -558,7 +558,7 @@ automation:
               'apns-collapse-id': 'vacuum-auto-cleanup'
             clickAction: '/lovelace/vacuum'
       - delay: "{{ cleanup_duration }}"
-      - service: homeassistant.turn_on
+      - action: homeassistant.turn_on
         entity_id: input_boolean.alert_dustbin_full
 
   #-------------------------------
@@ -566,42 +566,41 @@ automation:
   ## Mon and Thu cleanup can be delayed to Tue and Fri, so we dont reset Tue and Fri morning.
   - id: vacuum_reset_first_run
     alias: Reset Vacuum First Run state at midnight #(only one automatic run per day)
-    trigger:
-    - platform: time
-      at: '00:30:00'
-    condition:
-    - condition: time
-      weekday:
-        - mon
-        #- tue
-        - wed
-        - thu
-        #- fri
-        - sat
-        - sun
-    action:
-    - service: homeassistant.turn_off
-      entity_id: input_boolean.automatic_vacuum_first_run
+    triggers:
+      - trigger: time
+        at: '00:30:00'
+    conditions:
+      - condition: time
+        weekday:
+          - mon
+          #- tue
+          - wed
+          - thu
+          #- fri
+          - sat
+          - sun
+    actions:
+      - action: homeassistant.turn_off
+        entity_id: input_boolean.automatic_vacuum_first_run
 
   #-------------------------------
   ## Send a notification to the first person arriving at home after an automatic cleanup was triggered
   - id: send_alert_after_automatic_vacuum_to_empty_dustbin
     alias: Send alert after automatic vacuum to empty the dustbin
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id: sensor.home_status
         to: 'Home'
         for:
           minutes: 1
-      - platform: state
+      - trigger: state
         entity_id: input_boolean.disable_dustbin_notification
         to: 'off'
-      - platform: state
+      - trigger: state
         entity_id: vacuum.xiaomi_vacuum_cleaner
         to: 'docked'
-    condition:
-      condition: and
-      conditions:
+    conditions:
+      - and:
         - condition: state
           entity_id: sensor.home_status
           state: 'Home'
@@ -629,8 +628,8 @@ automation:
         - condition: state
           entity_id: vacuum.xiaomi_vacuum_cleaner
           state: 'docked'
-    action:
-      - service: >
+    actions:
+      - action: >
           {% if (states('sensor.max_status') in ['Home', 'Just Arrived']) and (states('sensor.ing_status') in ['Home', 'Just Arrived']) %}
             notify.family_main_devices
           {% elif states('sensor.max_status') in ['Home', 'Just Arrived'] %}
@@ -655,19 +654,19 @@ automation:
   # Notify devices if vacuum reports error status
   - alias: Notify all - Vacuum Error
     id: send_notification_vacuum_error
-    trigger:
+    triggers:
       # vacuum has state 'error'
-      - platform: state
+      - trigger: state
         entity_id: binary_sensor.alert_vacuum_error 
         to: 'on'
         for:
           seconds: 6
-    condition:
+    conditions:
       - condition: state
         entity_id: binary_sensor.alert_vacuum_error
         state: 'on'
-    action:
-      - service: notify.family_main_devices
+    actions:
+      - action: notify.family_main_devices
         data:
           title: 'Smart Home Alerts'
           message: 'Saug-E hat einen Fehlerstatus.'
@@ -682,17 +681,17 @@ automation:
 
   - alias: Reset alert - Vacuum Error
     id: reset_notification_vacuum_error
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id: binary_sensor.alert_vacuum_error
         from: 'on'
         to: 'off'
-    condition:
+    conditions:
       - condition: state
         entity_id: binary_sensor.alert_vacuum_error
         state: 'off'
-    action:
-      - service: notify.family_main_devices
+    actions:
+      - action: notify.family_main_devices
         data:
           title: 'Smart Home ...'
           message: 'Saug-E Fehler behoben.'

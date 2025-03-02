@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @date         : 29.06.2024
+#   @changed      : 16.10.2024
 #   @created      : 17.11.2021
 #   @package      : weather
 #   @description  : all kinds of weather information & senssors, sun und sunshine sensors
@@ -284,10 +284,10 @@ template:
 
     ########## Forecast für SONNENSCHEIN-STUNDEN ###########
   - trigger:
-      - platform: time_pattern
+      - trigger: time_pattern
         hours: /1
     action:
-      - service: weather.get_forecasts
+      - action: weather.get_forecasts
         data:
           type: hourly
         target:
@@ -613,45 +613,43 @@ automation:
   - id: send_notification_dwd_warning
     alias: send_notification_dwd_warning
     initial_state: True
-    trigger:
-      - platform: state
+    triggers:
+      - trigger: state
         entity_id: sensor.dwd_current_warn_count
-      - platform: state
+      - trigger: state
         entity_id: sensor.dwd_weather_warnings_current_warning_level
-    condition:
-      condition: and
-      conditions:
-      - "{{ states.sensor.dwd_current_warn_count.state | int(default=0) > 0 }}"
-      - condition: state
+    conditions:
+      - and:
+        - "{{ states.sensor.dwd_current_warn_count.state | int(default=0) > 0 }}"
+        - condition: state
+          entity_id: input_boolean.dwd_weather_alert
+          state: 'off'
+      #  - condition: state
+      #    entity_id: script.send_dwd_warn_mail
+      #    state: 'off'
+        - or:
+          - "{{ states.sensor.dwd_max_warn_level.state | int(default=0) >= 3 }}"
+          - "{{ states.sensor.dwd_current_warn_level_sturm.state | int(default=0) >= 2 }}"
+          - "{{ states.sensor.dwd_current_warn_level_gewitter.state | int(default=0) >= 2 }}"
+    actions:
+      - action: input_boolean.turn_on
         entity_id: input_boolean.dwd_weather_alert
-        state: 'off'
-    #  - condition: state
-    #    entity_id: script.send_dwd_warn_mail
-    #    state: 'off'
-      - condition: or
-        conditions:
-        - "{{ states.sensor.dwd_max_warn_level.state | int(default=0) >= 3 }}"
-        - "{{ states.sensor.dwd_current_warn_level_sturm.state | int(default=0) >= 2 }}"
-        - "{{ states.sensor.dwd_current_warn_level_gewitter.state | int(default=0) >= 2 }}"
-    action:
-      - service: input_boolean.turn_on
-        entity_id: input_boolean.dwd_weather_alert
-      - service: homeassistant.turn_on
+      - action: homeassistant.turn_on
         entity_id: script.send_dwd_warn_mail
   
   - id: reset_notification_dwd_warning
     alias: reset_notification_dwd_warning
-    trigger:
+    triggers:
       # keine DWD Warnungen mehr und Wetter-Alarm=an
-      platform: template
+      trigger: template
       value_template: "{{ states.sensor.dwd_current_warn_count.state == '0'   
                           and is_state('input_boolean.dwd_weather_alert', 'on') }}"
       for:
         seconds: 1
-    action:
-      - service: input_boolean.turn_off
+    actions:
+      - action: input_boolean.turn_off
         entity_id: input_boolean.dwd_weather_alert
-      - service: notify.max
+      - action: notify.max
         data:
           title: 'Smart Home ...'
           message: delete_alert #'DWD Wetterwarnung aufgehoben.'
@@ -672,7 +670,7 @@ script:
     sequence:
       - delay:
           seconds: 10
-      - service: notify.max
+      - action: notify.max
         data:
           title: 'DWD Wetterwarnung!'
           message: 'Aktuelle Warnung kommt per Mail.'
@@ -684,10 +682,10 @@ script:
             apns_headers:
               'apns-collapse-id': 'dwd-weather-warning'
               url: /lovelace/weather
-    #- service: shell_command.get_warn_image
+    #- action: shell_command.get_warn_image
       #- delay:
       #    minutes: 1
-      - service: notify.gmx_smtp
+      - action: notify.gmx_smtp
         data:
           title: 'DWD Wetterwarnung!'
           message: ' '
