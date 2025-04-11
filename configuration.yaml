@@ -266,6 +266,12 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.bkw_sued_voltage
       - sensor.bkw_sued_current
       - sensor.bkw_sued_frequency #?
+      - sensor.bkw_sued_rx_success
+      - sensor.bkw_sued_rx_fail_receive_corrupt
+      - sensor.bkw_sued_rx_fail_receive_nothing
+      - sensor.bkw_sued_rx_fail_receive_partial
+      - sensor.bkw_sued_tx_requests
+      - sensor.bkw_sued_tx_re_request_fragment
       - sensor.bkw_sued_powerdc
       - sensor.opendtu_uptime
       - sensor.bkw_sued_temperature
