@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @changed      : 16.10.2024
+#   @changed      : 10.01.2026
 #   @created      : 01.12.2020
 #   @package      : media
 #   @description  : media devices and player
@@ -110,12 +110,12 @@ group:
 #     scan_interval: 30
 #     count: 2
 
-sensor:
-  - platform: template
-    sensors:
-      netreceiver_is_used:
-        friendly_name: 'Yamaha R-N803 in Benutzung'
-        value_template: >
+template:
+  - sensor:
+    - unique_id: netreceiver_is_used
+      default_entity_id: sensor.netreceiver_is_used
+      name: 'Yamaha R-N803 in Benutzung'
+      state: >-
           {%- if states('media_player.r_n803d_86ae28') in ['unavailable','unknown'] -%}
             off
           {%-  elif not states('media_player.r_n803d_86ae28') in ['off','idle'] 
@@ -124,10 +124,10 @@ sensor:
           {%- else -%}
             off
           {%-  endif -%}
-
-      entertainment_scenario:
-        friendly_name: 'Unterhaltungs Szenario'
-        value_template: >
+    - unique_id: entertainment_scenario
+      default_entity_id: sensor.entertainment_scenario
+      name: 'Unterhaltungs Szenario'
+      state: >-
           {%- if states('media_player.r_n803d_86ae28') in ['unavailable','unknown','off'] 
                 and states('media_player.samsungtv') in ['unavailable','unknown','off'] -%}
             off
@@ -147,7 +147,6 @@ sensor:
           {%- else -%}
             unknown
           {%-  endif -%}
-
 
 ###############################################################################
 ##  Scripts

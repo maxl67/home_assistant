@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @changed      : 16.10.2024
+#   @changed      : 09.01.2026
 #   @created:     : 29.04.2022
 #   @package      : doors_windows
 #   @description  : Notifications of status of open doors and windows
@@ -40,13 +40,14 @@ homeassistant:
       <<: *door
     binary_sensor.door_e1_offnung:
       friendly_name: Esszimmer
-      battery last changed: 14.12.2023
+      battery last changed: 26.11.2025 #14.12.2023
       <<: *door
     binary_sensor.door_k1_offnung:
       friendly_name: Küche
       <<: *door
     binary_sensor.door_a2_offnung:
       friendly_name: Arbeitszimmer S
+      battery last changed: 06.11.2025
       <<: *door
     binary_sensor.door_a1_offnung:
       friendly_name: Arbeitszimmer O
@@ -159,43 +160,46 @@ input_boolean:
     name: Ampel anzeigen
     icon: mdi:traffic-light-outline
 
-switch:
-  - platform: template
-    switches: ## are needed in addition to input_booleans to get a dynamic icon
-      enable_signal_automation:
-        friendly_name: Automatische Ampel #   
-        value_template: "{% if not states('input_boolean.disable_signal_automation')=='unknown' %}{{ is_state('input_boolean.disable_signal_automation', 'off') }}{% endif %}"
-        turn_on:
-          action: homeassistant.turn_off
+template:
+  - switch:
+  ## are needed in addition to input_booleans to get a dynamic icon
+    - unique_id: enable_signal_automation
+      default_entity_id: switch.enable_signal_automation
+      name: Automatische Ampel
+      turn_on:
+        - action: homeassistant.turn_off
           data:
             entity_id: input_boolean.disable_signal_automation
-        turn_off:
-          action: homeassistant.turn_on
+      turn_off:
+        - action: homeassistant.turn_on
           data:
             entity_id: input_boolean.disable_signal_automation
-        icon_template: >-
-          {% if is_state('input_boolean.disable_signal_automation', 'on') %}
-            mdi:ghost-off-outline
-          {% else %}
-            mdi:ghost
-          {% endif %}
-      show_signal:
-        friendly_name: Ampel anzeigen   
-        value_template: "{% if not states('input_boolean.show_signal')=='unknown' %}{{ is_state('input_boolean.show_signal', 'on') }}{% endif %}"
-        turn_on:
-          action: homeassistant.turn_on
+      state: "{% if not states('input_boolean.disable_signal_automation')=='unknown' %}{{ is_state('input_boolean.disable_signal_automation', 'off') }}{% endif %}"
+      icon: >-
+        {% if is_state('input_boolean.disable_signal_automation', 'on') %}
+          mdi:ghost-off-outline
+        {% else %}
+          mdi:ghost
+        {% endif %}
+
+    - unique_id: show_signal
+      default_entity_id: switch.show_signal
+      name: Ampel anzeigen
+      turn_on:
+        - action: homeassistant.turn_on
           data:
             entity_id: input_boolean.show_signal
-        turn_off:
-          action: homeassistant.turn_off
+      turn_off:
+        - action: homeassistant.turn_off
           data:
             entity_id: input_boolean.show_signal
-        icon_template: >-
-          {% if is_state('input_boolean.show_signal', 'on') %}
-            mdi:alarm-light-outline
-          {% else %}
-            mdi:alarm-light-off-outline
-          {% endif %}
+      state: "{% if not states('input_boolean.show_signal')=='unknown' %}{{ is_state('input_boolean.show_signal', 'on') }}{% endif %}"
+      icon: >-
+        {% if is_state('input_boolean.show_signal', 'on') %}
+          mdi:alarm-light-outline
+        {% else %}
+          mdi:alarm-light-off-outline
+        {% endif %}
 
 ###############################################################################
 ##  Scripts

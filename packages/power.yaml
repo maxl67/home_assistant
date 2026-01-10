@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @changed      : 20.11.2023
+#   @changed      : 10.01.2026
 #   @created:     : 08.10.2020
 #   @package      : power
 #   @description  : light/power consumtion and regulation
@@ -27,6 +27,7 @@ homeassistant:
       powerswitch_gz_entityid: &powerswitch_gz_entityid switch.fritz_dect_200_gz
       powerswitch_tv_entityid: &powerswitch_tv_entityid switch.outlet_repeater_hifi_switch
       powerswitch_rpi_sued_entityid: &powerswitch_rpi_sued_entityid switch.outlet_repeater_wz_018780fe_on_off
+      powerswitch_miefquirl_entityid: &powerswitch_miefquirl_entityid switch.miefquirl_switch
       # delays for notifications 
       int_seconds_alert_send_delay: &int_seconds_alert_send_delay 180 #default: 5
       int_seconds_alert_reset_delay: &int_seconds_alert_reset_delay 1 #default: 1
@@ -116,26 +117,27 @@ input_boolean:
     name: Benachrichtigung über Stromsensor offline versandt  
     icon: mdi:alert-box-outline
 
-switch:
-  - platform: template
-    switches: ## are needed in addition to input_booleans to get a dynamic icon
-      enable_power_automation:
-        friendly_name: Automatische Stromabschaltung #   
-        value_template: "{% if not states('input_boolean.disable_power_automation')=='unknown' %}{{ is_state('input_boolean.disable_power_automation', 'off') }}{% endif %}"
-        turn_on:
-          action: homeassistant.turn_off
+template:
+  - switch:
+    ## are needed in addition to input_booleans to get a dynamic icon
+    - unique_id: enable_power_automation
+      default_entity_id: switch.enable_power_automation
+      name: Automatische Stromabschaltung
+      turn_on:
+        - action: homeassistant.turn_off
           data:
             entity_id: input_boolean.disable_power_automation
-        turn_off:
-          action: homeassistant.turn_on
+      turn_off:
+        - action: homeassistant.turn_on
           data:
             entity_id: input_boolean.disable_power_automation
-        icon_template: >-
-          {% if is_state('input_boolean.disable_power_automation', 'on') %}
-            mdi:ghost-off-outline
-          {% else %}
-            mdi:ghost
-          {% endif %}
+      state: "{% if not states('input_boolean.disable_power_automation')=='unknown' %}{{ is_state('input_boolean.disable_power_automation', 'off') }}{% endif %}"
+      icon: >-
+        {% if is_state('input_boolean.disable_power_automation', 'on') %}
+          mdi:ghost-off-outline
+        {% else %}
+          mdi:ghost
+        {% endif %}
 
 ###############################################################################
 ##  Sensors
@@ -143,23 +145,68 @@ switch:
 # Per Tasmota WiFi-IR Leser wird der Iskra MT631 Stromzähler ausgelesen.
 # mqtt:
 #   sensor: (autodiscover)
-sensor:
-  # Im Jahr 2022 beträgt die KWKG-Umlage bei der Belieferung von Haushalten 0,378 ct/kWh
-  # Individuelles Netzentgelt 2023 LV GRUPPE A': 0,00417 ct/kWh
-  # Offshore-Netzumlage nach § 17f EnWG 2023: 0,591 ct/kWh
-  # Konzessionsabgabe: 2,39 ct/kWh ?
-  # Die Stromsteuer für Haushalte beträgt 2,05 ct/kWh.
-  # --> Nettopreis. Zzgl. MwSt auf alles
-  - platform: template
-    sensors:
-#todo: oben zufügen
-      strompreis_abgaben:
-        friendly_name: 'Abgaben und Steuern auf Börsenstrompreis'
-        #unit_of_measurement: 'ct/kWh'
-        value_template: >
-          {{ 1.33 + 0.244 + 2.15 + 11.59 + 2.05 }}
+
+  - sensor:
+    # Im Jahr 2022 beträgt die KWKG-Umlage bei der Belieferung von Haushalten 0,378 ct/kWh
+    # Individuelles Netzentgelt 2023 LV GRUPPE A': 0,00417 ct/kWh
+    # Offshore-Netzumlage nach § 17f EnWG 2023: 0,591 ct/kWh
+    # Konzessionsabgabe: 2,39 ct/kWh ?
+    # Die Stromsteuer für Haushalte beträgt 2,05 ct/kWh.
+    # --> Nettopreis. Zzgl. MwSt auf alles
+    - unique_id: strompreis_abgaben
+      default_entity_id: sensor.strompreis_abgaben
+      name: Abgaben und Steuern auf Börsenstrompreis
+      state: "{{ 1.33 + 0.244 + 2.15 + 11.59 + 2.05 }}"
         #Umlagen, Konzessionsabgabe (regional), weitere Beschaffungskosten (Tibber), Nutzungsentgelt (regional), Stromsteuer
         #netto, zzgl. MwSt auf Abgaben + Strompreis
+      unit_of_measurement: 'ct/kWh'
+      attributes:
+        <<: *common
+        description: Umlagen, Konzessionsabgabe (regional), weitere Beschaffungskosten (Tibber), Nutzungsentgelt (regional), Stromsteuer. Netto, zzgl. MwSt auf Abgaben + Strompreis
+
+    # Sensoren für die durchgehende Anzeige der BKW-Werte, auch den der Wechselrichter aus ist.
+    - unique_id: solar_power_continious
+      default_entity_id: sensor.solar_power_continious
+      name: aktuelle Solarstromproduktion
+      state: "{{ (0 if is_state('sensor.bkw_sued_power','unavailable') else states('sensor.bkw_sued_power'))|int(0) }}"
+      unit_of_measurement: 'W'
+      state_class: total #measurement
+      #device_class: energy
+      icon: mdi:transmission-tower-import
+      attributes:
+      #  <<: *common
+        description: aktuelle Solarstromproduktion (BKW-Süd)
+
+    # berechnet die Eigenverbrauchsquote für den aktuellen Tag
+    - unique_id: daily_solar_consumption_rate
+      default_entity_id: sensor.daily_solar_consumption_rate
+      name: heutiger Eigenverbrauch
+      state: "{{ ((1 - (states('sensor.einspeisung_heute')|float(0)*1000/states('sensor.daily_bkw_sued_yield')|float(1)))*100) if states('sensor.daily_bkw_sued_yield')|float(0) != 0 else 0 }}"
+      unit_of_measurement: '%'
+      attributes:
+      #  <<: *common
+        description: heutiger Eigenverbrauch
+
+  - binary_sensor:
+    # Alarm, wenn die Aussensteckdose ausgeschaltet ist (geprüft wird die Netzfrequenz)
+    - unique_id: bwk_sued_offline_alert
+      default_entity_id: binary_sensor.bwk_sued_offline_alert
+      name: BKW Süden ausgeschaltet
+      state: "{{ is_state('binary_sensor.bkw_sued_reachable','on') and states('sensor.bkw_sued_frequency')|float(0) < 40.0 }}"
+      icon: mdi:weather-sunny-off
+      attributes:
+      #  <<: *common
+        description: 'active warning: solar panel switched off'
+
+    - unique_id: powermeter_offline_alert
+      default_entity_id: binary_sensor.powermeter_offline_alert
+      name: Stromzähler nicht erreichbar
+      state: "{{ is_state('sensor.tasmotawe5_we5_power_cur','unavailable') }}"
+      icon: mdi:transmission-tower-import
+      attributes:
+      #  <<: *common
+        description: 'active warning: Powermeter sensor offline'
+
 #todo: nur test, dieser sensor kann wieder weg.
   # # Berechnet zwar den Mittelwert der gelieferten Energie (macht keinen Sinn), 
   # # stellt aber auch die min(max Werte aus dem verarbeiteten Intervall) als Appribute bereit.
@@ -186,6 +233,9 @@ sensor:
   #     seconds: 25
   #   precision: 0
 
+################################################
+##   Platforms
+################################################
 # Hier Utility Meter Integration (in Core)
 # Berechnet das tägliche Wachstum
 utility_meter:
@@ -213,49 +263,46 @@ mqtt:
       availability_topic: solar/dtu/status
       icon: mdi:solar-power-variant-outline
 
-template:
-  - binary_sensor:
-    # ---------------------
-    # Alarm, wenn die Aussensteckdose ausgeschaltet ist (geprüft wird die Netzfrequenz)
-    - unique_id: bwk_sued_offline_alert
-      name: bwk_sued_offline_alert
-      state: "{{ is_state('binary_sensor.bkw_sued_reachable','on') and states('sensor.bkw_sued_frequency')|float(0) < 40.0 }}"
-      icon: mdi:weather-sunny-off
-      attributes:
-        friendly_name: BKW Süden ausgeschaltet #active warning: solar panel switched off
-    
-    # Alarm, wenn der Sensor am Stromzähler nicht mehr sendet (Tasmota)
-    - unique_id: powermeter_offline_alert
-      name: powermeter_offline_alert
-      state: "{{ is_state('sensor.tasmotawe5_we5_power_cur','unavailable') }}"
-      icon: mdi:transmission-tower-import
-      attributes:
-        friendly_name: Stromzähler nicht erreichbar   #active warning: Powermeter sensor offline
-  
-  - sensor:
-    # Sensoren für die durchgehende Anzeige der BKW-Werte, auch den der Wechselrichter aus ist.
-    - unique_id: solar_power_continious
-      name: solar_power_continious
-      state: "{{ (0 if is_state('sensor.bkw_sued_power','unavailable') else states('sensor.bkw_sued_power'))|int(0) }}"
-      unit_of_measurement: 'W'
-      state_class: measurement
-      device_class: energy
-      icon: mdi:transmission-tower-import
-      attributes:
-        friendly_name: aktuelle Solarstromproduktion
-
-    # berechnet die Eigenverbrauchsquote für den aktuellen Tag
-    - unique_id: daily_solar_consumption_rate
-      name: daily_solar_consumption_rate
-      state: "{{ ((1 - (states('sensor.einspeisung_heute')|float(0)*1000/states('sensor.daily_bkw_sued_yield')|float(1)))*100) if states('sensor.daily_bkw_sued_yield')|float(0) != 0 else 0 }}"
-      unit_of_measurement: '%'
-      attributes:
-        friendly_name: heutiger Eigenverbrauch
-
 ###############################################################################
 #                               Automations
 ###############################################################################
 automation:
+
+  #----------------------------------------------------------------------------------
+  # Lüfter in der Speisekammer
+  # Ausschalten des Lüfters, wenn kein Solarstrom übrig ist (mit einer halben Minute Verzögerung)
+  - id: power_down_miefquirl
+    alias: switch off kitchen ventilator
+    description: 'Schaltet Lüfter Speisekammer aus, wenn kein Sonnenstrom übrig ist.'
+    triggers: 
+      - id: 'no solar power'
+        trigger: numeric_state
+        entity_id: sensor.tasmotawe5_we5_power_cur
+        above: 0
+        for: 
+          minutes: 0
+          seconds: 30
+    actions:
+      - action: switch.turn_off
+        entity_id: *powerswitch_miefquirl_entityid
+
+  # Einschalten des Media Racks, wenn wir nach Hause kommen
+  # Ausschalten des Lüfters, wenn kein Solarstrom übrig ist (mit einer Minute Verzögerung)
+  - id: power_up_miefquirl
+    alias: switch on kitchen ventilator
+    description: 'Schaltet Lüfter Speisekammer an, wenn Sonnenstrom für mehr als eine Minute übrig ist.'
+    triggers: 
+      - id: 'solar power'
+        trigger: numeric_state
+        entity_id: sensor.tasmotawe5_we5_power_cur
+        below: -20
+        for: 
+          minutes: 3
+          seconds: 0
+    actions:
+      - action: switch.turn_on
+        entity_id: *powerswitch_miefquirl_entityid
+
   #----------------------------------------------------------------------------------
   # Medien-Rack
   # Ausschalten des Medien-Racks, wenn wir für 10 min weg sind

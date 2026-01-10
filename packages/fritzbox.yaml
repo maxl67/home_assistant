@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @changed      : 16.10.2024
+#   @changed      : 09.01.2026
 #   @created      : 12.11.2019
 #   @package      : fritzbox
 #   @description  : Monitoring of FritzBox router and Fritz smart home components
@@ -25,8 +25,8 @@ homeassistant:
       powerswitch_tv_entityid: &powerswitch_tv_entityid switch.outlet_repeater_hifi_switch
       powerswitch_rpi_sued_entityid: &powerswitch_rpi_sued_entityid switch.outlet_repeater_wz_018780fe_on_off
   # sensors
-    sensor.fritzbox_uptime:
-      <<: *common
+    # sensor.fritzbox_uptime:
+    #   <<: *common
     sensor.fritz_rate_up:
       <<: *common
     sensor.fritz_rate_down:
@@ -59,35 +59,43 @@ homeassistant:
 ###############################################################################
 ##  Sensors
 ###############################################################################
-# todo: umstellen aus Template > Sensor (neue Form)
-sensor:
-  - platform: template
-    sensors:
-      fritzbox_uptime:
-        friendly_name: "Uptime"
-        value_template: "{{ ( (as_timestamp(now())|int(default=0) - as_timestamp(states('sensor.fritz_box_6490_cable_device_uptime'))|int(default=0)) / (60*60*24)) | round(0) }}"
-        unit_of_measurement: "days"
-        icon_template: mdi:restart
-      fritz_rate_up: #Current upstream speed in Kbytes/s
-        friendly_name: "Upload"
-        value_template: "{{ (states('sensor.fritz_box_6490_cable_kb_s_sent')|int(default=0) / 1024 * 8)|round(1) }}"
-        icon_template: mdi:cloud-upload
-        unit_of_measurement: "MBit/s"
-      fritz_rate_down: #Current downstream speed in Kbytes/s
-        friendly_name: "Download"
-        value_template: "{{ (states('sensor.fritz_box_6490_cable_kb_s_received')|int(default=0) / 1024 * 8)|round(1) }}"
-        icon_template: mdi:cloud-download
-        unit_of_measurement: "MBit/s"
-      fritz_rate_up_max: #Maximum upstream-rate in bytes/s
-        friendly_name: "Upload Max"
-        value_template: "{{ (states('sensor.fritz_box_6490_cable_max_kbit_s_sent')|int(default=0) / 1024)|round(1) }}"
-        icon_template: mdi:transfer-up
-        unit_of_measurement: "MB/sec"
-      fritz_rate_down_max: #Maximum downstream-rate in bytes/s
-        friendly_name: "Download Max"
-        value_template: "{{ (states('sensor.fritz_box_6490_cable_max_kbit_s_received')|int(default=0) / 1024)|round(1) }}"
-        icon_template: mdi:transfer-down
-        unit_of_measurement: "MB/sec"
+template:
+  - sensor:
+    - unique_id: fritz_rate_up #Current upstream speed in Kbytes/s
+      default_entity_id: sensor.fritz_rate_up
+      name: Upload
+      state: "{{ (states('sensor.fritz_box_cable_upload_durchsatz')|int(default=0) / 1024 * 8)|round(1) }}"
+      unit_of_measurement: 'MBit/s'
+      icon: mdi:cloud-upload
+      attributes:
+        #friendly_name: Current upstream speed in MBit/s
+        description: Current upstream speed in MBit/s
+    - unique_id: fritz_rate_down #Current downstream speed in Kbytes/s
+      default_entity_id: sensor.fritz_rate_down
+      name: Download
+      state: "{{ (states('sensor.fritz_box_cable_download_durchsatz')|int(default=0) / 1024 * 8)|round(1) }}"
+      unit_of_measurement: 'MBit/s'
+      icon: mdi:cloud-download
+      attributes:
+        #friendly_name: Current downstream speed in MBit/s
+        description: Current downstream speed in MBit/s
+
+    - unique_id: fritz_rate_up_max #Maximum upstream-rate in bytes/s
+      default_entity_id: sensor.fritz_rate_up_max
+      name: Upload Max
+      state: "{{ (states('sensor.fritz_box_cable_maximaler_upload_durchsatz_der_verbindung')|int(default=0) / 1024)|round(1) }}"
+      unit_of_measurement: 'MB/sec'
+      icon: mdi:transfer-up
+      attributes:
+        description: maximal upstream-rate in MB/sec
+    - unique_id: fritz_rate_down_max #Maximum downstream-rate in bytes/s
+      default_entity_id: sensor.fritz_rate_down_max
+      name: Download Max
+      state: "{{ (states('sensor.fritz_box_cable_maximaler_download_durchsatz_der_verbindung')|int(default=0) / 1024)|round(1) }}"
+      unit_of_measurement: 'MB/sec'
+      icon: mdi:transfer-down
+      attributes:
+        description: maximal downstream-rate in MB/sec
 
 ###############################################################################
 ##  Scripts
@@ -96,16 +104,16 @@ script:
   fritzbox_reconnect:
     alias: "Reconnect Fritz!Box"
     sequence:
-      - action: fritz.reconnect
-        data:
-          device_id: !secret fritzbox_device_id
-
+      - action: button.press
+        target:
+          entity_id: button.fritz_box_cable_neu_verbinden
+          
   fritzbox_reboot:
     alias: "Reboot Fritz!Box"
     sequence:
-      - action: fritz.reboot
-        data:
-          device_id: !secret fritzbox_device_id
+      - action: button.press
+        target:
+          entity_id: button.fritz_box_cable_neu_starten
 
 ###############################################################################
 ##  Automations

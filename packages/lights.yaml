@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @changed      : 16.10.2024
+#   @changed      : 10.01.2026
 #   @created      : 08.01.2021
 #   @package      : lights
 #   @description  : light control
@@ -85,26 +85,27 @@ input_boolean:
     name: Lichtschaltung deaktivieren
     icon: mdi:robot
 
-switch:
-  - platform: template
-    switches: ## are needed in addition to input_booleans to get a dynamic icon
-      enable_light_automation:
-        friendly_name: Automatische Lichtschaltung #   
-        value_template: "{% if not states('input_boolean.disable_light_automation')=='unknown' %}{{ is_state('input_boolean.disable_light_automation', 'off') }}{% endif %}"
-        turn_on:
-          action: homeassistant.turn_off
+template:
+  - switch:
+    ## are needed in addition to input_booleans to get a dynamic icon
+    - unique_id: enable_light_automation
+      default_entity_id: switch.enable_light_automation
+      name: Automatische Lichtschaltung
+      turn_on:
+        - action: homeassistant.turn_off
           data:
             entity_id: input_boolean.disable_light_automation
-        turn_off:
-          action: homeassistant.turn_on
+      turn_off:
+        - action: homeassistant.turn_on
           data:
             entity_id: input_boolean.disable_light_automation
-        icon_template: >-
-          {% if is_state('input_boolean.disable_light_automation', 'on') %}
-            mdi:ghost-off-outline
-          {% else %}
-            mdi:ghost
-          {% endif %}
+      state: "{% if not states('input_boolean.disable_light_automation')=='unknown' %}{{ is_state('input_boolean.disable_light_automation', 'off') }}{% endif %}"
+      icon: >-
+        {% if is_state('input_boolean.disable_light_automation', 'on') %}
+          mdi:ghost-off-outline
+        {% else %}
+          mdi:ghost
+        {% endif %}
 
 
 ###############################################################################

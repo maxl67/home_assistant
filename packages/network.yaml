@@ -86,7 +86,7 @@ homeassistant:
 ##   Platforms
 ################################################
 #sensor:
-  # raspi1Sensors, raspi2Sensors: 
+  # raspi-Sensors: 
     # werden automatisch erzeugt (MQTT)
   # monitor Home Assistant system state
   # - platform: systemmonitor
@@ -100,71 +100,7 @@ homeassistant:
   #   - type: network_out
   #     arg: eth0
   #   - type: last_boot
-  # monitor Home Assistant database size
-#  - platform: sql
-#    db_url: !secret HistoryDB_connection
-#    queries:
-#    - name: historydb_size
-#      query: 'SELECT table_schema "database", Round(Sum(data_length + index_length) / 1048576, 1) "value" FROM information_schema.tables WHERE table_schema="HAhistory" GROUP BY table_schema'
-#      column: 'value'
-#      unit_of_measurement: MB
-  # check on the version of Home Assistant
-#  - platform: version
-#    source: local
-#  - platform: version
-#    source: docker
 
-
-###############################################################################
-##  Sensors
-###############################################################################
-#binary_sensor:
-  # Monitor IP-connection to systems state
-  # - platform: ping
-  #   host: !secret samsung_tv_ip
-  #   name: smarttv
-  #   scan_interval: 300
-  #   count: 2
-  # - platform: ping
-  #   host: !secret xiaomi_vacuum_ip
-  #   name: roborock
-  #   scan_interval: 120
-  #   count: 2
-  # - platform: ping
-  #   host: !secret radio_bad_ip
-  #   name: radiobad
-  #   scan_interval: 120
-  #   count: 2
-  # - platform: ping
-  #   host: raspi1s
-  #   name: rpi_ost
-  #   scan_interval: 15
-  #   count: 2
-  # - platform: ping
-  #   host: raspi2
-  #   name: rpi_west
-  #   scan_interval: 60
-  #   count: 2
-  # - platform: ping
-  #   host: !secret raspi3_sued_ip
-  #   name: rpi_sued
-  #   scan_interval: 15
-  #   count: 2
-  # - platform: ping
-  #   host: !secret devolo_bridge_ip
-  #   name: devolo_bridge
-  #   scan_interval: 60
-  #   count: 2
-  # - platform: ping
-  #   host: !secret devolo_stk_ip
-  #   name: devolo_steuerkasten
-  #   scan_interval: 60
-  #   count: 3
-  # - platform: ping
-  #   host: !secret devolo_keller_ip
-  #   name: devolo_keller
-  #   scan_interval: 60
-  #   count: 4
 ###############################################################################
 #                               Automations
 ###############################################################################

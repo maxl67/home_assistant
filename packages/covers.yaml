@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @changed      : 16.10.2024
+#   @changed      : 09.01.2026
 #   @created      : 09.2022
 #   @package      : jalousie
 #   @description  : covers operated by Homematic IP wired (HmIPw) 
@@ -8,9 +8,10 @@
 #                   .
 # remarks:
 # todo: Lamellenposition einstellen. Nach Herunterfahren der Jalousien Lamellen einmal auf 50%-100% und dann wieder auf 20%
+# hack: cover_entityid_ku deaktiviert
 ###############################################################################
 
-################################################
+################################################s
 ##  Customize
 ################################################
 homeassistant:
@@ -115,66 +116,84 @@ input_boolean:
     name: Auto-Beschattung auch wenn zuhause
     icon: mdi:weather-sunny-off
 
-switch:
-  - platform: template
-    switches: ## are needed in addition to input_booleans to get a dynamic icon
-      enable_jalousie_automation:
-        friendly_name: Automatische Jalousiesteuerung  
-        value_template: "{{ is_state('input_boolean.automate_jalousie', 'on') }}"
-        turn_on:
-          action: homeassistant.turn_on
+template:
+  - switch:
+  ## are needed in addition to input_booleans to get a dynamic icon
+    - unique_id: enable_jalousie_automation
+      default_entity_id: switch.enable_jalousie_automation
+      name: Automatische Jalousiesteuerung
+      turn_on:
+        - action: homeassistant.turn_on
           data:
             entity_id: input_boolean.automate_jalousie
-        turn_off:
-          action: homeassistant.turn_off
+      turn_off:
+        - action: homeassistant.turn_off
           data:
             entity_id: input_boolean.automate_jalousie
-        icon_template: >-
-          {% if is_state('input_boolean.automate_jalousie', 'off') %}
-            mdi:ghost-off-outline
-          {% else %}
-            mdi:ghost
-          {% endif %}
+      state: "{{ is_state('input_boolean.automate_jalousie', 'on') }}"
+      icon: >-
+        {% if is_state('input_boolean.automate_jalousie', 'off') %}
+          mdi:ghost-off-outline
+        {% else %}
+          mdi:ghost
+        {% endif %}
 
-      cover_only_when_sunshine:
-        friendly_name: verdunkeln nur bei Sonne 
-        value_template: "{{ is_state('input_boolean.cover_wo_sun', 'off') }}"
-        turn_on:
-          action: homeassistant.turn_off
+    - unique_id: cover_only_when_sunshine
+      default_entity_id: switch.cover_only_when_sunshine
+      name: verdunkeln nur bei Sonne 
+      turn_on:
+        - action: homeassistant.turn_off
           data:
             entity_id: input_boolean.cover_wo_sun
-        turn_off:
-          action: homeassistant.turn_on
+      turn_off:
+        - action: homeassistant.turn_on
           data:
             entity_id: input_boolean.cover_wo_sun
-        icon_template: >-
-          {% if is_state('input_boolean.cover_wo_sun', 'on') %}
-            mdi:weather-sunny-off
-          {% else %}
-            mdi:weather-sunny
-          {% endif %}
+      state: "{{ is_state('input_boolean.cover_wo_sun', 'off') }}"
+      icon: >-
+        {% if is_state('input_boolean.cover_wo_sun', 'on') %}
+          mdi:weather-sunny-off
+        {% else %}
+          mdi:weather-sunny
+        {% endif %}
 
-      automatic_shade_when_home:
-        friendly_name: Auto-Beschattung wenn zuhause 
-        value_template: "{{ is_state('input_boolean.auto_shade_when_home', 'on') }}"
-        turn_on:
-          action: homeassistant.turn_on
+    - unique_id: automatic_shade_when_home
+      default_entity_id: switch.automatic_shade_when_home
+      name: Auto-Beschattung wenn zuhause 
+      turn_on:
+        - action: homeassistant.turn_on
           data:
             entity_id: input_boolean.auto_shade_when_home
-        turn_off:
-          action: homeassistant.turn_off
+      turn_off:
+        - action: homeassistant.turn_off
           data:
             entity_id: input_boolean.auto_shade_when_home
-        icon_template: >-
-          {% if is_state('input_boolean.auto_shade_when_home', 'on') %}
-            mdi:account-check-outline
-          {% else %}
-            mdi:account-off-outline
-          {% endif %}
+      state: "{{ is_state('input_boolean.auto_shade_when_home', 'on') }}"
+      icon: >-
+        {% if is_state('input_boolean.auto_shade_when_home', 'on') %}
+          mdi:account-check-outline
+        {% else %}
+          mdi:account-off-outline
+        {% endif %}
 
 ###############################################################################
 ##  Sensors
 ###############################################################################
+  - sensor:
+    - unique_id: max_wind_speed
+      name: max_wind_speed
+      state: >-
+          {% set values = [ 
+            state_attr('weather.dwd_home', 'wind_speed')|float(default=0)/3.6,
+            states('sensor.home_hourly_wind_speed')|float(default=0)
+            ]
+          %}
+          {{ values|max }}
+      unit_of_measurement: 'm/s'
+      attributes:
+        friendly_name: max. Windgeschwindigkeit
+        description: 'max von weather.dwd_home.wind_speed, sensor.home_hourly_wind_speed'
+
 sensor:
   - platform: min_max
     name: max_wind_warn_level
@@ -183,23 +202,6 @@ sensor:
       - sensor.dwd_current_warn_level_gewitter
       - sensor.dwd_current_warn_level_sturm
       - sensor.dwd_current_warn_level_hagel
-
-template:
-  - sensor:
-    - unique_id: max_wind_speed
-      name: max_wind_speed
-      state: >-
-          {% set values = [ 
-            state_attr('weather.dwd_home', 'wind_speed')|float(default=0)/3.6,
-            states('sensor.home_hourly_wind_speed')|float(default=0), 
-            states('sensor.home_hourly_forecast_wind_speed')|float(default=0),
-            ]
-          %}
-          {{ values|max }}
-      unit_of_measurement: 'm/s'
-      attributes:
-        friendly_name: max. Windgeschwindigkeit
-        description: 'max von weather.dwd_home.wind_speed, sensor.home_hourly_wind_speed, sensor.home_hourly_forecast_wind_speed'
 
 ###############################################################################
 ##  Scripts

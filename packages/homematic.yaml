@@ -300,18 +300,16 @@ template:
         friendly_name: Heizprofil Gästethermostat
         description: Konvertiert die Variable aus der Homematic CCU in eine Beschreibung für die 'simple-thermostat' Card
 
-binary_sensor: 
-  - platform: template
-    sensors:
-      hm_homematic_up:
-        unique_id: hm_homematic_up
-        friendly_name: "Homematic is sending updates"
-        # Time based template: see https://www.home-assistant.io/integrations/binary_sensor.template/#working-without-entities
-        # 'last_changed' is only accessible through states-object. see: https://community.home-assistant.io/t/last-updated-state-and-last-changed-in-lovelave/101701
-        #  --> states.sensor.hm_thermo_wz_current_temp.last_changed NOT states_attr(..)
-        value_template: >-
-          {% set dummy = states('sensor.time') %}
-          {{ (as_timestamp(now()) - as_timestamp(states.sensor.wandthermostat_wz_temperatur.last_changed)) < 3600 }}
+  - binary_sensor: 
+    - unique_id: hm_homematic_up
+      default_entity_id: binary_sensor.hm_homematic_up
+      name: Homematic is sending updates
+      # Time based template: see https://www.home-assistant.io/integrations/binary_sensor.template/#working-without-entities
+      # 'last_changed' is only accessible through states-object. see: https://community.home-assistant.io/t/last-updated-state-and-last-changed-in-lovelave/101701
+      #  --> states.sensor.hm_thermo_wz_current_temp.last_changed NOT states_attr(..)
+      state: >-
+        {% set dummy = states('sensor.time') %}
+        {{ (as_timestamp(now()) - as_timestamp(states.sensor.wandthermostat_wz_temperatur.last_changed)) < 3600 }}
 
 
 ###############################################################################

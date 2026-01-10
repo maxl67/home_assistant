@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @changed      : 16.10.2024
+#   @changed      : 09.01.2026
 #   @created      : 2020
 #   @package      : climate
 #   @description  : heating, temperature, humidity
@@ -51,7 +51,7 @@ homeassistant:
     sensor.hmipw_gerate_temperature:
         <<: *common
     sensor.weathersensor01_batterie:
-      battery last changed: 10.06.2024 #14.012.2022
+      battery last changed: 18.11.2025 #10.06.2024, 14.12.2022
   # groups, variables
     group.doors_wz:
       <<: *door
@@ -111,44 +111,49 @@ input_boolean:
     name: automatische Heizsteuerung
     icon: mdi:robot
 
-switch:
-  - platform: template
-    switches: ## are needed in addition to input_booleans to get a dynamic icon
-      heating_period:
-        friendly_name: Heizperiode aktiv #   
-        value_template: "{% if not states('input_boolean.heating_period')=='unknown' %}{{ is_state('input_boolean.heating_period', 'on') }}{% endif %}"
-        turn_on:
-          action: homeassistant.turn_on
+template:
+  - switch:
+  ## are needed in addition to input_booleans to get a dynamic icon
+    - unique_id: heating_period
+      default_entity_id: switch.heating_period
+      name: Heizperiode aktiv
+      turn_on:
+        - action: homeassistant.turn_on
           data:
             entity_id: input_boolean.heating_period
-        turn_off:
-          action: homeassistant.turn_off
+      turn_off:
+        - action: homeassistant.turn_off
           data:
             entity_id: input_boolean.heating_period
-        icon_template: >-
-          {% if is_state('input_boolean.heating_period', 'on') %}
-            mdi:radiator
-          {% else %}
-            mdi:radiator-off
-          {% endif %}
+      state: >-
+        {% if not states('input_boolean.heating_period')=='unknown' %}
+          {{ is_state('input_boolean.heating_period', 'on') }}
+        {% endif %}
+      icon: >-
+        {% if is_state('input_boolean.heating_period', 'on') %}
+          mdi:radiator
+        {% else %}
+          mdi:radiator-off
+        {% endif %}
 
-      enable_heating_automation:
-        friendly_name: Automatische Heizsteuerung #   
-        value_template: "{% if not states('input_boolean.automate_heating')=='unknown' %}{{ is_state('input_boolean.automate_heating', 'on') }}{% endif %}"
-        turn_on:
-          action: homeassistant.turn_on
+    - unique_id: enable_heating_automation
+      default_entity_id: switch.enable_heating_automation
+      name: Automatische Heizsteuerung
+      turn_on:
+        - action: homeassistant.turn_on
           data:
             entity_id: input_boolean.automate_heating
-        turn_off:
-          action: homeassistant.turn_off
+      turn_off:
+        - action: homeassistant.turn_off
           data:
             entity_id: input_boolean.automate_heating
-        icon_template: >-
-          {% if is_state('input_boolean.automate_heating', 'off') %}
-            mdi:ghost-off-outline
-          {% else %}
-            mdi:ghost
-          {% endif %}
+      state: "{% if not states('input_boolean.automate_heating')=='unknown' %}{{ is_state('input_boolean.automate_heating', 'on') }}{% endif %}"
+      icon: >-
+        {% if is_state('input_boolean.automate_heating', 'off') %}
+          mdi:ghost-off-outline
+        {% else %}
+          mdi:ghost
+        {% endif %}
 
 ###############################################################################
 ##  Sensors

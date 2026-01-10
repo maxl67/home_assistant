@@ -124,8 +124,9 @@ cards:
     show_empty: false
     card:
       type: entities
-      title: Offene Türen
+      title: Offene Türen & Fenster
       show_header_toggle: false
+      state_color: true
     filter:
       include:
         - entity_id: "binary_sensor.*_offnung"
@@ -234,7 +235,7 @@ cards:
           icon: mdi:transmission-tower-export
           entity: sensor.tasmotawe5_we5_power_cur
           #entity: sensor.strombezug_avg
-          name: Strom heute
+          name: Netzstrom heute
           state_header: akt.
           entities:
             - entity: sensor.einspeisung_heute #daily_energy_out
@@ -280,6 +281,8 @@ cards:
       - entity: switch.outlet_repeater_wz_018780fe_on_off
         name: Raspi3 (WZ)
         icon: mdi:raspberry-pi
+      - entity: switch.miefquirl_switch
+        name: Lüfter (Kü)
       #- type: divider
       #- entity: switch.enable_power_automation
       - type: divider

@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @changed      : 16.10.2024
+#   @changed      : 10.01.2026
 #   @created      : 16.11.2021
 #   @package      : vacuum
 #   @description  : XIAOMI Roborock S6 automation
@@ -119,88 +119,11 @@ camera:
 ###############################################################################
 ##  Variables
 ###############################################################################
-switch:
-  - platform: template
-    switches: ## are needed in addition to input_booleans to get a dynamic icon
-      enable_automatic_vacuum:
-        friendly_name: Automatische Reinigung
-        unique_id: enable_automatic_vacuum
-        value_template: "{% if states.input_boolean.disable_automatic_vacuum.state %}{{ is_state('input_boolean.disable_automatic_vacuum', 'off') }}{% endif %}"
-        turn_on:
-          action: homeassistant.turn_off
-          data:
-            entity_id: input_boolean.disable_automatic_vacuum
-        turn_off:
-          action: homeassistant.turn_on
-          data:
-            entity_id: input_boolean.disable_automatic_vacuum
-        icon_template: >-
-          {% if is_state('input_boolean.disable_automatic_vacuum', 'on') %}
-            mdi:timer-off-outline
-          {% else %}
-            mdi:timer-cog-outline
-          {% endif %}
-      automatic_vacuum_when_home:
-        friendly_name: Reinigung auch wenn anwesend
-        unique_id: automatic_vacuum_when_home
-        value_template: "{{ is_state('input_boolean.automatic_vacuum_when_home', 'on') }}"
-        turn_on:
-          action: homeassistant.turn_on
-          data:
-            entity_id: input_boolean.automatic_vacuum_when_home
-        turn_off:
-          action: homeassistant.turn_off
-          data:
-            entity_id: input_boolean.automatic_vacuum_when_home
-        icon_template: >-
-          {% if is_state('input_boolean.automatic_vacuum_when_home', 'on') %}
-            mdi:account-check-outline
-          {% else %}
-            mdi:account-off-outline
-          {% endif %}
-      enable_dustbin_notification:
-        friendly_name: Staubbehälternachrichten
-        unique_id: enable_dustbin_notification
-        value_template: "{{ is_state('input_boolean.disable_dustbin_notification', 'off') }}"
-        turn_on:
-          action: homeassistant.turn_off
-          data:
-            entity_id: input_boolean.disable_dustbin_notification
-        turn_off:
-          action: homeassistant.turn_on
-          data:
-            entity_id: input_boolean.disable_dustbin_notification
-        icon_template: >-
-          {% if is_state('input_boolean.disable_dustbin_notification', 'on') %}
-            mdi:cellphone-message-off
-          {% else %}
-            mdi:cellphone-message
-          {% endif %}
-      alert_dustbin_full:
-        friendly_name: Staubbehälter leeren   #dustbin has to be cleaned
-        unique_id: alert_dustbin_full
-        value_template: "{{ is_state('input_boolean.alert_dustbin_full', 'on') }}"
-        turn_on:
-          action: homeassistant.turn_on
-          data:
-            entity_id: input_boolean.alert_dustbin_full
-        turn_off:
-          action: homeassistant.turn_off
-          data:
-            entity_id: input_boolean.alert_dustbin_full
-        icon_template: >-
-          {% if is_state('input_boolean.alert_dustbin_full', 'on') %}
-            mdi:delete-alert
-          {% else %}
-            mdi:delete-outline
-          {% endif %}
-
 input_boolean:
   disable_automatic_vacuum:
     name: Automatische Reinigung aus #disable vacuum automation
   automatic_vacuum_when_home:
     name: Reinigung auch wenn anwesend #cleanup even though somebody is home
-    initial: off
   automatic_vacuum_first_run:
     name: automatische Reinigung heute gestartet  #cleanup was already started today
   disable_dustbin_notification:
@@ -247,88 +170,161 @@ input_select:
     initial: ---
     icon: mdi:broom
 
+template:
+  - switch:
+    ## are needed in addition to input_booleans to get a dynamic icon
+    - unique_id: enable_automatic_vacuum
+      default_entity_id: switch.enable_automatic_vacuum
+      name: Automatische Reinigung
+      turn_on:
+        - action: homeassistant.turn_off
+          data:
+            entity_id: input_boolean.disable_automatic_vacuum
+      turn_off:
+        - action: homeassistant.turn_on
+          data:
+            entity_id: input_boolean.disable_automatic_vacuum
+      state: "{% if states.input_boolean.disable_automatic_vacuum.state %}{{ is_state('input_boolean.disable_automatic_vacuum', 'off') }}{% endif %}"
+      icon: >-
+        {% if is_state('input_boolean.disable_automatic_vacuum', 'on') %}
+          mdi:timer-off-outline
+        {% else %}
+          mdi:timer-cog-outline
+        {% endif %}
+    - unique_id: automatic_vacuum_when_home
+      default_entity_id: switch.automatic_vacuum_when_home
+      name: Reinigung auch wenn anwesend
+      turn_on:
+        - action: homeassistant.turn_on
+          data:
+            entity_id: input_boolean.automatic_vacuum_when_home
+      turn_off:
+        - action: homeassistant.turn_off
+          data:
+            entity_id: input_boolean.automatic_vacuum_when_home
+      state: "{{ is_state('input_boolean.automatic_vacuum_when_home', 'on') }}"
+      icon: >-
+        {% if is_state('input_boolean.automatic_vacuum_when_home', 'on') %}
+          mdi:account-check-outline
+        {% else %}
+          mdi:account-off-outline
+        {% endif %}
+
+    - unique_id: enable_dustbin_notification
+      default_entity_id: switch.enable_dustbin_notification
+      name: Staubbehälternachrichten
+      turn_on:
+        - action: homeassistant.turn_off
+          data:
+            entity_id: input_boolean.disable_dustbin_notification
+      turn_off:
+        - action: homeassistant.turn_on
+          data:
+            entity_id: input_boolean.disable_dustbin_notification
+      state: "{{ is_state('input_boolean.disable_dustbin_notification', 'off') }}"
+      icon: >-
+        {% if is_state('input_boolean.disable_dustbin_notification', 'on') %}
+          mdi:cellphone-message-off
+        {% else %}
+          mdi:cellphone-message
+        {% endif %}
+    - unique_id: alert_dustbin_full
+      default_entity_id: switch.alert_dustbin_full
+      name: Staubbehälter leeren
+      turn_on:
+        - action: homeassistant.turn_on
+          data:
+            entity_id: input_boolean.alert_dustbin_full
+      turn_off:
+        - action: homeassistant.turn_off
+          data:
+            entity_id: input_boolean.alert_dustbin_full
+      state: "{{ is_state('input_boolean.alert_dustbin_full', 'on') }}"
+      icon: >-
+        {% if is_state('input_boolean.alert_dustbin_full', 'on') %}
+          mdi:delete-alert
+        {% else %}
+          mdi:delete-outline
+        {% endif %}
+
 ###############################################################################
 ##  Sensors
 ###############################################################################
-binary_sensor:
-  - platform: template
-    sensors:
-      vacuum_paused:
-        unique_id: vacuum_paused
-        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','status') in ['Paused'] }}"    
-      vacuum_started:
-        unique_id: vacuum_started
-        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','status') in ['Cleaning', 'Definition missing for state 18'] }}"    
 
-      alert_vacuum_error:
-        unique_id: alert_vacuum_error
-        friendly_name: Saug-E Störung
-        icon_template: mdi:robot-confused-outline #alert-octagon
-        value_template: "{{ is_state('vacuum.xiaomi_vacuum_cleaner','error') }}"
+  - binary_sensor:
+    - unique_id: vacuum_paused
+      default_entity_id: binary_sensor.vacuum_paused
+      name: vacuum_paused
+      state: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','status') in ['Paused'] }}"    
+    - unique_id: vacuum_started
+      default_entity_id: binary_sensor.vacuum_started
+      name: vacuum_started
+      state: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','status') in ['Cleaning', 'Definition missing for state 18'] }}"    
+    - unique_id: alert_vacuum_error
+      default_entity_id: binary_sensor.alert_vacuum_error
+      name: Saug-E Störung
+      state: "{{ is_state('vacuum.xiaomi_vacuum_cleaner','error') }}"
+      icon: mdi:robot-confused-outline #alert-octagon
 
-sensor:
-  - platform: template
-    sensors: 
-      # this sensor is needed to display last cleaning area  in entity card
-      vacuum_cleaned_room:
-        value_template: "{{ states.input_select.vacuum_last_cleaned_room.state }}"
-        friendly_name: 'cleaned room history'
-        icon_template: 'mdi:broom'
+  - sensor:
+    - unique_id: vacuum_cleaned_room
+      default_entity_id: sensor.vacuum_cleaned_room
+      name: 'cleaned room history'
+      state: "{{ states.input_select.vacuum_last_cleaned_room.state }}"
+      icon: mdi:broom
+      attributes:
+        description: this sensor is needed to display last cleaning area in entity card
 
-  - platform: template
-    sensors:
-      vacuum_cleaning_duration:
-        friendly_name: Current duration
-        value_template: "{{ (states('sensor.roborock_vacuum_s6_current_clean_duration')|float(default=0) / 60) | round(0) }}"
-        unit_of_measurement: 'min'
-        icon_template: 'mdi:timer'
-      vacuum_cleaning_area:
-        friendly_name: Current area
-        unit_of_measurement: 'm²'
-        value_template: "{{ states('sensor.roborock_vacuum_s6_current_clean_area')|float(default=0) | round(1) }}"
-        icon_template: 'mdi:ruler'
+    - unique_id: vacuum_cleaning_duration
+      default_entity_id: sensor.vacuum_cleaning_duration
+      name: Current duration
+      state: "{{ (states('sensor.roborock_vacuum_s6_current_clean_duration')|float(default=0) / 60) | round(0) }}"
+      unit_of_measurement: 'min'
+      icon: mdi:timer
+    - unique_id: vacuum_cleaning_area
+      default_entity_id: sensor.vacuum_cleaning_area
+      name: Current area
+      state: "{{ states('sensor.roborock_vacuum_s6_current_clean_area')|float(default=0) | round(1) }}"
+      unit_of_measurement: 'm²'
+      icon: mdi:ruler
 
-      vacuum_cleaned_last_duration:
-        friendly_name: Time of last cycle
-        value_template: "{{ (states('sensor.roborock_vacuum_s6_last_clean_duration')|float(default=0) / 60) | round(0) }}"
-        unit_of_measurement: 'min'
-        icon_template: 'mdi:timer'
-      vacuum_cleaned_last_area:
-        friendly_name: Area of last cycle
-        unit_of_measurement: 'm²'
-        value_template: "{{ states('sensor.roborock_vacuum_s6_last_clean_area')|float(default=0) | round(1) }}"
-        icon_template: 'mdi:ruler'
-      
-      vacuum_cleanmainbrush:
-        friendly_name: Hauptbürste
-        unit_of_measurement: 'h'
-        value_template: "{{ (states('sensor.roborock_vacuum_s6_main_brush_left')|float(default=0) / 3600) | round(0) }}" 
-        icon_template: 'mdi:screwdriver'
-      vacuum_cleansidebrush:
-        friendly_name: Seitenbürste
-        unit_of_measurement: 'h'
-        value_template: "{{ (states('sensor.roborock_vacuum_s6_side_brush_left')|float(default=0) / 3600) | round(0) }}" 
-        icon_template: 'mdi:screwdriver'
-      vacuum_cleanfilter:
-        friendly_name: Filter
-        unit_of_measurement: 'h'
-        value_template: "{{ (states('sensor.roborock_vacuum_s6_filter_left')|float(default=0) / 3600) | round(0) }}"
-        icon_template: 'mdi:screwdriver'
-      vacuum_sensordirtyleft:
-        friendly_name: Sensoren
-        unit_of_measurement: 'h'
-        value_template: "{{ (states('sensor.roborock_vacuum_s6_sensor_dirty_left')|float(default=0) / 3600) | round(0) }}"
-        icon_template: 'mdi:screwdriver'
-#      vacuum_do_not_disturb:
-#        friendly_name: Do Not Disturb
-#        value_template: "{{ state_attr('vacuum.xiaomi_vacuum_cleaner','do_not_disturb') }}"
-#        icon_template: >
-#          {% set val =  state_attr('vacuum.xiaomi_vacuum_cleaner','do_not_disturb') %}
-#          {% if val == 'on' %}
-#            mdi:minus-circle
-#          {% else %}
-#            mdi:minus-circle-off
-#          {% endif %}
+    - unique_id: vacuum_cleaned_last_duration
+      default_entity_id: sensor.vacuum_cleaned_last_duration
+      name: Duration of last cycle
+      state: "{{ (states('sensor.roborock_vacuum_s6_last_clean_duration')|float(default=0) / 60) | round(0) }}"
+      unit_of_measurement: 'min'
+      icon: mdi:timer
+    - unique_id: vacuum_cleaned_last_area
+      default_entity_id: sensor.vacuum_cleaned_last_area
+      name: Area of last cycle
+      state: "{{ states('sensor.roborock_vacuum_s6_last_clean_area')|float(default=0) | round(1) }}"
+      unit_of_measurement: 'm²'
+      icon: mdi:ruler
+
+    - unique_id: vacuum_cleanmainbrush
+      default_entity_id: sensor.vacuum_cleanmainbrush
+      name: Hauptbürste
+      state: "{{ (states('sensor.roborock_vacuum_s6_main_brush_left')|float(default=0) / 3600) | round(0) }}" 
+      unit_of_measurement: 'h'
+      icon: mdi:screwdriver
+    - unique_id: vacuum_cleansidebrush
+      default_entity_id: sensor.vacuum_cleansidebrush
+      name: Seitenbürste
+      state: "{{ (states('sensor.roborock_vacuum_s6_side_brush_left')|float(default=0) / 3600) | round(0) }}" 
+      unit_of_measurement: 'h'
+      icon: mdi:screwdriver
+    - unique_id: vacuum_cleanfilter
+      default_entity_id: sensor.vacuum_cleanfilter
+      name: Filter
+      state: "{{ (states('sensor.roborock_vacuum_s6_filter_left')|float(default=0) / 3600) | round(0) }}"
+      unit_of_measurement: 'h'
+      icon: mdi:screwdriver
+    - unique_id: vacuum_sensordirtyleft
+      default_entity_id: sensor.vacuum_sensordirtyleft
+      name: Sensoren
+      state: "{{ (states('sensor.roborock_vacuum_s6_sensor_dirty_left')|float(default=0) / 3600) | round(0) }}"
+      unit_of_measurement: 'h'
+      icon: mdi:screwdriver
 
 
 ###############################################################################

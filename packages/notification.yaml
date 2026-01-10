@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @changed      : 16.10.2024
+#   @changed      : 10.01.2026
 #   @created      : 20.12.2019
 #   @package      : notification
 #   @description  : Notifications and alert values 
@@ -77,30 +77,33 @@ notify:
 ###############################################################################
 # sensor counts all active alerts for numbering the badge
 #   more alerts can be integrated!
-sensor:
-  - platform: template
-    sensors:
-      count_notification_alerts:
-        friendly_name: 'count active alerts'
-        value_template: >
-          {{ (1 if is_state('input_boolean.open_backdoor_alert', 'on') else 0)
-            + (1 if is_state('input_boolean.open_window_alert', 'on') else 0)
-            + (1 if is_state('input_boolean.dwd_weather_alert', 'on') else 0) 
-            + (1 if is_state('binary_sensor.vacuum_error_alert', 'on') else 0) 
-            + (1 if is_state('input_boolean.bwk_sued_offline_notification', 'on') else 0) 
-            + (1 if is_state('binary_sensor.powermeter_offline_notification', 'on') else 0) 
-          }}
-        # numeric would be like that: + (0 if is_state('sensor.dwd_current_warn_count', '0') else 1) 
-        icon_template: mdi:comment-alert
+template:
+  - sensor:
+    - unique_id: count_notification_alerts
+      default_entity_id: sensor.count_notification_alerts
+      name: count active alerts
+      state: >-
+        {{ (1 if is_state('input_boolean.open_backdoor_alert', 'on') else 0)
+          + (1 if is_state('input_boolean.open_window_alert', 'on') else 0)
+          + (1 if is_state('input_boolean.dwd_weather_alert', 'on') else 0) 
+          + (1 if is_state('binary_sensor.vacuum_error_alert', 'on') else 0) 
+          + (1 if is_state('input_boolean.bwk_sued_offline_notification', 'on') else 0) 
+          + (1 if is_state('binary_sensor.powermeter_offline_notification', 'on') else 0) 
+        }}
+      # numeric would be like that: + (0 if is_state('sensor.dwd_current_warn_count', '0') else 1) 
+      icon: mdi:comment-alert
+      attributes:
+        description: sensor counts all active alerts for numbering the badge
 
-      count_hacs_updates:
-        friendly_name: 'count HACS updates'
-        value_template: >
-          {{- integration_entities('hacs')
-          | select('match', '^update\.')
-          | expand
-          | selectattr('state','eq', 'on')
-          | list 
-          | count
-          -}}
-        icon_template: mdi:hacs
+    - unique_id: count_hacs_updates
+      default_entity_id: sensor.count_hacs_updates
+      name: count HACS updates
+      state: >-
+        {{- integration_entities('hacs')
+        | select('match', '^update\.')
+        | expand
+        | selectattr('state','eq', 'on')
+        | list 
+        | count
+        -}}
+      icon: mdi:hacs

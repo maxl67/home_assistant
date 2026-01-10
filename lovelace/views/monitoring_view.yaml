@@ -94,6 +94,44 @@ anchors:
       - color: Red
         from: 80
         to: 100
+  # https://community.home-assistant.io/t/home-assistant-card-replacing-former-bar-card-config/743050
+  bar_rowstyle_rpi_ram_hdd: &bar_rowstyle_rpi_ram_hdd
+    style: |
+      hui-generic-entity-row {
+        background:
+          {% set perc = states(config.entity)|float(0) %}
+          {% set rest = 100 - perc %}
+          {% if perc >= 80 %} {% set bar = '192,57,43' %}
+          {% elif perc >= 60 %} {% set bar = '227,154,36' %}
+          {% elif perc >= 40 %} {% set bar = '244,173,1' %}
+          {% else %} {% set bar = '0,154,0' %}
+          {% endif %}
+          /*linear-gradient(to left,ivory {{rest}}%, {{bar}} {{perc}}%);*/
+          linear-gradient(to right, rgb({{bar}},0.9) 0%, rgb({{bar}},0.6) {{perc}}%,
+                                    rgba({{bar}},0.3){{perc}}%, rgba({{bar}},0.1) 100%);
+      }
+  bar_style_rpi_ram_hdd: &bar_style_rpi_ram_hdd
+    style:
+      hui-sensor-entity-row:
+        $: |
+          hui-generic-entity-row {
+            height: 25px;
+            padding: 1px 5px;
+            border-radius: 12px;
+            border: 1px groove var(--primary-color);
+          }
+      .: |
+        .card-content {
+          padding: 0px 0px;
+          background:
+            {% set dark = is_state('binary_sensor.donker_thema','on') %}
+            {% if not dark %} var(--ha-color) {% endif %};
+        }
+        ha-card {
+          color: white;
+          --mdc-icon-size: 20px;
+        }
+
 
   graph_disc_temp: &graph_disc_temp
     <<: *graphs_range
@@ -186,7 +224,7 @@ cards:
   # ========== FritzBox ==============
   - type: custom:vertical-stack-in-card
     cards:
-      - title: FritzBox (6490)
+      - title: FritzBox (6670)
         type: entities
         show_header_toggle: false
         <<: *style_header
@@ -198,33 +236,27 @@ cards:
             padding: 0 px
             open: false
             entities:
-              - entity: sensor.fritz_box_6490_cable_device_uptime
+              - entity: sensor.fritz_box_cable_letzter_neustart
                 name: letzter Reboot
                 icon: mdi:restart
-              - entity: update.fritz_box_6490_cable_fritz_os
+              - entity: update.fritz_box_cable_fritz_os
                 type: custom:multiple-entity-row
                 name: Firmware
                 entities:
                   - attribute: installed_version
                     name: aktuell
-                  - attribute: latest_available_version
+                  - attribute: latest_version
                     name: neu
                 card_mod:
                   style: |
                     :host {
-                      {% if is_state('binary_sensor.fritz_box_6490_cable_firmware_update','on') %}
+                      {% if is_state('update.fritz_box_cable_fritz_os','on') %}
                         color: var(--paper-item-icon-active-color);
                         --paper-item-icon-color: #FF7738;
                       {% endif %}
                     }
                   #      --paper-item-icon-color: var(--accent-color);
               - type: divider
-#              - type: button
-#                name: Reboot!
-#                action_name: Reboot now
-#                tap_action: 
-#                  action: call-service
-#                  service: script.fritzbox_reboot
               - type: buttons
                 entities:
                 - name: Reboot!
@@ -242,16 +274,18 @@ cards:
             padding: 0 px
             open: false
             entities:
-              - entity: binary_sensor.fritz_box_6490_cable_connection
+              - entity: binary_sensor.fritz_box_cable_connection
+                type: custom:multiple-entity-row
                 name: Verbindung
                 icon: mdi:wan
-              - entity: sensor.fritz_box_6490_cable_external_ip
+                entities:
+                  - entity: binary_sensor.fritz_box_cable_verbinden
+                    name: Kabel
+              - entity: sensor.fritz_box_cable_external_ip
                 type: custom:multiple-entity-row
                 name: IPv4
                 icon: mdi:ip-network-outline
                 secondary_info: last-changed
-              - entity: sensor.fritz_box_6490_cable_connection_uptime
-                name: letzter Connect
               - type: divider
               - type: buttons
                 entities:
@@ -418,7 +452,6 @@ cards:
               secondary_info: last-changed
               state_header: state
               entities:
-#                - entity: sensor.hera_max_disk_temp #own calculated max sensor.
                 - entity: sensor.hera_volume_1_maximum_disk_temp
                   name: max temp
                 #- entity: sensor.hera_volume_1_average_disk_temp
@@ -690,18 +723,6 @@ cards:
               icon: mdi:new-box
 
             - type: divider
-#            - type: button
-#              name: Reboot
-#              secondary_info: last-triggered
-#              tap_action: 
-#                action: call-service
-#                service: script.reboot_raspi1
-#            - type: button
-#              name: Shutdown!
-#              secondary_info: last-triggered
-#              tap_action: 
-#                action: call-service
-#                service: script.kill_raspi1
             - type: buttons
               entities:
               - name: Reboot
@@ -740,15 +761,34 @@ cards:
                 - sensor.raspi1_temperature
               name: Temp
               <<: *graph_rpi_temp
-        - type: custom:bar-card
-          entities:
-            - entity: sensor.raspi1_memory_use
-              name: RAM
-              icon: mdi:memory
-            - entity: sensor.raspi1_disk_use
-              name: SD-Card
-              icon: mdi:sd
-          <<: *bar_rpi_ram_hdd
+        # - type: custom:bar-card
+        #   entities:
+        #     - entity: sensor.raspi1_memory_use
+        #       name: RAM
+        #       icon: mdi:memory
+        #     - entity: sensor.raspi1_disk_use
+        #       name: SD-Card
+        #       icon: mdi:sd
+        #   <<: *bar_rpi_ram_hdd
+
+        - type: horizontal-stack
+          cards:
+            - type: entities
+              card_mod:
+                <<: *bar_style_rpi_ram_hdd
+              entities:
+                - entity: sensor.raspi1_memory_use
+                  name: RAM
+                  card_mod:
+                    <<: *bar_rowstyle_rpi_ram_hdd
+            - type: entities
+              card_mod:
+                <<: *bar_style_rpi_ram_hdd
+              entities:
+                - entity: sensor.raspi1_disk_use
+                  name: SD
+                  card_mod:
+                    <<: *bar_rowstyle_rpi_ram_hdd
   - type: conditional
     conditions:
       - entity: binary_sensor.rpi_ost
@@ -839,15 +879,33 @@ cards:
                 - sensor.raspi2_temperature
               name: Temp
               <<: *graph_rpi_temp
-        - type: custom:bar-card
-          entities:
-            - entity: sensor.raspi2_memory_use
-              name: RAM
-              icon: mdi:memory
-            - entity: sensor.raspi2_disk_use
-              name: SD-Card
-              icon: mdi:sd
-          <<: *bar_rpi_ram_hdd
+        # - type: custom:bar-card
+        #   entities:
+        #     - entity: sensor.raspi2_memory_use
+        #       name: RAM
+        #       icon: mdi:memory
+        #     - entity: sensor.raspi2_disk_use
+        #       name: SD-Card
+        #       icon: mdi:sd
+        #   <<: *bar_rpi_ram_hdd
+        - type: horizontal-stack
+          cards:
+            - type: entities
+              card_mod:
+                <<: *bar_style_rpi_ram_hdd
+              entities:
+                - entity: sensor.raspi2_memory_use
+                  name: RAM
+                  card_mod:
+                    <<: *bar_rowstyle_rpi_ram_hdd
+            - type: entities
+              card_mod:
+                <<: *bar_style_rpi_ram_hdd
+              entities:
+                - entity: sensor.raspi2_disk_use
+                  name: SD
+                  card_mod:
+                    <<: *bar_rowstyle_rpi_ram_hdd
   - type: conditional
     conditions:
       - entity: binary_sensor.rpi_west
@@ -924,15 +982,33 @@ cards:
                 - sensor.raspi3_temperature
               name: Temp
               <<: *graph_rpi_temp
-        - type: custom:bar-card
-          entities:
-            - entity: sensor.raspi3_memory_use
-              name: RAM
-              icon: mdi:memory
-            - entity: sensor.raspi3_disk_use
-              name: SD-Card
-              icon: mdi:sd
-          <<: *bar_rpi_ram_hdd
+        # - type: custom:bar-card
+        #   entities:
+        #     - entity: sensor.raspi3_memory_use
+        #       name: RAM
+        #       icon: mdi:memory
+        #     - entity: sensor.raspi3_disk_use
+        #       name: SD-Card
+        #       icon: mdi:sd
+        #   <<: *bar_rpi_ram_hdd
+        - type: horizontal-stack
+          cards:
+            - type: entities
+              card_mod:
+                <<: *bar_style_rpi_ram_hdd
+              entities:
+                - entity: sensor.raspi3_memory_use
+                  name: RAM
+                  card_mod:
+                    <<: *bar_rowstyle_rpi_ram_hdd
+            - type: entities
+              card_mod:
+                <<: *bar_style_rpi_ram_hdd
+              entities:
+                - entity: sensor.raspi3_disk_use
+                  name: SD
+                  card_mod:
+                    <<: *bar_rowstyle_rpi_ram_hdd
   - type: conditional
     conditions:
       - entity: binary_sensor.rpi_sued

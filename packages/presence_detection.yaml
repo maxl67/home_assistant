@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @changed      : 20.06.2024
+#   @changed      : 10.06.2026
 #   @created:     : 08.08.2020
 #   @package      : presence_detection
 #   @description  : Presence Detection with different states based of bluetooth monitor script.
@@ -13,6 +13,8 @@
 # Group als trigger: https://community.home-assistant.io/t/automation-trigger-on-any-member-of-a-group-is-it-possible/55795
 # Use file 'known_devices.yaml' to add a new or change an existing BT device_tracker entity.
 ###############################################################################
+#
+#
 
 ################################################
 ##  Customize
@@ -70,9 +72,9 @@ homeassistant:
     device_tracker.iphone_heidi_bt:
       <<: *device_bt
       description: defined in known_devices.yaml
-    device_tracker.iphone_winfried_bt:
-      <<: *device_bt
-      description: defined in known_devices.yaml
+    # device_tracker.iphone_winfried_bt:
+    #   <<: *device_bt
+    #   description: defined in known_devices.yaml
     sensor.max_present_o:
       <<: *common
     sensor.max_present_w:
@@ -95,12 +97,12 @@ homeassistant:
       <<: *common
     sensor.home_confidence_heidi:
       <<: *common
-    sensor.winfried_present_w:
-      <<: *common
-    sensor.winfried_present_o:
-      <<: *common
-    sensor.home_confidence_winfried:
-      <<: *common
+    # sensor.winfried_present_w:
+    #   <<: *common
+    # sensor.winfried_present_o:
+    #   <<: *common
+    # sensor.home_confidence_winfried:
+    #   <<: *common
   # groups, variables
     group.phone_max:
       <<: *common
@@ -178,7 +180,7 @@ group:
     name: phones of known guests
     entities:
       - device_tracker.iphone_heidi_bt
-      - device_tracker.iphone_winfried_bt
+#      - device_tracker.iphone_winfried_bt
 
 ###############################################################################
 ##  Variables
@@ -341,24 +343,24 @@ mqtt:
       payload_available: 'online'
       payload_not_available: 'offline'
       json_attributes_topic: 'monitor/west/iphone_heidi_bt'
-# Gast 2
-# MQTT-Explorer Topic: 'monitor/setup/ADD STATIC DEVICE' Message: 'F0:DB:F8:1C:A7:A2 iphone_winfried_bt' 
-    - name: 'Winfried present O'
-      state_topic: 'monitor/ost/iphone_winfried_bt'
-      value_template: "{{ value_json.confidence }}"
-      unit_of_measurement: '%'
-      availability_topic: 'monitor/ost/status'
-      payload_available: 'online'
-      payload_not_available: 'offline'
-      json_attributes_topic: 'monitor/ost/iphone_winfried_bt'
-    - name: 'Winfried present W'
-      state_topic: 'monitor/west/iphone_winfried_bt'
-      value_template: "{{ value_json.confidence }}"
-      unit_of_measurement: '%'
-      availability_topic: 'monitor/west/status'
-      payload_available: 'online'
-      payload_not_available: 'offline'
-      json_attributes_topic: 'monitor/west/iphone_winfried_bt'
+# # Gast 2
+# # MQTT-Explorer Topic: 'monitor/setup/ADD STATIC DEVICE' Message: 'F0:DB:F8:1C:A7:A2 iphone_winfried_bt' 
+#     - name: 'Winfried present O'
+#       state_topic: 'monitor/ost/iphone_winfried_bt'
+#       value_template: "{{ value_json.confidence }}"
+#       unit_of_measurement: '%'
+#       availability_topic: 'monitor/ost/status'
+#       payload_available: 'online'
+#       payload_not_available: 'offline'
+#       json_attributes_topic: 'monitor/ost/iphone_winfried_bt'
+#     - name: 'Winfried present W'
+#       state_topic: 'monitor/west/iphone_winfried_bt'
+#       value_template: "{{ value_json.confidence }}"
+#       unit_of_measurement: '%'
+#       availability_topic: 'monitor/west/status'
+#       payload_available: 'online'
+#       payload_not_available: 'offline'
+#       json_attributes_topic: 'monitor/west/iphone_winfried_bt'
 
 
 # combining all area values into a total confidence value for the device being present
@@ -391,54 +393,66 @@ sensor:
     entity_ids:
       - sensor.heidi_present_o
       - sensor.heidi_present_w
-  # Gast 2
-  - platform: min_max
-    name: 'Home Confidence Winfried'
-    type: max
-    round_digits: 0
-    entity_ids:
-      - sensor.winfried_present_o
-      - sensor.winfried_present_w
+  # # Gast 2
+  # - platform: min_max
+  #   name: 'Home Confidence Winfried'
+  #   type: max
+  #   round_digits: 0
+  #   entity_ids:
+  #     - sensor.winfried_present_o
+  #     - sensor.winfried_present_w
 
-# Status sensors for each person. input_select values are set by automations.
-  - platform: template
-    sensors:
-      max_status:
-        friendly_name: 'Max'
-        value_template: "{{ states('input_select.max_status_dropdown') }}"
-      ing_status:
-        friendly_name: 'Ingrid'
-        value_template: "{{ states('input_select.ing_status_dropdown') }}"
+template:
+  - sensor:
+    # Status sensors for each person. input_select values are set by automations.
+    - unique_id: max_status
+      default_entity_id: sensor.max_status
+      name: Max
+      state: "{{ states('input_select.max_status_dropdown') }}"
+      attributes:
+        friendly_name: Max
+    - unique_id: ing_status
+      default_entity_id: sensor.ing_status
+      name: Ingrid
+      state: "{{ states('input_select.ing_status_dropdown') }}"
+      attributes:
+        friendly_name: Ingrid
 
-# Gesamtstatus / total status of home
-  - platform: template
-    sensors:
+    # Gesamtstatus / total status of home
     # Anzahl der Personen zuhause (incl. Gäste und manueller Gästeschalter)
-      n_people_home:
+    - unique_id: n_people_home
+      default_entity_id: sensor.n_people_home
+      name: Number of people home
+      state: >
+        {{ (1 if states|selectattr('entity_id','in',state_attr('group.phone_max','entity_id'))
+                  |selectattr('state','eq','home')|list|count > 0 else 0) + 
+            (1 if states|selectattr('entity_id','in',state_attr('group.phone_ing','entity_id'))
+                  |selectattr('state','eq','home')|list|count > 0 else 0) +
+            (1 if is_state('input_boolean.guests','on') else 0) +
+            (states|selectattr('entity_id','in',state_attr('group.guest_phones','entity_id'))
+                  |selectattr('state','eq','home')|list|count)
+        }}      
+      attributes:
         friendly_name: Number of people home
-        value_template: >
-          {{ (1 if states|selectattr('entity_id','in',state_attr('group.phone_max','entity_id'))
-                   |selectattr('state','eq','home')|list|count > 0 else 0) + 
-             (1 if states|selectattr('entity_id','in',state_attr('group.phone_ing','entity_id'))
-                   |selectattr('state','eq','home')|list|count > 0 else 0) +
-             (1 if is_state('input_boolean.guests','on') else 0) +
-             (states|selectattr('entity_id','in',state_attr('group.guest_phones','entity_id'))
-                   |selectattr('state','eq','home')|list|count)
-          }}
     # Anzahl der Gäste zuhause (incl. Giäste und manueller Gästeschalter). Nur für home-View benoetigt.
-      n_guests_home:
-        friendly_name: Number of guests home
-        value_template: >
+    - unique_id: n_guests_home
+      default_entity_id: sensor.n_guests_home
+      name: Number of guests home
+      state: >
           {{ (1 if is_state('input_boolean.guests','on') else 0) +
              (states|selectattr('entity_id','in',state_attr('group.guest_phones','entity_id'))
                    |selectattr('state','eq','home')|list|count)
-          }}
-
+          }}     
+      attributes:
+        friendly_name: Number of guests home
     # Gesamtstatus: ist jemand zuhause
-      home_status:
-        friendly_name: 'Home Presence Status'
-        value_template: "{{ states('input_select.home_status_dropdown') }}"
-        icon_template: mdi:home-account 
+    - unique_id: home_status
+      default_entity_id: sensor.home_status
+      name: Home Presence Status
+      state: "{{ states('input_select.home_status_dropdown') }}"
+      icon: mdi:home-account 
+      attributes:
+        friendly_name: Home Presence Status
 
 ###############################################################################
 ##  Scripts
@@ -461,8 +475,7 @@ script:
     mode: parallel
     sequence:
       - choose:
-          conditions: >
-            {{ is_state(my_entity,'home') }}
+          conditions: "{{ is_state(my_entity,'home') }}"
           sequence:
             - action: device_tracker.see
               data:
@@ -573,7 +586,7 @@ automation:
             - sensor.max_home_confidence # Person 1
             - sensor.ing_home_confidence # Person 2
             - sensor.home_confidence_heidi
-            - sensor.home_confidence_winfried
+#            - sensor.home_confidence_winfried
         above: *int_confidence_threshold_home
         id: turn_occupany_on
       - trigger: numeric_state
@@ -586,7 +599,7 @@ automation:
           sensor.max_home_confidence: iphone_max_bt # Person 1
           sensor.ing_home_confidence: iphone_ing_bt # Person 2
           sensor.home_confidence_heidi: iphone_heidi_bt # Gast 1
-          sensor.home_confidence_winfried: iphone_winfried_bt # Gast2
+#          sensor.home_confidence_winfried: iphone_winfried_bt # Gast2
       device_tracker_entity: >
         {{ device_map[trigger.entity_id] }}
     actions:
@@ -610,7 +623,7 @@ automation:
             - sensor.max_present_w
             - sensor.ing_present_w
             - sensor.heidi_present_w
-            - sensor.winfried_present_w
+#            - sensor.winfried_present_w
         below: *int_confidence_threshold_area_arrival_scan
         id: device_leaving_west
       - trigger: numeric_state
@@ -619,7 +632,7 @@ automation:
             - sensor.max_present_o
             - sensor.ing_present_o
             - sensor.heidi_present_o
-            - sensor.winfried_present_o
+#            - sensor.winfried_present_o
         below: *int_confidence_threshold_area_arrival_scan
         id: device_leaving_east
       - trigger: numeric_state
@@ -680,7 +693,7 @@ automation:
         <<: &device_tracker_wifi_list
           entity_id: 
             - device_tracker.iphonemax13_wifi
-            - device_tracker.iphone8_ing_wifi
+#            - device_tracker.iphone8_ing_wifi
         from: 'not_home'
         to: 'home'
       - trigger: state

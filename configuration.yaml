@@ -55,7 +55,6 @@ http:
 ## Includes (mostly moved to packages)
 ################################################################
 automation: !include automations.yaml #used for blueprints
-#binary_sensor: !include includes/binary_sensors.yaml
 #zone: !include includes/zones.yaml
 
 ################################################################
@@ -281,15 +280,8 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - binary_sensor.netreceiver_online
     # Home Assistant
       - sensor.latest_version
-      - sensor.hacs
       - sensor.cert_expiry_timestamp_hera
     # diverse
-      - automation.update_battery_status_group_members
-      - automation.battery_persistent_notification_clear
-      - automation.battery_persistent_notification
-      - automation.battery_sensor_from_attributes
-      - sensor.vacuum_battery
-      - sensor.osram_plug_01_a1bf020a_3_2820
       - script.flash_light
       - sensor.avg_hmipw_temperature
       - sensor.avg_hmipw_temperature

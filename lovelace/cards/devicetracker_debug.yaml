@@ -75,31 +75,6 @@ cards:
                 name: '#Gäste'
           - type: divider
           - type: custom:multiple-entity-row
-            entity: device_tracker.iphone_winfried_bt
-            name: Winfried
-            state_header: BT-Tracker
-            state_color: true
-            double_tap_action:
-              action: call-service
-              service: script.toogle_bt_device_status
-              service_data:
-                my_device: iphone_winfried_bt
-                my_entity: device_tracker.iphone_winfried_bt
-              confirmation:
-                text: >-
-                  Der BlueTooth-Status des Geräts wird gewechselt und damit der
-                  Status der Person und von 'Home' geändert. Da die Monitor.sh
-                  Konfidenzwerte nicht verändert werden, kann ein
-                  Arrival-/Depature-Scan diese Aktiion evtl. nicht korrigieren.
-            entities:
-              - entity: sensor.winfried_present_w
-                name: '[West]'
-              - entity: sensor.winfried_present_o
-                name: '[_Ost_]'
-              - entity: sensor.home_confidence_winfried
-                name: home
-                format: precision0
-          - type: custom:multiple-entity-row
             entity: device_tracker.iphone_heidi_bt
             name: Heidi
             state_header: BT-Tracker
