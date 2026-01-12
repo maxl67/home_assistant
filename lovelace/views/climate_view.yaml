@@ -119,7 +119,17 @@ anchors:
           padding: 0px;
           display: unset;
         }
-
+  style_entitycard_row_noicon: &row_style_noicon
+    card_mod:
+      style:
+        hui-generic-entity-row:
+          $: |
+            state-badge {
+              display: none;
+            }
+            .info {
+              margin-left:0 !important;
+            }
 #---------------------------------
 #id: climate
 title: Klima
@@ -135,18 +145,50 @@ cards:
             state: 'on'
         card:
           # thermostat living room
-          type: custom:simple-thermostat
-          entity: climate.wandthermostat_wz #.000c9a499b5808
-          header:
-            name: Wohnzimmer Thermostat
-          <<: *simple_thermostat
-          sensors:
-            - entity: sensor.hm_thermo_wz_actor_state #.binary_sensor.wandthermostat_wz_ch9
-              name: Ventile
-            - entity: sensor.hm_thermo_wz_window_state #.pivccu_v_fensteroffen_wz
-              name: Fenster
-            - entity: sensor.hm_thermo_wz_active_profile #.pivccu_v_wochenprofil_wz
-              name: Profil
+          type: custom:stack-in-card #horizontal-stack
+          mode: horizontal
+          title: Wohnzimmer
+          <<: *style_header
+          cards:
+            - type: tile
+              entity: climate.wandthermostat_wz
+              name: Wand-Thermostat
+              #vertical: true
+              #hide_state: true
+              #state_content: state
+              features:
+                - type: 'target-temperature'
+                - type: 'climate-hvac-modes'
+                  hvac_modes:
+                    - 'off'
+                    - auto
+                    - heat
+            - type: entities
+              entities:
+                # - entity: sensor.wandthermostat_wz_temperatur
+                #   name: Temperat.
+                #   <<: *row_style_noicon
+                - entity: sensor.hm_thermo_wz_actor_state
+                  name: Ventile
+                  <<: *row_style_noicon
+                - entity: sensor.hm_thermo_wz_window_state #.pivccu_v_fensteroffen_gz
+                  name: Fenster
+                  <<: *row_style_noicon
+                - entity: sensor.hm_thermo_wz_active_profile #.pivccu_v_wochenprofil_gz
+                  name: Profil
+                  <<: *row_style_noicon
+          # type: custom:simple-thermostat
+          # entity: climate.wandthermostat_wz #.000c9a499b5808
+          # header:
+          #   name: Wohnzimmer Thermostat
+          # <<: *simple_thermostat
+          # sensors:
+          #   - entity: sensor.hm_thermo_wz_actor_state #.binary_sensor.wandthermostat_wz_ch9
+          #     name: Ventile
+          #   - entity: sensor.hm_thermo_wz_window_state #.pivccu_v_fensteroffen_wz
+          #     name: Fenster
+          #   - entity: sensor.hm_thermo_wz_active_profile #.pivccu_v_wochenprofil_wz
+          #     name: Profil
       - type: conditional
         conditions:
           - entity: input_boolean.heating_period
@@ -236,19 +278,54 @@ cards:
             state: 'on'
         card:
           # thermostat kitchen
-          type: custom:simple-thermostat
-          entity: climate.heizungsthermostat_ku #.000a1a49a10ba3
-          header:
-            name: Küche Thermostat
-          <<: *simple_thermostat
-          sensors:
-            - entity: sensor.heizungsthermostat_ku_level
-              name: Ventilöffn.
-              decimals: 0
-            - entity: sensor.hm_thermo_ku_window_state #.pivccu_v_fensteroffen_ku (={0|1})
-              name: Fenster
-            - entity: sensor.hm_thermo_ku_active_profile #.pivccu_v_wochenprofil_ku 
-              name: Profil
+          type: custom:stack-in-card #horizontal-stack
+          mode: horizontal
+          title: Küche
+          <<: *style_header
+          cards:
+            - type: tile
+              entity: climate.heizungsthermostat_ku
+              name: Heizungs-Thermostat
+              #vertical: true
+              #hide_state: true
+              #state_content: state
+              features:
+                - type: 'target-temperature'
+                - type: 'climate-hvac-modes'
+                  hvac_modes:
+                    - 'off'
+                    - auto
+                    - heat
+            - type: entities
+              entities:
+                # - entity: sensor.heizungsthermostat_ku_temperatur
+                #   name: Temperat.
+                #   <<: *row_style_noicon
+                - entity: sensor.heizungsthermostat_ku_level
+                  name: Ventilöffn.
+                  <<: *row_style_noicon
+                - entity: sensor.hm_thermo_ku_window_state #.pivccu_v_fensteroffen_gz
+                  name: Fenster
+                  <<: *row_style_noicon
+                - entity: sensor.hm_thermo_ku_active_profile #.pivccu_v_wochenprofil_gz
+                  name: Profil
+                  <<: *row_style_noicon
+                - entity: binary_sensor.heizungsthermostat_ku_batterie
+                  name: Batterie
+                  <<: *row_style_noicon
+          # type: custom:simple-thermostat
+          # entity: climate.heizungsthermostat_ku #.000a1a49a10ba3
+          # header:
+          #   name: Küche Thermostat
+          # <<: *simple_thermostat
+          # sensors:
+          #   - entity: sensor.heizungsthermostat_ku_level
+          #     name: Ventilöffn.
+          #     decimals: 0
+          #   - entity: sensor.hm_thermo_ku_window_state #.pivccu_v_fensteroffen_ku (={0|1})
+          #     name: Fenster
+          #   - entity: sensor.hm_thermo_ku_active_profile #.pivccu_v_wochenprofil_ku 
+          #     name: Profil
       - type: conditional
         conditions:
           - entity: input_boolean.heating_period
@@ -312,19 +389,54 @@ cards:
             state: 'on'
         card:
           # thermostat guest room
-          type: custom:simple-thermostat
-          entity: climate.heizungsthermostat_gz #.000a1a49a107b5
-          header:
-            name: Gästezimmer Thermostat
-          <<: *simple_thermostat
-          sensors:
-            - entity: sensor.heizungsthermostat_gz_level
-              name: Ventilöffn.
-              decimals: 0
-            - entity: sensor.hm_thermo_gz_window_state #.pivccu_v_fensteroffen_gz
-              name: Fenster
-            - entity: sensor.hm_thermo_gz_active_profile #.pivccu_v_wochenprofil_gz
-              name: Profil
+          type: custom:stack-in-card #horizontal-stack
+          mode: horizontal
+          title: Gästezimmer
+          <<: *style_header
+          cards:
+            - type: tile
+              entity: climate.heizungsthermostat_gz
+              name: Heizungs-Thermostat
+              #vertical: true
+              #hide_state: true
+              #state_content: state
+              features:
+                - type: 'target-temperature'
+                - type: 'climate-hvac-modes'
+                  hvac_modes:
+                    - 'off'
+                    - auto
+                    - heat
+            - type: entities
+              entities:
+                # - entity: sensor.heizungsthermostat_gz_temperatur
+                #   name: Temperat.
+                #   <<: *row_style_noicon
+                - entity: sensor.heizungsthermostat_gz_level
+                  name: Ventilöffn.
+                  <<: *row_style_noicon
+                - entity: sensor.hm_thermo_gz_window_state #.pivccu_v_fensteroffen_gz
+                  name: Fenster
+                  <<: *row_style_noicon
+                - entity: sensor.hm_thermo_gz_active_profile #.pivccu_v_wochenprofil_gz
+                  name: Profil
+                  <<: *row_style_noicon
+                - entity: binary_sensor.heizungsthermostat_gz_batterie
+                  name: Batterie
+                  <<: *row_style_noicon
+          # type: custom:simple-thermostat
+          # entity: climate.heizungsthermostat_gz #.000a1a49a107b5
+          # header:
+          #   name: Gästezimmer Thermostat
+          # <<: *simple_thermostat
+          # sensors:
+          #   - entity: sensor.heizungsthermostat_gz_level
+          #     name: Ventilöffn.
+          #     decimals: 0
+          #   - entity: sensor.hm_thermo_gz_window_state #.pivccu_v_fensteroffen_gz
+          #     name: Fenster
+          #   - entity: sensor.hm_thermo_gz_active_profile #.pivccu_v_wochenprofil_gz
+          #     name: Profil
       - type: conditional
         conditions:
           - entity: input_boolean.heating_period
