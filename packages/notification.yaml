@@ -16,6 +16,11 @@ homeassistant:
     package.node_anchors:
       common: &common
         package: "notification"
+  # constants
+    # timespans for device status shifts 
+      int_device_idle_threshold: &int_seconds_device_idle_threshold 15 
+      int_device_idle_power_threshold: &int_device_idle_power_threshold 3 #[Watt]
+      int_device_working_power_threshold: &int_device_working_power_threshold 5 #[Watt]
   # sensors
     sensor.count_notification_alerts:
       <<: *common
@@ -71,6 +76,22 @@ notify:
       - !secret max_email
     sender_name: My Home Assistant
 
+###############################################################################
+##  Variables
+###############################################################################
+# Possible status values for devices/appliances
+input_select:
+  wasch_status_dropdown:
+    name: Waschmaschstatus
+    <<: &device_status_list
+      options: 
+        - 'off' #aus
+        - 'at work' #läuft
+        - 'finished' #fertig
+        - 'on' #ein
+  dryer_status_dropdown:
+    name: Trocknerstatus
+    <<: *device_status_list
 
 ###############################################################################
 ##  Sensors
@@ -78,6 +99,33 @@ notify:
 # sensor counts all active alerts for numbering the badge
 #   more alerts can be integrated!
 template:
+  - sensor:
+    # Status sensors for each device. input_select values are set by automations.
+    - unique_id: wasch_status
+      default_entity_id: sensor.wasch_status
+      name: Status Waschmaschine
+      state: "{{ states('input_select.wasch_status_dropdown') }}"
+      icon: >
+            {% if is_state('sensor.wasch_status', 'finished') %}
+              mdi:washing-machine-alert
+            {% else %}
+              mdi:washing-machine 
+            {% endif %}        
+      attributes:
+        friendly_name: Waschmaschine
+    - unique_id: dryer_status
+      default_entity_id: sensor.dryer_status
+      name: Status Trockner
+      state: "{{ states('input_select.dryer_status_dropdown') }}"
+      icon: >
+            {% if is_state('sensor.wasch_status', 'finished') %}
+              mdi:tumble-dryer-alert
+            {% else %}
+              mdi:tumble-dryer
+            {% endif %}        
+      attributes:
+        friendly_name: Wäschetrockner
+
   - sensor:
     - unique_id: count_notification_alerts
       default_entity_id: sensor.count_notification_alerts
@@ -107,3 +155,116 @@ template:
         | count
         -}}
       icon: mdi:hacs
+
+###############################################################################
+##  Automations
+###############################################################################
+
+# Sometimes after reloading YAML code or restarting one of the raspberry pi's
+# the MQTT sensors are unavailable. Can be fixed by sending a MQTT reconnet command. 
+automation:
+  - alias: change device status
+    id: change_device_status
+    description: 'todo'
+    mode: queued
+    triggers:
+      - trigger: numeric_state
+        <<: &sensor_device_leistung_list
+          entity_id: 
+            - sensor.shelly_waschmaschine_leistung # Verbrauch Waschmaschine
+            - sensor.shelly_trockner_leistung # Verbrauch Trockner
+        below: *int_device_idle_power_threshold
+        above: 0
+        for:
+          seconds: *int_seconds_device_idle_threshold
+        id: device_idle
+      - trigger: numeric_state
+        <<: *sensor_device_leistung_list
+        below: 0.01
+        for:
+          seconds: 3
+        id: device_off
+      - trigger: numeric_state
+        <<: *sensor_device_leistung_list
+        above: *int_device_working_power_threshold
+        for:
+          seconds: 10
+        id: device_atwork
+
+    variables:
+      <<: &sensor_dropdown_map
+        dropdown_map:
+          sensor.shelly_waschmaschine_leistung: input_select.wasch_status_dropdown # Waschamschine
+          sensor.shelly_trockner_leistung: input_select.dryer_status_dropdown # Wäschetrockner
+      device_select_entity: >
+        {{ dropdown_map[trigger.entity_id] }}
+      select_old_state: >
+        {{ states(device_select_entity) }}
+
+    actions:
+      - action: input_select.select_option
+        data:
+          entity_id: "{{ device_select_entity }}"
+          option: >
+            {% if trigger.id == 'device_off' %}
+              off
+            {% elif trigger.id == 'device_atwork' %}
+              at work
+            {% elif trigger.id == 'device_idle' %}
+              {% if select_old_state in ['off','on'] %}
+                on
+              {% else %}
+                finished
+              {% endif %}
+            {% endif %}
+
+  #----------------------------------------------------------------------------------
+  # Benachrichtigungen & Alarm
+  # Notifications and alarm
+  - alias: Notify all - washing finished
+    id: send_notification_washing_finished
+    triggers:
+      # jemand zuhause und Waschmaschine fertig 
+      - trigger: template
+        value_template: >
+          {{ states('sensor.home_status') in ['Home']  
+            and is_state('sensor.wasch_status', 'finished') }}
+        for:
+          seconds: 3 #*int_seconds_alert_send_delay
+        id: washing_finished
+      # jemand zuhause und Trockner fertig 
+      - trigger: template
+        value_template: >
+          {{ states('sensor.home_status') in ['Home']  
+            and is_state('sensor.dryer_status', 'finished') }}
+        for:
+          seconds: 3 #*int_seconds_alert_send_delay
+        id: drying_finished
+
+    variables:
+      notification_service: >
+        {{ 'notify.family_main_devices' if states('sensor.ing_status') in ['Home','Just Arrived'] else 'notify.max' }}
+      device_name: >
+        {{ 'Waschmaschine' if trigger.id == 'washing_finished') else 'Wäschetrockner' }}
+
+    actions:
+#      - action: input_boolean.turn_on
+#        entity_id: input_boolean.open_backdoor_alert
+      - action: "{{ notification_service }}"
+        data:
+          title: "Smart Home Message"
+          message: >
+            {{device_name}} ist fertig und kann ausgeräumt werden.
+          data:
+            subtitle: "Waschkeller besuchen."
+            push:
+              badge: "{{states('sensor.count_notification_alerts')|int(default=0)}}"
+              sound:
+                name: default 
+                #name: "US-EN-Daisy-Back-Door-Open.wav" 
+                critical: 1
+                volume: 1.0
+              thread-id: "washing-notification-group"
+            apns_headers:
+              'apns-collapse-id': 'washing-finished'
+            clickAction: '/lovelace/home'

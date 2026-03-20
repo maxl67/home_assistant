@@ -379,7 +379,7 @@ cards:
             open: false
             padding: 0 px
             entities:
-            - entity: sensor.last_boot
+            - entity: sensor.hera_last_boot
               name: letzter Systemstart
               icon: mdi:restart
             - entity: update.hera_dsm_update

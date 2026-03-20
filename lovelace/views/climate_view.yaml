@@ -112,6 +112,20 @@ anchors:
           font-size: 20px;
           padding: 10px 16px;
         }
+  style_stackcard_header: &stackcard_style_header
+    card_mod:
+      style: |
+        ha-card {
+          --ha-card-header-font-size: 20px !important;
+        }
+
+  style_entitiescard: &style_card_noborder
+    card_mod:
+      style: |
+        ha-card {
+          border: none !important;
+        } 
+
   style_entitycard_noheader: &style_noheader
     card_mod:
       style: |
@@ -130,6 +144,10 @@ anchors:
             .info {
               margin-left:0 !important;
             }
+            div.flex {
+              margin: 0px 0px 0px 0px;
+            }
+
 #---------------------------------
 #id: climate
 title: Klima
@@ -148,7 +166,7 @@ cards:
           type: custom:stack-in-card #horizontal-stack
           mode: horizontal
           title: Wohnzimmer
-          <<: *style_header
+          <<: *stackcard_style_header
           cards:
             - type: tile
               entity: climate.wandthermostat_wz
@@ -163,7 +181,9 @@ cards:
                     - 'off'
                     - auto
                     - heat
+              <<: *style_card_noborder
             - type: entities
+              <<: *style_card_noborder
               entities:
                 # - entity: sensor.wandthermostat_wz_temperatur
                 #   name: Temperat.
@@ -177,6 +197,7 @@ cards:
                 - entity: sensor.hm_thermo_wz_active_profile #.pivccu_v_wochenprofil_gz
                   name: Profil
                   <<: *row_style_noicon
+
           # type: custom:simple-thermostat
           # entity: climate.wandthermostat_wz #.000c9a499b5808
           # header:
@@ -281,7 +302,7 @@ cards:
           type: custom:stack-in-card #horizontal-stack
           mode: horizontal
           title: Küche
-          <<: *style_header
+          <<: *stackcard_style_header
           cards:
             - type: tile
               entity: climate.heizungsthermostat_ku
@@ -296,7 +317,9 @@ cards:
                     - 'off'
                     - auto
                     - heat
+              <<: *style_card_noborder
             - type: entities
+              <<: *style_card_noborder
               entities:
                 # - entity: sensor.heizungsthermostat_ku_temperatur
                 #   name: Temperat.
@@ -392,7 +415,7 @@ cards:
           type: custom:stack-in-card #horizontal-stack
           mode: horizontal
           title: Gästezimmer
-          <<: *style_header
+          <<: *stackcard_style_header
           cards:
             - type: tile
               entity: climate.heizungsthermostat_gz
@@ -407,7 +430,9 @@ cards:
                     - 'off'
                     - auto
                     - heat
+              <<: *style_card_noborder
             - type: entities
+              <<: *style_card_noborder
               entities:
                 # - entity: sensor.heizungsthermostat_gz_temperatur
                 #   name: Temperat.

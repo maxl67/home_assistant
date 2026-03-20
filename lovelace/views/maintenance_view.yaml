@@ -19,6 +19,26 @@ visible:
 
 cards:
   - type: entities
+    title: Waschkeller
+    entities:
+      - entity: sensor.wasch_status
+        type: custom:multiple-entity-row
+        name: Waschmaschine
+        secondary_info: last-changed
+        entities:
+          - entity: sensor.shelly_waschmaschine_leistung
+            name: '[W]'
+            format: precision0
+      - entity: sensor.dryer_status
+        type: custom:multiple-entity-row
+        name: Wäschetrockner
+        secondary_info: last-changed
+        entities:
+          - entity: sensor.shelly_trockner_leistung
+            name: '[W]'
+            format: precision0
+
+  - type: entities
     entities:
       - entity: input_select.debug_mode
 

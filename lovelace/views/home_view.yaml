@@ -87,6 +87,10 @@ cards:
           }
     filter:
       include:
+        - entity_id: sensor.wasch_status
+          state: 'finished'
+        - entity_id: sensor.dryer_status
+          state: 'finished'
         - entity_id: switch.fritz_dect_210_solar
           state: 'unavailable'
         - entity_id: sensor.tasmotawe5_we5_power_cur
@@ -97,19 +101,19 @@ cards:
           state: 'on'
         - entity_id: "binary_sensor.alert_*"
           state: 'on'
-        - entity_id: binary_sensor.fritz_box_6490_cable_firmware_update
-          state: 'on'
-        - entity_id: binary_sensor.fritz_box_6490_cable_connection
+        - entity_id: update.fritz_box_cable_fritz_os
+          state: 'on' #?ok
+        - entity_id: binary_sensor.fritz_box_cable_connection
           state: 'off'
-        - entity_id: sensor.hacs
+        - entity_id: sensor.count_hacs_updates
           state: '> 0'
 #        - entity_id: switch.adguard_protection
 #          state: 'off'
         - entity_id: "sensor.dwd_current_warn_level_*"
           state: '>= 2'
-        - entity_id: binary_sensor.hera_update_available
+        - entity_id: update.hera_dsm_update
           state: 'on'
-        - entity_id: binary_sensor.latest_version_update_available
+        - entity_id: binary_sensor.latest_version_update_available #Home-Assistant
           state: 'on'
         - entity_id: binary_sensor.bwk_sued_offline_alert
           state: 'on'
@@ -147,9 +151,6 @@ cards:
         - entity_id: "sensor.*iphone*"
         - entity_id: "sensor.*ipad*"
         - entity_id: "input*"
-        - entity_id: "sensor.plant_*_battery" #old remains of battery notification package
-        - entity_id: "plant.plant_*_battery" #old remains of battery notification package
-        - entity_id: "sensor.oleander_battery" #old remains of battery notification package
       include:
         - entity_id: "sensor.*_batterie"
           state: "<= 10" #Door- & window sensors
@@ -309,62 +310,121 @@ cards:
 
   #------------------------------------------------
   # status of lights
-  - type: entities
-    title: Licht
-    show_header_toggle: false
-    state_color: true
-    # card_mod:
-    #   style: |
-    #     ha-card {
-    #       background: url("/local/lampe.png");
-    #       background-size: 60% 120px;
-    #       background-position: center;
-    #       background-repeat: no-repeat;
-    #       --primary-text-color: var(--primary-text-color);
-    #       --secondary-text-color: var(--secondary-text-color);
-    #       --paper-item-icon-color: var(--primary-text-color);
-    #     }
-    entities:
-      - type: custom:slider-entity-row
-        entity: light.dimmschalter_wz_dimmaktor_wz 
-        name: Ambiente Wohnen
-        toggle: true
-        hide_when_off: false
-        min: 25
-        max: 100
-      - type: custom:slider-entity-row
-        entity: light.dimmschalter_buro_dimmaktor_buro #.0008dd899c4781
-        name: Kiesel Büro
-        toggle: true
-        hide_when_off: false
-      - type: custom:slider-entity-row
-        entity: light.philips_lightstrip_ku
-        name: Lichtsteifen Küche
-        toggle: true
-        hide_when_off: true
-      #- type: divider
-      #- entity: switch.enable_light_automation
-      - type: divider
-      - type: custom:fold-entity-row
-        head:
-          entity: switch.enable_light_automation
-          state_color: true
-        padding: 0 px
-        open: false
-        entities:
-          - type: custom:hui-element
-            card_type: markdown
-            content: >
-              Zur Erinnerung, {{user}}. 
-              Bei aktiver Automatisierung werden:
+  # - type: custom:vertical-stack-in-card
+  #   cards:
+  #     - type: heading
+  #       heading: Lichter
+  #       badges:
+  #         - type: entity
+  #           entity: light.dimmschalter_buro_dimmaktor_buro #Licht EZ
+  #           color: state
+  #           tap_action: 
+  #             - action: toggle
+  #               entity: light.dimmschalter_buro_dimmaktor_buro
+  #         - type: button
+  #           icon: mdi:lightbulb-off
+  #           text: Wohn-/Ess
+  #           color: yellow
+  #         - type: button
+  #   #        entity: switch.schaltaktor_licht_ch2 #Licht EZ
+  #           text: Essber
+  #           color: state
+  #           tap_action: 
+  #             - action: toggle
+  #               entity: switch.schaltaktor_licht_ch2
+  #   #    - switch.schaltaktor_licht_ch10 #Licht Esstisch
+  #   #    - switch.schaltaktor_licht_ch6 #Licht WZ
+  #     - type: entities
+  #       entities:
+  #       - switch.schaltaktor_licht_ch10 #Licht Esstisch
+  #       - switch.schaltaktor_licht_ch6 #Licht WZ
 
-              - das Ambientelicht im Wohnzimmer kurz nach Sonnenuntergang eingeschaltet 
-                oder wenn wir nach Sonnenuntergang nach Hause kommen
-              - alle Licher (WZ, Büro, Küche) kurz nachdem wir gegangen sind und auch um Mitternacht ausgeschaltet
+  - type: custom:vertical-stack-in-card
+    cards:
+    - type: glance
+      title: Lichter
+      show_state: false
+      entities:
+      - entity: switch.schaltaktor_licht_ch2
+        name: Essen
+        icon: mdi:silverware #mdi:lightbulb
+        tap_action: 
+          action: toggle
+      - entity: switch.schaltaktor_licht_ch6
+        name: Wohnen
+        icon: mdi:sofa #mdi:lightbulb
+        tap_action: 
+          action: toggle
+      - entity: switch.schaltaktor_licht_ch10
+        name: Tisch
+        icon: mdi:vanity-light
+        tap_action: 
+          action: toggle
+      - entity: switch.schaltaktor_licht_ch14
+        name: T Wand
+        icon: mdi:outdoor-lamp
+        tap_action: 
+          action: toggle
+      - entity: switch.schaltaktor_licht_ch18
+        name: T Brü
+        icon: mdi:bulkhead-light
+        tap_action: 
+          action: toggle
+    - type: divider
+    - type: entities
+      #title: Licht
+      show_header_toggle: false
+      state_color: true
+      # card_mod:
+      #   style: |
+      #     ha-card {
+      #       background: url("/local/lampe.png");
+      #       background-size: 60% 120px;
+      #       background-position: center;
+      #       background-repeat: no-repeat;
+      #       --primary-text-color: var(--primary-text-color);
+      #       --secondary-text-color: var(--secondary-text-color);
+      #       --paper-item-icon-color: var(--primary-text-color);
+      #     }
+      entities:
+        - type: custom:slider-entity-row
+          entity: light.dimmschalter_wz_dimmaktor_wz 
+          name: Ambiente Wohnen
+          toggle: true
+          hide_when_off: false
+          min: 25
+          max: 100
+        - type: custom:slider-entity-row
+          entity: light.dimmschalter_buro_dimmaktor_buro #.0008dd899c4781
+          name: Kiesel Büro
+          toggle: true
+          hide_when_off: false
+        - type: custom:slider-entity-row
+          entity: light.philips_lightstrip_ku
+          name: Lichtsteifen Küche
+          toggle: true
+          hide_when_off: true
+        - type: divider
+        - type: custom:fold-entity-row
+          head:
+            entity: switch.enable_light_automation
+            state_color: true
+          padding: 0 px
+          open: false
+          entities:
+            - type: custom:hui-element
+              card_type: markdown
+              content: >
+                Zur Erinnerung, {{user}}. 
+                Bei aktiver Automatisierung werden:
+
+                - das Ambientelicht im Wohnzimmer kurz nach Sonnenuntergang eingeschaltet 
+                  oder wenn wir nach Sonnenuntergang nach Hause kommen
+                - alle Licher (WZ, Büro, Küche) kurz nachdem wir gegangen sind und auch um Mitternacht ausgeschaltet
 
 
-              Bei längerer Abwesenheit (>24 h) wird das Ambientelicht im Wohnzimmer 
-              zu einer zufälligen Zeit nach Sonnenuntergang eingeschaltet und nach 23:00 auch zufällig ausgeschaltet.
+                Bei längerer Abwesenheit (>24 h) wird das Ambientelicht im Wohnzimmer 
+                zu einer zufälligen Zeit nach Sonnenuntergang eingeschaltet und nach 23:00 auch zufällig ausgeschaltet.
 
   #------------------------------------------------
   # operation and options for blinds
