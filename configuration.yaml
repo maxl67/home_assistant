@@ -205,11 +205,11 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.last_boot 
       - sensor.processor_use
       - sensor.memory_free
-      - sensor.network_in_eth0
-      - sensor.network_out_eth0
+      #- sensor.network_in_eth0
+      #- sensor.network_out_eth0
     # router: Fritzbox
-      - sensor.fritzbox
-      - sensor.fritz_last_boot
+      - update.fritz_box_cable_fritz_os
+      - sensor.fritz_box_cable_letzter_neustart
     # Fritz!SmartHome
       - sensor.fritz_dect_200_gz_electric_current
       - sensor.fritz_dect_200_gz_voltage
@@ -226,40 +226,31 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       #- binary_sensor.rpi_west
       #- binary_sensor.rpi_ost
       - sensor.raspi1_clock_speed
-      - sensor.raspi2_clock_speed
       - sensor.raspi1_memory_use
-      - sensor.raspi2_memory_use
       - sensor.raspi1_disk_use
-      - sensor.raspi2_disk_use
       - sensor.raspi1_last_message
-      - sensor.raspi2_last_message
       - sensor.raspi1_last_boot
-      - sensor.raspi2_last_boot
       - sensor.raspi1_updates
+      - sensor.raspi1_host_ip
+      - sensor.raspi1_host_os
+      - sensor.raspi1_host_architecture
+      - sensor.raspi2_clock_speed
+      - sensor.raspi2_memory_use
+      - sensor.raspi2_disk_use
+      - sensor.raspi2_last_message
+      - sensor.raspi2_last_boot
       - sensor.raspi2_updates
-      - sensor.raspi1_load_1m
-      - sensor.raspi1_load_5m
-      - sensor.raspi1_load_15m
-      - sensor.raspi1_network_upload
-      - sensor.raspi1_network_download
-      - sensor.raspi1_swap_usage
-      - sensor.raspi2_load_1m
-      - sensor.raspi2_load_5m
-      - sensor.raspi2_load_15m
-      - sensor.raspi2_network_upload
-      - sensor.raspi2_network_download
-      - sensor.raspi2_swap_usage
+      - sensor.raspi2_host_ip
+      - sensor.raspi2_host_os
+      - sensor.raspi2_host_architecture
       - sensor.raspi3_memory_use
       - sensor.raspi3_disk_use
       - sensor.raspi3_last_message
       - sensor.raspi3_last_boot
       - sensor.raspi3_updates
-      - sensor.raspi3_load_1m
-      - sensor.raspi3_load_5m
-      - sensor.raspi3_load_15m
-      - sensor.raspi3_network_upload
-      - sensor.raspi3_network_download
-      - sensor.raspi3_swap_usage
+      - sensor.raspi3_host_ip
+      - sensor.raspi3_host_os
+      - sensor.raspi3_host_architecture
     # Tasmota
       - sensor.tasmota_mqtt_connect_count
       - sensor.tasmota_wifi_connect_count
@@ -280,6 +271,9 @@ recorder:  #Entities, that are recorded in 'home-assistant_v2.db'. Nessesary to 
       - sensor.bkw_sued_tx_re_request_fragment
       - sensor.bkw_sued_powerdc
       - sensor.opendtu_uptime
+      - sensor.opendtu_heap_free
+      - sensor.opendtu_heap_size
+      - sensor.opendtu_ac_power
       - sensor.bkw_sued_temperature
       - sensor.daily_solar_consumption_rate
     # Media Player

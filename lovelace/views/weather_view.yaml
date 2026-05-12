@@ -120,7 +120,7 @@ cards:
             - type: custom:fold-entity-row
               head:
                 type: section
-                label: Wetterwarnungen & Alarm
+                label: 'Wetterwarnungen & Alarm'
               open: false
               padding: false
               entities:
@@ -142,7 +142,7 @@ cards:
                       name: Anz. Alarme
 
                 - type: section
-                  label: Warnstufen
+                  label: 'Warnstufen'
                 - type: custom:auto-entities
                   card: 
                     type: glance
@@ -182,7 +182,7 @@ cards:
       #------------------------------------------------
       # MeteoBlue Meteogram
       - attributes:
-          label: Meteo
+          label: 'Meteo'
         card:
           type: picture
           image: !secret meteogram_image
@@ -310,7 +310,7 @@ cards:
       #   padding: false
       #   entities:
       - type: section
-        label: Sonnenschein Wahrschein. (debug)
+        label: 'Sonnenschein Wahrschein. (debug)'
       - entity: sensor.bkw_sued_power
         name: Solarleistung aktuell
       - type: custom:template-entity-row

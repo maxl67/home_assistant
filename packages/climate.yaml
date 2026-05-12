@@ -115,7 +115,7 @@ template:
   - switch:
   ## are needed in addition to input_booleans to get a dynamic icon
     - unique_id: heating_period
-      default_entity_id: switch.heating_period
+      #default_entity_id: switch.heating_period
       name: Heizperiode aktiv
       turn_on:
         - action: homeassistant.turn_on
@@ -137,7 +137,7 @@ template:
         {% endif %}
 
     - unique_id: enable_heating_automation
-      default_entity_id: switch.enable_heating_automation
+      #default_entity_id: switch.enable_heating_automation
       name: Automatische Heizsteuerung
       turn_on:
         - action: homeassistant.turn_on

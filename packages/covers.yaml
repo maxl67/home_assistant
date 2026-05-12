@@ -120,7 +120,7 @@ template:
   - switch:
   ## are needed in addition to input_booleans to get a dynamic icon
     - unique_id: enable_jalousie_automation
-      default_entity_id: switch.enable_jalousie_automation
+      #default_entity_id: switch.enable_jalousie_automation
       name: Automatische Jalousiesteuerung
       turn_on:
         - action: homeassistant.turn_on
@@ -139,7 +139,7 @@ template:
         {% endif %}
 
     - unique_id: cover_only_when_sunshine
-      default_entity_id: switch.cover_only_when_sunshine
+      #default_entity_id: switch.cover_only_when_sunshine
       name: verdunkeln nur bei Sonne 
       turn_on:
         - action: homeassistant.turn_off
@@ -158,7 +158,7 @@ template:
         {% endif %}
 
     - unique_id: automatic_shade_when_home
-      default_entity_id: switch.automatic_shade_when_home
+      #default_entity_id: switch.automatic_shade_when_home
       name: Auto-Beschattung wenn zuhause 
       turn_on:
         - action: homeassistant.turn_on
@@ -309,7 +309,7 @@ script:
       # cover not below 60% (manually lowered)
       # cover not moving
     alias: alle Jalousien im Süden und/oder Westen runter
-    description: 'Jalousien auf der/den übergebenen Seite/n werden soweit möglich abgesenkt. Jede Jalousie prüft, ob die entsprechnde Tür geschlsosen ist.'
+    description: 'Jalousien auf der/den übergebenen Seite/n werden soweit möglich abgesenkt. Jede Jalousie prüft, ob die zugehörige Tür geschlossen ist.'
     fields:
       in_south:
         description: 'Verdunken der Jalousien nach Süden.'
@@ -448,6 +448,90 @@ script:
 automation:
   #-------------------------------
   # 
+  - id: protect_coffee_from_sun
+    alias: Küchenjalousien für Kaffeeschutz runter
+    description: ''
+    mode: single #Do not start a new run, if running already. 
+    triggers:
+      - id: 'sun_shining'
+        trigger: state
+        entity_id: sensor.sunshine_south
+        to: 'True'
+        for:
+          minutes: 1
+      - id: 'config_changed'
+        trigger: state
+        entity_id: 
+          - input_boolean.automate_jalousie
+          #- input_boolean.auto_shade_when_home
+          - input_boolean.cover_wo_sun
+        to: 'on'
+      - id: 'sunrise'
+        trigger: numeric_state
+        entity_id: sensor.sun_elevation_ratio
+        above: 2
+      - id: 'sunazimuth'
+        trigger: numeric_state
+        entity_id: sensor.sun_direction
+        above: 75
+      - id: doorclosed
+        entity_id: binary_sensor.door_k1_offnung
+        trigger: state
+        to: 'off'
+
+    conditions:
+      # Beachte: Änderungen an den Bedingungen auch in der Info der Jalousien-Card dokumentieren.
+      - and:
+        - alias: Automation is turned on
+          condition: state
+          entity_id: input_boolean.automate_jalousie
+          state: 'on'
+        - alias: sun is shining
+          condition: state
+          entity_id: sensor.sunshine_south
+          state: 'True'
+        - alias: sun direction
+          condition: numeric_state
+          entity_id: sensor.sun_direction
+          above: 75
+          below: 150
+        - alias: blind is up
+          condition: template
+          value_template: "{{ (state_attr('*cover_entityid_ku', 'current_position')|int(100)) >= 60 }}"
+
+    actions:
+      - action: script.position_jalousie
+        data:
+          my_cover_id: *cover_entityid_ku
+          my_cover_position: 55
+          my_tilt_position: 50
+
+  - id: coffee_in_shade
+    alias: Kaffeeschutz nicht mehr nötig
+    description: 'Küchenjalousie wird wieder hochgefahren, da Sonne nicht mehr auf Kaffee scheint'
+    mode: single #Do not start a new run, if running already. 
+    triggers:
+      - id: 'sunazimuth'
+        trigger: numeric_state
+        entity_id: sensor.sun_direction
+        above: 150
+
+    conditions:
+      # Beachte: Änderungen an den Bedingungen auch in der Info der Jalousien-Card dokumentieren.
+      - and:
+        - alias: Automation is turned on
+          condition: state
+          entity_id: input_boolean.automate_jalousie
+          state: 'on'
+        - alias: blind is halfway down
+          condition: template
+          value_template: "{{ (state_attr('*cover_entityid_ku', 'current_position')|int(100)) > 50 }}"
+
+    actions:
+      - action: script.retract_cover
+        data:
+          my_cover_id: *cover_entityid_ku
+
   - id: closing_cover_in_summer
     alias: Jalousien fuer Sonnenschutz runter
     description: ''

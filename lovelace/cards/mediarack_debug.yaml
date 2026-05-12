@@ -4,7 +4,7 @@ entities:
   - type: custom:fold-entity-row
     head:
       type: section
-      label: Status Geräte
+      label: 'Status Geräte'
     open: false
     entities:
       - entity: binary_sensor.netreceiver_online

@@ -188,11 +188,11 @@ automation:
         <<: *sensor_device_leistung_list
         above: *int_device_working_power_threshold
         for:
-          seconds: 10
+          seconds: 25
         id: device_atwork
 
     variables:
-      <<: &sensor_dropdown_map
+      <<: #&sensor_dropdown_map
         dropdown_map:
           sensor.shelly_waschmaschine_leistung: input_select.wasch_status_dropdown # Waschamschine
           sensor.shelly_trockner_leistung: input_select.dryer_status_dropdown # Wäschetrockner
@@ -245,7 +245,7 @@ automation:
       notification_service: >
         {{ 'notify.family_main_devices' if states('sensor.ing_status') in ['Home','Just Arrived'] else 'notify.max' }}
       device_name: >
-        {{ 'Waschmaschine' if trigger.id == 'washing_finished') else 'Wäschetrockner' }}
+        {{ 'Waschmaschine' if trigger.id == 'washing_finished' else 'Wäschetrockner' }}
 
     actions:
 #      - action: input_boolean.turn_on
@@ -262,8 +262,31 @@ automation:
               sound:
                 name: default 
                 #name: "US-EN-Daisy-Back-Door-Open.wav" 
-                critical: 1
-                volume: 1.0
+                critical: 0
+                volume: 0
+              thread-id: "washing-notification-group"
+            apns_headers:
+              'apns-collapse-id': 'washing-finished'
+            clickAction: '/lovelace/home'
+
+  - alias: Reset notification - washing finished
+    id: reset_notification_washing_finished
+    triggers:
+      # weder Waschmaschine noch Trocker in Status 'finished'
+      trigger: template
+      value_template: >
+        {{ not (is_state('sensor.wasch_status', 'finished')) 
+           and not (is_state('sensor.dryer_status', 'finished')) }}
+      for:
+        seconds: 3
+    actions:
+      - action: notify.family_main_devices
+        data:
+          title: "Smart Home ..."
+          message: "Waschkeller besucht."
+          data:
+            push:
+              badge: "{{states('sensor.count_notification_alerts')|int(default=0)}}"
               thread-id: "washing-notification-group"
             apns_headers:
               'apns-collapse-id': 'washing-finished'

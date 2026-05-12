@@ -49,7 +49,7 @@ views:
   - !include lovelace/views/monitoring_view.yaml
 
   # 6: view for plant sensors and care taking
-  - !include lovelace/views/plants_view.yaml
+  #- !include lovelace/views/plants_view.yaml
 
   # 8: table with zigbee devices
   - !include lovelace/views/zigbee_view.yaml

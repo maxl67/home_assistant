@@ -23,7 +23,7 @@ homeassistant:
       light_az_entityid: &light_az_entityid light.dimmschalter_buro_dimmaktor_buro  
       colorlight_ku_entityid: &colorlight_ku_entityid light.philips_lightstrip_ku
       powerswitch_tv_entityid: &powerswitch_tv_entityid switch.outlet_repeater_hifi_switch
-      powerswitch_rpi_sued_entityid: &powerswitch_rpi_sued_entityid switch.outlet_repeater_wz_018780fe_on_off
+      #powerswitch_rpi_sued_entityid: &powerswitch_rpi_sued_entityid switch.outlet_repeater_wz_018780fe_on_off
   # sensors
     # sensor.fritzbox_uptime:
     #   <<: *common
