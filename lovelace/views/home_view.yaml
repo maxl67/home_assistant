@@ -308,6 +308,8 @@ cards:
 
               - TV/Hifi wieder eingeschaltet, nachdem wir für 3 min zuhause sind
 
+              - Lüfter in der Speisekammer eingeschaltet, wenn für 3 min mindestens 20W Solarstrom übrig ist und ausgeschaltet, denn 30sec kein Solarstrom übrig ist.
+
   #------------------------------------------------
   # status of lights
   # - type: custom:vertical-stack-in-card
@@ -401,7 +403,7 @@ cards:
           hide_when_off: false
         - type: custom:slider-entity-row
           entity: light.philips_lightstrip_ku
-          name: Lichtsteifen Küche
+          name: Lichtsteifen Ampel
           toggle: true
           hide_when_off: true
         - type: divider

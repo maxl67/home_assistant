@@ -464,7 +464,7 @@ automation:
         entity_id: 
           - input_boolean.automate_jalousie
           #- input_boolean.auto_shade_when_home
-          - input_boolean.cover_wo_sun
+          #- input_boolean.cover_wo_sun
         to: 'on'
       - id: 'sunrise'
         trigger: numeric_state
@@ -494,11 +494,12 @@ automation:
           condition: numeric_state
           entity_id: sensor.sun_direction
           above: 75
-          below: 150
+          below: 135
         - alias: blind is up
           condition: template
-          value_template: "{{ (state_attr('*cover_entityid_ku', 'current_position')|int(100)) >= 60 }}"
-
+# todo: wie wird ein Anchor in YAML in einem Template genutzt?
+#          value_template: "{{ (state_attr('*cover_entityid_ku', 'current_position')|int(100)) >= 60 }}" #geht nicht
+          value_template: "{{ (state_attr('cover.hmipw_drbl4_1_6_jalu2_ku', 'current_position')|int(100)) >= 60 }}"
     actions:
       - action: script.position_jalousie
         data:
@@ -514,8 +515,12 @@ automation:
       - id: 'sunazimuth'
         trigger: numeric_state
         entity_id: sensor.sun_direction
-        above: 150
-
+        above: 135
+      - id: 'config_changed'
+        trigger: state
+        entity_id: 
+          - input_boolean.automate_jalousie
+        to: 'on'
     conditions:
       # Beachte: Änderungen an den Bedingungen auch in der Info der Jalousien-Card dokumentieren.
       - and:
@@ -525,8 +530,9 @@ automation:
           state: 'on'
         - alias: blind is halfway down
           condition: template
-          value_template: "{{ (state_attr('*cover_entityid_ku', 'current_position')|int(100)) > 50 }}"
-
+# todo: wie wird ein Anchor in YAML in einem Template genutzt?
+#          value_template: "{{ (state_attr('*cover_entityid_ku', 'current_position')|int(100)) > 50 }}"
+          value_template: "{{ (state_attr('cover.hmipw_drbl4_1_6_jalu2_ku', 'current_position')|int(100)) > 50 }}"
     actions:
       - action: script.retract_cover
         data:

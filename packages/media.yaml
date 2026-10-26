@@ -62,11 +62,12 @@ media_player:
 #    host: !secret yamaha_netreceiver
 #    interval_seconds: 30
   
-  - platform: samsungtv_tizen
-    name: samsungtv
-    host: !secret samsung_tv_ip
-    mac: !secret samsung_tv_mac
-    source_list: '{"TV": "KEY_TV", "HDMI": "KEY_HDMI"}'
+# v2026.3: Fehler in der Konfigprüfung schon seit längerem und in der LOG-Datei. not maintained.
+  # - platform: samsungtv_tizen
+  #   name: samsungtv
+  #   host: !secret samsung_tv_ip
+  #   mac: !secret samsung_tv_mac
+  #   source_list: '{"TV": "KEY_TV", "HDMI": "KEY_HDMI"}'
 #app_list klappt auch nicht.
     #app_list: "{'DS video': '111399002250', 'YouTube': '111299001912'}"
     #app_list: "{'ARD Mediathek':'??', 'ZDF mediathek':'??', 'DS video': '111399002250', 'YouTube': '111299001912', 'Rakuten TV': '??'}"

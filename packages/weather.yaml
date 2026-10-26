@@ -20,9 +20,9 @@
   #24.11   ? 16:15
   #22.04  06:15 20:28 53,5° (MESZ)
 #22.6:
-# Sonnenauf: 5:23-5:40 (MESZ), ?-?°. 0,1-1,9°
+# Sonnenauf: 5:37 (MESZ), 54,8°. 1,7°
 # Mittag: 12:22 (MEWZ), 179,94°, 17,87°
-# Untergang: 
+# Untergang: 295°, 9°
 
 ################################################
 ##  Customize
@@ -142,7 +142,7 @@ template:
       unit_of_measurement: '°'
       attributes:
         friendly_name: Sonnenrichtung
-        description: 'gebildet aus Attribut [azimuth] des [sun.sun] Sensors. Sommer: ?; Winter: 8:20-16:00 (127°-229°)'
+        description: 'gebildet aus Attribut [azimuth] des [sun.sun] Sensors. Sommer: 5:40-20:20 (55°-295°); Winter: 8:20-16:00 (127°-229°)'
     - unique_id: sun_elevation
       name: sun_elevation
       state: "{{ state_attr('sun.sun', 'elevation')|float(default=0)|round(1) }}"
@@ -248,11 +248,11 @@ template:
     - unique_id: sunshine_west
       name: sunshine_west
       state: >
-        {{ is_state('sensor.sun_is_shining', 'True') and state_attr('sun.sun', 'azimuth')>=150 and state_attr('sun.sun', 'azimuth')<=330 }}
+        {{ is_state('sensor.sun_is_shining', 'True') and state_attr('sun.sun', 'azimuth')>=150 and state_attr('sun.sun', 'azimuth')<=295 }}
       #state in {True|False}
       attributes:
         friendly_name: Sonnenbestrahlung von Westen
-        description: 'WAHR: Wenn Sonnenschein erkannt und Azimuth in [150°...330°]'
+        description: 'WAHR: Wenn Sonnenschein erkannt und Azimuth in [150°...295°]'
 
     ########## SONNENSCHEIN-Kurven für Charts ###########
     - unique_id: sunshine_elevation_ratio

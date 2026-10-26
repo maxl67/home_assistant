@@ -4,7 +4,10 @@
 #
 midnight:
   accent-color: "#E45E65"
+  accent-color-alpha: "#E45E6599"
+  accent-color-dark: "#93535C"
   card-background-color: "var(--primary-background-color)"
+  clear-background-color: "var(--secondary-background-color)"
   dark-primary-color: "var(--accent-color)"
   disabled-text-color: "#7F848E"
   divider-color: "rgba(0, 0, 0, .12)"
@@ -59,10 +62,6 @@ midnight:
   state-icon-active-color: "#FDD835"
   state-icon-color: "#44739e"
   state-icon-unavailable-color: "var(--disabled-text-color)"
-  switch-checked-color: "var(--paper-toggle-button-checked-button-color)"
-  switch-unchecked-button-color: "var(--disabled-text-color)"
-  switch-unchecked-color: "var(--disabled-text-color)"
-  switch-unchecked-track-color: "var(--disabled-text-color)"
   table-row-alternative-background-color: "#3E424B"
   table-row-background-color: "#353840"
   text-primary-color: "var(--primary-text-color)"
@@ -85,4 +84,114 @@ midnight:
   md-slider-label-container-color: "var(--accent-color)"
   md-slider-pressed-state-layer-color: "var(--accent-color)"
   md-slider-inactive-track-color: "var(--secondary-background-color)"
-  clear-background-color: "var(--secondary-background-color)"
+  
+  
+  ## Header
+  app-header-background-color: "var(--primary-color)" #blue tab bar on top
+  app-header-selection-bar-color: "var(--accent-color)" #red line below selected tab
+  # app-header-edit-background-color:
+  # app-header-edit-text-color:
+  # app-header-border-bottom:
+  # app-header-text-color:
+  
+  ## Unchecked switch
+  ha-switch-background-color: "#5B616B"
+  ha-switch-background-color-hover: "#7F848E88"
+  ha-switch-border-color: "var(--disabled-text-color)"
+  ha-switch-thumb-background-color: "var(--disabled-text-color)"
+  ha-switch-thumb-background-color-hover: "var(--disabled-text-color)"
+  ha-switch-thumb-border-color: "var(--disabled-text-color)"
+
+  ## Checked switch
+  ha-switch-checked-background-color: "var(--accent-color-dark)" 
+  ha-switch-checked-background-color-hover: "var(--accent-color-alpha)"
+  ha-switch-checked-border-color: "var(--accent-color)"
+  ha-switch-checked-border-color-hover: "var(--accent-color)"
+  ha-switch-checked-thumb-background-color: "var(--accent-color)"
+  ha-switch-checked-thumb-background-color-hover: "var(--accent-color)"
+  ha-switch-checked-thumb-border-color: "var(--accent-color)"
+  ha-switch-checked-thumb-border-color-hover: "var(--accent-color)"
+  
+  ## Set some other switches to the same size as on cards
+  ha-switch-thumb-size: "14px"
+  ha-switch-size: "20px"
+  ha-switch-width: "38px"
+# ha-switch-thumb-box-shadow
+# ha-switch-disabled-opacity
+# ha-switch-required-marker
+# ha-switch-required-marker-offset
+  
+  ## Checkbox
+  ha-checkbox-border-color: "var(--disabled-text-color)"
+  ha-checkbox-border-color-hover: "var(--accent-color)"
+  ha-checkbox-background-color: "#11111100"
+  ha-checkbox-background-color-hover: "#11111100"
+  ha-checkbox-checked-background-color: "var(--accent-color)"
+  ha-checkbox-checked-background-color-hover: "var(--accent-color-dark)"
+  ha-checkbox-checked-icon-color: "var(--primary-text-color)"
+# ha-checkbox-size
+# ha-checkbox-checked-icon-scale
+# ha-checkbox-border-radius
+# ha-checkbox-border-width
+# ha-checkbox-required-marker
+# ha-checkbox-required-marker-offset
+
+  ## Radio button
+  ha-radio-option-active-color: "var(--accent-color)"
+  ha-radio-option-border-color: "var(--disabled-text-color)"
+  ha-radio-option-border-color-hover: "var(--accent-color)"
+  ha-radio-option-background-color: "#11111100"
+  ha-radio-option-background-color-hover: "#11111100"
+  ha-radio-option-checked-background-color: "var(--primary-background-color)"
+  ha-radio-option-checked-icon-color: "var(--accent-color)"
+  # ha-radio-group-required-marker
+  # ha-radio-group-required-marker-offset
+  # ha-radio-option-toggle-size
+  # ha-radio-option-border-width  
+  # ha-radio-option-checked-icon-scale
+  # ha-radio-option-control-margin
+  # ha-radio-option-heigh
+  
+  ## Slider
+  ha-slider-thumb-color: "var(--accent-color)"
+  ha-slider-indicator-color: "var(--accent-color)"
+  # ha-slider-track-size: "4px"
+
+  ## Tooltips, and others
+  ha-color-surface-default: "var(--paper-listbox-background-color)"
+# ha-color-surface-low
+# ha-color-surface-lower
+# ha-color-surface-default-inverted
+# ha-color-surface-low-inverted
+# ha-color-surface-lower-inverted
+
+  wa-color-surface-raised: "var(--accent-color)" #Top line in notifications panel
+
+
+  ## Labels, forms, lists, buttons, etc.
+  form-hover: "#3A4352"
+  
+  ha-color-form-background: "var(--primary-background-color)"
+  ha-color-form-background-hover: "var(--form-hover)"
+  ha-color-form-background-disabled: "var(--disabled-text-color)"
+  
+  ha-color-text-primary: "var(--primary-text-color)"
+  ha-color-text-secondary: "var(--accent-color)"
+  ha-color-text-disabled: "var(--disabled-text-color)"
+  
+  ## HA 2026.3+ Web Awesome / small subset of semantic color variables
+  ha-color-fill-primary-quiet-resting: "var(--form-hover)"
+  ha-color-fill-primary-quiet-hover: "var(--accent-color-dark)" 
+  ha-color-fill-primary-quiet-active: "var(--accent-color)" 
+
+  ha-color-fill-primary-normal-resting: "var(--form-hover)" 
+  ha-color-fill-primary-normal-hover: "var(--accent-color-dark)"
+  ha-color-fill-primary-normal-active: "var(--accent-color)"
+
+  ha-color-fill-neutral-quiet-resting: "var(--form-hover)"
+  ha-color-fill-neutral-quiet-hover: "var(--accent-color-dark)"
+  ha-color-fill-neutral-quiet-active: "var(--accent-color)"
+
+  ha-color-fill-neutral-normal-resting: "var(--form-hover)"
+  ha-color-fill-neutral-normal-hover: "var(--accent-color-dark)"
+  ha-color-fill-neutral-normal-active: "var(--accent-color)"

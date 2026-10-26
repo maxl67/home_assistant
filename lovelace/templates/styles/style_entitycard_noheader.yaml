@@ -1,0 +1,6 @@
+#card_mod:
+  style: |
+    ha-card .card-header {
+      padding: 0px;
+      display: unset;
+    }

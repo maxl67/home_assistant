@@ -29,6 +29,7 @@ homeassistant:
   # sensors
     binary_sensor.door_g1_offnung:
       friendly_name: Gästezimmer
+      battery last changed: 28.09.2026
       <<: *door
     binary_sensor.door_w1_offnung:
       friendly_name: Wohnzimmer W
@@ -44,6 +45,7 @@ homeassistant:
       <<: *door
     binary_sensor.door_k1_offnung:
       friendly_name: Küche
+      battery last changed: ??
       <<: *door
     binary_sensor.door_a2_offnung:
       friendly_name: Arbeitszimmer S
@@ -59,6 +61,7 @@ homeassistant:
       <<: *door
     binary_sensor.door_eingang_offnung:
       friendly_name: Eingang
+      battery last changed: ??
       <<: *door
     binary_sensor.window_b1_offnung:
       friendly_name: Bad

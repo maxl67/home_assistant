@@ -45,9 +45,9 @@ my:
 
 # activate SSL
 # Source: https://community.home-assistant.io/t/ssl-and-home-assistant-running-on-a-synology-docker/32102
-http:
-  ssl_certificate: !secret ssl_certificate_path
-  ssl_key: !secret ssl_private_key
+#http:
+  #ssl_certificate: !secret ssl_certificate_path
+  #ssl_key: !secret ssl_private_key
   #ip_ban_enabled: true
   #login_attempts_threshold: 3
 

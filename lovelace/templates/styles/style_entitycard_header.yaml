@@ -1,0 +1,6 @@
+#card_mod:
+  style: |
+    .card-header {
+      font-size: 20px;
+      padding: 10px 16px;
+    }

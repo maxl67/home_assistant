@@ -16,14 +16,16 @@ cards:
         show_header_toggle: false
         card_mod: !include ../templates/styles/style_entitycard_header.yaml
         entities:
-          - entity: switch.bewasserung_1
+          - entity: valve.bewasserung_1
             name: Pfanzbereiche und Töpfe
+          - entity: number.bewasserung_1_bewasserung_1_watering_duration
+            name: Dauer
         #secondary_info: sensor.bewasserung_1_battery_level
           - type: section
-            label: Sensor 1      
+            label: Sensor 1 (Oleander)
           - entity: sensor.sensor_1_soil_humidity
             type: custom:multiple-entity-row
-            name: Bodenfeuchte
+            name: Bodenfeuchte & -temp.
             #icon: mdi:white-balance-sunny
             state_header: humid.
             entities:
