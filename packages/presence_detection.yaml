@@ -1,6 +1,6 @@
 ###############################################################################
 #   @author       : Max Reigl
-#   @changed      : 10.06.2026
+#   @changed      : 27.10.2026
 #   @created:     : 08.08.2020
 #   @package      : presence_detection
 #   @description  : Presence Detection with different states based of bluetooth monitor script.
@@ -65,16 +65,13 @@ homeassistant:
       <<: *device_wifi
     device_tracker.iphone_max_bt:
       <<: *device_bt
-      description: defined in known_devices.yaml
+      description: defined as template in package 'presence_detection'
     device_tracker.iphone_ing_bt:
       <<: *device_bt
-      description: defined in known_devices.yaml
+#      description: defined in known_devices.yaml
     device_tracker.iphone_heidi_bt:
       <<: *device_bt
-      description: defined in known_devices.yaml
-    # device_tracker.iphone_winfried_bt:
-    #   <<: *device_bt
-    #   description: defined in known_devices.yaml
+#      description: defined in known_devices.yaml
     sensor.max_present_o:
       <<: *common
     sensor.max_present_w:
@@ -97,12 +94,6 @@ homeassistant:
       <<: *common
     sensor.home_confidence_heidi:
       <<: *common
-    # sensor.winfried_present_w:
-    #   <<: *common
-    # sensor.winfried_present_o:
-    #   <<: *common
-    # sensor.home_confidence_winfried:
-    #   <<: *common
   # groups, variables
     group.phone_max:
       <<: *common
@@ -125,10 +116,10 @@ homeassistant:
     input_boolean.guests:
       <<: *common
   # automations
-    script.toogle_bt_device_status:
-      <<: *common
-    automation.change_person_occupancy:
-      <<: *common
+    # script.toogle_bt_device_status:
+    #   <<: *common
+    # automation.change_person_occupancy:
+    #   <<: *common
     automation.start_bt_arrival_scan_area:
       <<: *common
     automation.start_bt_departure_scan_area:
@@ -159,7 +150,8 @@ homeassistant:
       <<: *common
     automation.reconnect_monitor_sensors:
       <<: *common
-      
+
+
 ###############################################################################
 ##  Groups
 ###############################################################################
@@ -180,7 +172,6 @@ group:
     name: phones of known guests
     entities:
       - device_tracker.iphone_heidi_bt
-#      - device_tracker.iphone_winfried_bt
 
 ###############################################################################
 ##  Variables
@@ -239,9 +230,10 @@ input_boolean:
 # 2) For each device 2 or 3 MQTT sensors are listening to these confidence values (sensor '<person> present {O|W|S}')
 # 3) These sensors are combined per device (max function) and a confidence for the device being present is calculated
 #    (sensor '<person> Home Confidence'). Range [0..100].
-# 4) 1 automation will set the device_tracker entity for the BT-devices to 'home' or 'not_home' 
+# 4) a Template device_tracker entity for the BT-devices is automatically set to 'home' or 'not_home' 
+# .. [obsolet: 1 automation will set the device_tracker entity for the BT-devices to 'home' or 'not_home' 
 #    in case the home confidence level is above/below a threshhold ('&int_confidence_threshold_home').
-#    (automation 'change person occupancy')
+#    (automation 'change person occupancy')]
 # 5) The BT-device is part of the group 'phone_<person>' which could contain other devices_trackers.
 #    The group is turned 'on', if at least one device in the group is 'home'.
 # From this point on only the group is used in status automation triggers to be independent of devices.
@@ -268,8 +260,8 @@ input_boolean:
 # 2 raspberry pi's are located in east and west part of appartment and are running the monitor.sh script.
 # We get the BT presence confidence values via MQTT for each device which are mapped to a person here.
 mqtt:
-# Person 1
   # reading the MQTT messages from BlueTooth monitor.sh into confidence sensors (one per area).
+# Person 1
   sensor:
     - name: 'Max present O'
       state_topic: 'monitor/ost/iphone_max_bt'
@@ -343,25 +335,6 @@ mqtt:
       payload_available: 'online'
       payload_not_available: 'offline'
       json_attributes_topic: 'monitor/west/iphone_heidi_bt'
-# # Gast 2
-# # MQTT-Explorer Topic: 'monitor/setup/ADD STATIC DEVICE' Message: 'F0:DB:F8:1C:A7:A2 iphone_winfried_bt' 
-#     - name: 'Winfried present O'
-#       state_topic: 'monitor/ost/iphone_winfried_bt'
-#       value_template: "{{ value_json.confidence }}"
-#       unit_of_measurement: '%'
-#       availability_topic: 'monitor/ost/status'
-#       payload_available: 'online'
-#       payload_not_available: 'offline'
-#       json_attributes_topic: 'monitor/ost/iphone_winfried_bt'
-#     - name: 'Winfried present W'
-#       state_topic: 'monitor/west/iphone_winfried_bt'
-#       value_template: "{{ value_json.confidence }}"
-#       unit_of_measurement: '%'
-#       availability_topic: 'monitor/west/status'
-#       payload_available: 'online'
-#       payload_not_available: 'offline'
-#       json_attributes_topic: 'monitor/west/iphone_winfried_bt'
-
 
 # combining all area values into a total confidence value for the device being present
 # min-max sensors will dispay 1 digit in a glance card. So rather use a template sensor.
@@ -384,7 +357,6 @@ sensor:
       - sensor.ing_present_o
       - sensor.ing_present_w
       - sensor.ing_present_s
-
   # Gast 1
   - platform: min_max
     name: 'Home Confidence Heidi'
@@ -393,16 +365,27 @@ sensor:
     entity_ids:
       - sensor.heidi_present_o
       - sensor.heidi_present_w
-  # # Gast 2
-  # - platform: min_max
-  #   name: 'Home Confidence Winfried'
-  #   type: max
-  #   round_digits: 0
-  #   entity_ids:
-  #     - sensor.winfried_present_o
-  #     - sensor.winfried_present_w
 
 template:
+  - variables:
+      threshold_home: *int_confidence_threshold_home
+# this is the way to use anchor variables inside a template: 1. Variables (with dash), 2. object (without dash) 
+    device_tracker:
+    - name: 'iPhone Max BT'
+      unique_id: iphone_max_bt
+      in_zones: >
+        {{ [] if states('sensor.max_home_confidence')|int(threshold_home) < threshold_home else ['zone.home'] }} 
+      #attributes:
+      #source_type: bluetooth #kann nicht gesetzt werden
+    - unique_id: iphone_ing_bt
+      name: 'iPhone Ing BT'
+      in_zones: >
+        {{ [] if states('sensor.ing_home_confidence')|int(threshold_home) < threshold_home else ['zone.home'] }} 
+    - unique_id: iphone_heidi_bt
+      name: 'iPhone Heidi BT'
+      in_zones: >
+        {{ [] if states('sensor.home_confidence_heidi')|int(threshold_home) < threshold_home else ['zone.home'] }} 
+
   - sensor:
     # Status sensors for each person. input_select values are set by automations.
     - unique_id: max_status
@@ -462,32 +445,34 @@ script:
   # It will toggle the device state 'home' <-> 'not_home'
   #   my_entity: must be the home assistant entity_id
   #   my_device: just the name without 'device_tracker.'
-  toogle_bt_device_status:
-    alias: 'toogle BT-device status'
-    description: "Wechselt den Status eines BT-Geräts von 'home' <-> 'not_home'"
-    fields:
-      my_entity:
-        description: 'Name der BT-Geräts aus der Domain device_tracker'
-        example: 'device_tracker.my_iphone_bt'
-      my_device:
-        description: 'Gerätename ohne Domain'
-        example: 'my_phone_bt'
-    mode: parallel
-    sequence:
-      - choose:
-          conditions: "{{ is_state(my_entity,'home') }}"
-          sequence:
-            - action: device_tracker.see
-              data:
-                dev_id: "{{ my_device }}"
-                location_name: not_home
-                source_type: bluetooth
-        default:
-            - action: device_tracker.see
-              data:
-                dev_id: "{{ my_device }}"
-                location_name: home
-                source_type: bluetooth
+  # deactivated 10/2026, because 'device_tracker.see' was deprecated
+  #
+  # toogle_bt_device_status:
+  #   alias: 'toogle BT-device status'
+  #   description: "Wechselt den Status eines BT-Geräts von 'home' <-> 'not_home'"
+  #   fields:
+  #     my_entity:
+  #       description: 'Name der BT-Geräts aus der Domain device_tracker'
+  #       example: 'device_tracker.my_iphone_bt'
+  #     my_device:
+  #       description: 'Gerätename ohne Domain'
+  #       example: 'my_phone_bt'
+  #   mode: parallel
+  #   sequence:
+  #     - choose:
+  #         conditions: "{{ is_state(my_entity,'home') }}"
+  #         sequence:
+  #           - action: device_tracker.see
+  #             data:
+  #               dev_id: "{{ my_device }}"
+  #               location_name: not_home
+  #               source_type: bluetooth
+  #       default:
+  #           - action: device_tracker.see
+  #             data:
+  #               dev_id: "{{ my_device }}"
+  #               location_name: home
+  #               source_type: bluetooth
 
   restart_monitor:
     # if mqtt confidence values get unavailable, then we have to restart monitor script
@@ -575,40 +560,39 @@ automation:
   # We stick to the device_tracker sensors because they were already in use...input_boolean would be fine too...
   # ...and I like the idea, that the monitor.sh scripts are just a better source for the intended bluetooth device_trackers.
 
-  - alias: change person occupancy
-    id: change_person_occupancy
-    description: 'Changes the BT device tracker status for a person when the home confidence value drops or raises above threshold.'
-    mode: queued # oder: parallel ?
-    triggers:
-      - trigger: numeric_state
-        <<: &sensor_home_confidence_list
-          entity_id: 
-            - sensor.max_home_confidence # Person 1
-            - sensor.ing_home_confidence # Person 2
-            - sensor.home_confidence_heidi
-#            - sensor.home_confidence_winfried
-        above: *int_confidence_threshold_home
-        id: turn_occupany_on
-      - trigger: numeric_state
-        <<: *sensor_home_confidence_list
-        below: *int_confidence_threshold_home
-        id: turn_occupany_off
-    variables:
-      <<: &sensor_device_map
-        device_map:
-          sensor.max_home_confidence: iphone_max_bt # Person 1
-          sensor.ing_home_confidence: iphone_ing_bt # Person 2
-          sensor.home_confidence_heidi: iphone_heidi_bt # Gast 1
-#          sensor.home_confidence_winfried: iphone_winfried_bt # Gast2
-      device_tracker_entity: >
-        {{ device_map[trigger.entity_id] }}
-    actions:
-      - action: device_tracker.see
-        data:
-          dev_id: "{{ device_tracker_entity }}"
-          location_name: >
-            {{ 'home' if trigger.id == 'turn_occupany_on' else 'not_home' }}
-          source_type: bluetooth
+#deaktiviert 10/2026, wegen deprecation von device_tracker.see
+#   - alias: change person occupancy
+#     id: change_person_occupancy
+#     description: 'Changes the BT device tracker status for a person when the home confidence value drops or raises above threshold.'
+#     mode: queued # oder: parallel ?
+#     triggers:
+#       - trigger: numeric_state
+#         <<: &sensor_home_confidence_list
+#           entity_id: 
+# #            - sensor.max_home_confidence # Person 1
+#             - sensor.ing_home_confidence # Person 2
+#             - sensor.home_confidence_heidi # Gast 1
+#         above: *int_confidence_threshold_home
+#         id: turn_occupany_on
+#       - trigger: numeric_state
+#         <<: *sensor_home_confidence_list
+#         below: *int_confidence_threshold_home
+#         id: turn_occupany_off
+#     variables:
+#       <<: &sensor_device_map
+#         device_map:
+# #          sensor.max_home_confidence: iphone_max_bt # Person 1
+#           sensor.ing_home_confidence: iphone_ing_bt # Person 2
+#           sensor.home_confidence_heidi: iphone_heidi_bt # Gast 1
+#       device_tracker_entity: >
+#         {{ device_map[trigger.entity_id] }}
+#     actions:
+#       - action: device_tracker.see
+#         data:
+#           dev_id: "{{ device_tracker_entity }}"
+#           location_name: >
+#             {{ 'home' if trigger.id == 'turn_occupany_on' else 'not_home' }}
+#           source_type: bluetooth
 
   # Enhancements for BlueTooth monitor.sh 
   # 1) If confidence starts to drop in one area, we trigger an arrival scan in the other areas 

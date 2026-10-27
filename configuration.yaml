@@ -55,7 +55,7 @@ my:
 ## Includes (mostly moved to packages)
 ################################################################
 automation: !include automations.yaml #used for blueprints
-#zone: !include includes/zones.yaml
+zone: !include includes/zones.yaml #'home' zone wird automatisch angelegt und radius kann nur über yaml geändert werden
 
 ################################################################
 ## Radio-Devices
